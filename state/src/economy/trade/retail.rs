@@ -263,11 +263,37 @@ const INCOME_SMOOTHING_ALPHA: f64 = 0.50;
 /// stocked decayed geometrically to a zero cash stock regardless of
 /// income (Venedia's aristocracy ended the crucible at 0.09/capita while
 /// drawing ~20M/turn in manorial dues). Wealthy classes only accumulated
-/// by accident of goods shortages. A 15% saving share makes equilibrium
-/// stock = saved_income / MAX_SAVINGS_DRAWDOWN_RATE — proportional to
-/// class income — so the savings hierarchy tracks the income hierarchy
-/// (Aristocracy ≫ Serf) instead of shelf-stocking luck.
-const SAVINGS_PROPENSITY: f64 = 0.85;
+/// by accident of goods shortages.
+///
+/// The saving share is WEALTH-GRADED (Engle curve): a class at the
+/// average wage spends everything — mass-market demand is preserved —
+/// while a class at ≥5× the average wage saves up to `SAVE_MAX_SHARE`
+/// of permanent income. Equilibrium stock = saved_income /
+/// MAX_SAVINGS_DRAWDOWN_RATE — proportional to class income — so the
+/// savings hierarchy tracks the income hierarchy (Aristocracy ≫ Serf)
+/// instead of shelf-stocking luck, WITHOUT the flat 15% demand tax that
+/// tipped Dacia's marginal energy sector into restructuring collapse.
+const SAVE_MAX_SHARE: f64 = 0.25;
+const SAVE_RAMP_START_WAGES: f64 = 1.0;
+const SAVE_RAMP_SPAN_WAGES: f64 = 4.0;
+
+/// Fraction of permanent income a class may spend this turn: 1.0 at or
+/// below the average wage, ramping linearly to `1.0 − SAVE_MAX_SHARE`
+/// at `SAVE_RAMP_START_WAGES + SAVE_RAMP_SPAN_WAGES` times the average
+/// wage and above.
+fn savings_propensity(
+    demographics: &crate::society::geography::ClassDemographics,
+    average_wage: f64,
+) -> f64 {
+    let income_pc = if demographics.population > 0 {
+        demographics.smoothed_income / demographics.population as f64
+    } else {
+        0.0
+    };
+    let wage = average_wage.max(1.0);
+    let w = ((income_pc / wage) - SAVE_RAMP_START_WAGES) / SAVE_RAMP_SPAN_WAGES;
+    1.0 - SAVE_MAX_SHARE * w.clamp(0.0, 1.0)
+}
 
 /// v4.18 WS1: solvency signal (savings/capita) at which durable upgrade
 /// demand reaches full strength — scaled linearly below it so the
@@ -311,7 +337,6 @@ pub fn class_spend_capacity(
     demographics: &crate::society::geography::ClassDemographics,
     average_wage: f64,
 ) -> f64 {
-    let _ = average_wage; // income is measured from the pocket, not proxied
     let stock = demographics.savings_stock_turn_start.max(0.0);
     // Permanent income (EWMA of realized inflow), not the raw inflow:
     // spending the live figure turn-for-turn re-creates the wage-cycle
@@ -320,7 +345,8 @@ pub fn class_spend_capacity(
     // Loan principal is spendable cash but NOT income — it sits in the
     // capacity base as its own term so credit-financed demand still works,
     // while `income_now`/`consumer_credit_demand` see only real earnings.
-    let raw = demographics.smoothed_income.max(0.0) * SAVINGS_PROPENSITY
+    let raw = demographics.smoothed_income.max(0.0)
+        * savings_propensity(demographics, average_wage)
         + stock * MAX_SAVINGS_DRAWDOWN_RATE
         + demographics.loan_inflow_this_turn.max(0.0);
     // Conservation ceiling: never demand beyond the whole balance.
@@ -1853,6 +1879,7 @@ pub fn settle_b2c_clearing(
     store_id_to_owner: &rustc_hash::FxHashMap<String, String>,
     company_id_to_idx: &rustc_hash::FxHashMap<String, usize>,
     settle_prices: &BTreeMap<Commodity, f64>,
+    average_wage: f64,
 ) -> (f64, f64, f64) {
     // v4.18 WS1: Refresh each class's habitual spending-capacity anchor once
     // per turn, BEFORE this turn's retail debits, so the anchor reflects the
@@ -1897,7 +1924,8 @@ pub fn settle_b2c_clearing(
         // the t≈12-14 capacity spike the crucible caught. Storing the
         // clamped value makes the ±15% band truly recursive: the sequence
         // of spendable-power values can never move faster than the band.
-        let raw_basis = demo.smoothed_income.max(0.0) * SAVINGS_PROPENSITY
+        let raw_basis = demo.smoothed_income.max(0.0)
+            * savings_propensity(demo, average_wage)
             + demo.savings_stock_turn_start.max(0.0) * MAX_SAVINGS_DRAWDOWN_RATE
             + demo.loan_inflow_this_turn.max(0.0);
         demo.prev_spend_capacity = if demo.prev_spend_capacity <= 0.0 {

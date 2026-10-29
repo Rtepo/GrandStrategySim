@@ -745,6 +745,17 @@ pub fn distribute_grid_power(
         season,
     );
 
+    #[cfg(feature = "diagnostic")]
+    {
+        let tot_s: f64 = supply_mw.values().sum();
+        let tot_d: f64 = demand_mw.values().sum();
+        let tot_c: f64 = max_capacity_mw.values().sum();
+        eprintln!(
+            "GRIDSUP[{}]: supply={:.1} demand={:.1} cap={:.1}",
+            country.name, tot_s, tot_d, tot_c
+        );
+    }
+
     // Record initial values.
     for region in &country.regions {
         let s = supply_mw.get(&region.id).copied().unwrap_or(0.0);
@@ -1099,6 +1110,41 @@ pub fn distribute_grid_power(
                 plant_id.clone(),
                 (wage_bill + fuel_cost) * (1.0 + UTILITY_REGULATED_RETURN),
             ));
+        }
+
+        // Grid-collapse fix: plants with a crew but empty fuel inventory
+        // offer nothing to the merit stack, so the offtake above skips them
+        // — yet they still burn the same payroll every turn. Inside ~2
+        // turns of fuel starvation the cash drain pushes the owner into
+        // distress → restructure → `worker_capacity` write-offs → the grid
+        // loses nameplate permanently and never recovers (the absorbing
+        // blackout the take-or-pay contract exists to prevent). Settle the
+        // wage bill (no fuel leg — nothing was generated) for staffed
+        // energy buildings that offered no output, so the crew survives
+        // the shortage instead of the capacity dying with it.
+        for building in buildings.iter() {
+            if building.sector != Sector::Energy
+                || building.current_employment == 0
+                || &building.region_id != region_id
+            {
+                continue;
+            }
+            if merit_stack.iter().any(|(id, _, mw)| &building.id == id && *mw > 0.0) {
+                continue; // Already settled above with the fuel leg.
+            }
+            let wage_multiplier = building.active_method.experts_ratio * 3.0
+                + building.active_method.skilled_ratio * 2.0
+                + building.active_method.basic_ratio;
+            let wage_bill = building.current_employment as f64
+                * building.scale_factor.max(1) as f64
+                * average_wage
+                * wage_multiplier;
+            if wage_bill > 0.0 {
+                pending_settlements.push((
+                    building.id.clone(),
+                    wage_bill * (1.0 + UTILITY_REGULATED_RETURN),
+                ));
+            }
         }
 
         // Record final supply/demand.

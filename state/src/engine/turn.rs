@@ -2098,6 +2098,113 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
             // Merge deferred trades into the country's deferred list.
             task.ctx.country.deferred_trades.extend(new_deferred);
 
+            // v4.24 freight elasticity: backlog-responsive surge hiring in
+            // TransportLogistics. Rigid carrier capacity stranded
+            // 20k-74k units/turn while millions sat unemployed — let
+            // carriers bid above their seated baseline in proportion to
+            // the deferred/capacity ratio so idle workers flow into
+            // auxiliary carting/hauling shifts and the squeeze unwinds
+            // endogenously over the next few turns. Endogenous — no
+            // money moves here; the FreightCapacity they produce scales
+            // with employment.
+            let backlog_units: f64 = task
+                .ctx
+                .country
+                .deferred_trades
+                .iter()
+                .map(|d| d.trade.quantity)
+                .sum();
+            let secured_units: f64 =
+                secured_trades.iter().map(|t| t.quantity).sum();
+            if backlog_units > 0.0 {
+                let fleet_cap: f64 = task
+                    .ctx
+                    .buildings
+                    .iter()
+                    .map(|b| {
+                        b.inventory
+                            .get(&crate::registries::enums::Commodity::FreightCapacity)
+                            .copied()
+                            .unwrap_or(0.0)
+                    })
+                    .sum();
+                let surge = (backlog_units / fleet_cap.max(1.0)).min(1.0);
+                if surge > 0.0 {
+                    for c in task.companies.iter_mut() {
+                        if c.sector == Sector::TransportLogistics
+                            && c.physical_fte_demand > 0
+                        {
+                            c.target_fte_demand =
+                                (c.physical_fte_demand as f64 * (1.0 + surge))
+                                    .round() as u32;
+                        }
+                    }
+                }
+
+                // v4.24 statist stimulus (ideology-gated): dirigiste,
+                // socialist and state-capitalist regimes fund a
+                // counter-cyclical logistics stimulus through state
+                // development credit — carrier payroll subsidies sized by
+                // the surge-crew wage bill, absorbing idle workers into
+                // productive freight employment rather than passive cash
+                // relief. Liberal economies rely on the private
+                // surge-hiring response alone.
+                let ruling = crate::politics::crisis_management::get_ruling_ideology(
+                    &task.ctx.country.politics,
+                );
+                let statist = matches!(
+                    ruling,
+                    crate::politics::ideology::Ideology::OrthodoxMarxism
+                        | crate::politics::ideology::Ideology::MarxismLeninism
+                        | crate::politics::ideology::Ideology::Maoism
+                        | crate::politics::ideology::Ideology::SocialDemocracy
+                        | crate::politics::ideology::Ideology::Fascism
+                        | crate::politics::ideology::Ideology::NationalConservatism
+                );
+                let flow_units = backlog_units + secured_units;
+                let bottleneck_share = if flow_units > 0.0 {
+                    backlog_units / flow_units
+                } else {
+                    0.0
+                };
+                let unemp_pct = task
+                    .ctx
+                    .country
+                    .macro_indicators
+                    .labor_market
+                    .unemployment_rate;
+                if statist
+                    && surge > 0.0
+                    && (unemp_pct > 15.0 || bottleneck_share > 0.10)
+                {
+                    let avg_wage = task
+                        .ctx
+                        .country
+                        .macro_indicators
+                        .average_wage
+                        .max(1.0);
+                    let stimulus = surge * fleet_cap * avg_wage;
+                    if stimulus > 0.0 {
+                        // State development credit: M0-tracked central-bank
+                        // issuance paid straight into carrier payrolls,
+                        // pro-rata by fleet capacity — the same booked
+                        // channel the works-program advance uses.
+                        task.ctx.country.central_bank.liquidity_injected +=
+                            stimulus;
+                        for c in task.companies.iter_mut() {
+                            if c.sector != Sector::TransportLogistics
+                                || c.worker_capacity == 0
+                            {
+                                continue;
+                            }
+                            c.available_cash += stimulus
+                                * c.worker_capacity as f64
+                                / fleet_cap;
+                        }
+                    }
+                }
+            }
+
             #[cfg(feature = "diagnostic")]
             let _res_pre: f64 = task
                 .companies
@@ -8735,6 +8842,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     .iter()
                     .map(|(c, _qty, vwap)| (*c, *vwap))
                     .collect();
+                let b2c_avg_wage = task.ctx.country.macro_indicators.average_wage.max(1.0);
                 let (b2c_settled, vat_collected, municipal_revenue) = settle_b2c_clearing(
                     &clearing_result.store_revenue,
                     &consumer_demand,
@@ -8745,6 +8853,7 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
                     &task.store_id_to_owner,
                     &task.company_id_to_idx,
                     &settle_prices,
+                    b2c_avg_wage,
                 );
                 // Phase 41: Credit treasury with VAT (SINGLE credit — no double-counting in tax turn).
                 // Municipal-market revenue from orphaned stores also returns

@@ -806,7 +806,23 @@ pub fn procure_freight_and_split_trades(
         }
     }
 
-    for trade in trades {
+    // v4.24 freight elasticity: allocate scarce carrier capacity by
+    // willingness-to-pay (contract value), not blind FIFO. The match
+    // order arrives in bid order — under a capacity squeeze that starved
+    // multi-megawatt power-fuel shipments behind trivial parcels until
+    // whole grids blacked out. Sorting by executed trade value (qty ×
+    // price, deterministic with a stable tie-break on ids) secures bulk
+    // industrial freight first; minor shipments defer instead.
+    let mut ordered: Vec<&Trade> = trades.iter().collect();
+    ordered.sort_by(|a, b| {
+        (b.quantity * b.execution_price)
+            .partial_cmp(&(a.quantity * a.execution_price))
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.buyer_id.cmp(&b.buyer_id))
+            .then_with(|| a.seller_id.cmp(&b.seller_id))
+    });
+
+    for trade in ordered {
         // Determine buyer and seller regions.
         let buyer_region = company_region.get(&trade.buyer_id);
         let seller_region = company_region.get(&trade.seller_id);

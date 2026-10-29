@@ -3372,6 +3372,17 @@ pub fn process_furlough_attrition(companies: &mut [Company]) {
         // slow attrition path — winter crews legitimately wait out the
         // season.
         const DISTRESS_FURLOUGH_HARD_RELEASE_TURNS: u32 = 8;
+        // Grid-collapse fix: release the dead bench GRADUALLY, not as a
+        // cliff. Genesis seats a ~4.6M-worker distress backlog; when every
+        // company's counter crossed turn 8 simultaneously the entire bench
+        // dumped into `available` in one step — the unemployment print
+        // spiked to ~40%, the works program drew ~85% of reserves at once,
+        // and the treasury was pinned at zero permanently while the tax
+        // base bled out behind it. Shedding a quarter of the bench per
+        // turn keeps the release on the same schedule (fully drained
+        // ~turn 12) while spreading the labor-market and fiscal shock
+        // over several turns the economy can actually absorb.
+        const DISTRESS_FURLOUGH_RELEASE_FRACTION: f64 = 0.25;
         let is_seasonal_standby = company
             .seasonal_profile
             .as_ref()
@@ -3383,7 +3394,15 @@ pub fn process_furlough_attrition(companies: &mut [Company]) {
             && company.furlough_turns_accumulated >= DISTRESS_FURLOUGH_HARD_RELEASE_TURNS
             && company.furloughed_workers_count > 0.0
         {
-            company.furloughed_workers_count = 0.0;
+            let remaining =
+                company.furloughed_workers_count * (1.0 - DISTRESS_FURLOUGH_RELEASE_FRACTION);
+            // Flush the tail outright once the bench is small enough that
+            // rounding would park workers on a dead attachment forever.
+            company.furloughed_workers_count = if remaining < 25.0 {
+                0.0
+            } else {
+                remaining
+            };
         }
     }
 }

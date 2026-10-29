@@ -26,6 +26,16 @@ use std::collections::BTreeMap;
 
 type HashMap<K, V> = FxHashMap<K, V>;
 
+/// How far above the normal markup cap a power plant's input bid may
+/// reach. Asks can never price above `(1 + max_markup) × cost`, so the
+/// extra headroom is pure tie-break priority — a power plant outranks
+/// every industrial buyer competing for the same scarce fuel rather
+/// than overpaying when supply is plentiful. Kept infinitesimal on
+/// purpose: `limit_price` also sizes the cash encumbrance, and a real
+/// premium inflates `total_desired_encumbrance` until the shared
+/// `coverage` scaler shrinks the very quantities we want delivered.
+const ENERGY_BID_PRIORITY_EPSILON: f64 = 1.0e-3;
+
 /// Dynamically compute aggregate inventory for a company by iterating its buildings.
 ///
 /// # Arguments
@@ -589,7 +599,27 @@ pub fn submit_company_b2b_orders(
                 // A/B runs cost ~40 points of aggregate unemployment
                 // (11.9% → 51.4%). The economy is income-demand
                 // constrained, not inventory-signaling constrained.
-                let restock_deficit = (per_turn_need * 2.0 - on_hand).max(0.0);
+                //
+                // Grid-collapse fix (v4.24 structural): on-site fuel depot
+                // policy. A power plant's building inventory IS its
+                // przyzakładowy magazyn paliw — a 10-turn cover on fuel
+                // inputs means the plant stockpiles ~1.5 months of burn
+                // on-site, replenished whenever freight capacity allows,
+                // and consumes it with zero same-turn inter-regional
+                // freight. The default 2-turn cover leaves a plant
+                // just-in-time: one missed delivery cycle zeroes its
+                // stock and a staffed, solvent grid blacks out for want
+                // of inventory — competing head-to-head with household
+                // Peat Stove heating in the same delivery window.
+                // Generation is critical infrastructure: deeper bids also
+                // win a larger pro-rata share under supply scarcity.
+                let stock_cover_turns = if building.sector == Sector::Energy {
+                    10.0
+                } else {
+                    2.0
+                };
+                let restock_deficit =
+                    (per_turn_need * stock_cover_turns - on_hand).max(0.0);
                 let desired_qty = restock_deficit;
                 if desired_qty <= 0.0 {
                     continue;
@@ -626,7 +656,23 @@ pub fn submit_company_b2b_orders(
                     .get(&commodity)
                     .copied()
                     .unwrap_or(0.0);
-                let limit_cap = base_price * (1.0 + config.max_markup_ratio);
+                // Grid-collapse fix: generation is critical infrastructure.
+                // Under scarcity every chronically-unfilled buyer ratchets to
+                // the same markup cap and the book degenerates to a tie —
+                // sort order then decides who eats, and power plants were
+                // losing scarce fuel to industrial boilers while a staffed,
+                // solvent grid starved. Energy-sector input bids get a tiny
+                // epsilon above the cap so plants strictly outrank
+                // non-critical buyers; they still settle at the executed ask
+                // price, so the priority costs nothing when fuel is
+                // abundant.
+                let limit_cap = base_price
+                    * (1.0 + config.max_markup_ratio)
+                    * if building.sector == Sector::Energy {
+                        1.0 + ENERGY_BID_PRIORITY_EPSILON
+                    } else {
+                        1.0
+                    };
                 let limit_price = if last_unfilled > 0.0 {
                     (last_unfilled * 1.20)
                         .min(limit_cap)
@@ -2488,7 +2534,28 @@ pub fn execute_production_cycle(
             let required = qty_per_1k * production_scale;
             if required > 0.0 {
                 let available = building.inventory.get(&commodity).copied().unwrap_or(0.0);
-                let ratio = available / required;
+                // Grid-collapse fix: a producer whose own OUTPUT sits in the
+                // same substitution group as this input can burn that share
+                // of current production — a coal mine literally fuels its
+                // boilers on the coal it digs. Without this the
+                // extraction↔energy chain has an absorbing zero-inventory
+                // deadlock: once the fuel market empties, a fully crewed
+                // mine cannot restart because it needs fuel to make fuel.
+                // Capacity basis (nameplate), consistent with the rest of
+                // the gate; the actual draw is netted from the produced
+                // quantity below, so nothing is fabricated.
+                let self_supply: f64 = method
+                    .outputs
+                    .iter()
+                    .filter(|(out, _)| {
+                        (commodity.is_fuel() && out.is_fuel())
+                            || crate::registries::production_methods::substitution_groups()
+                                .iter()
+                                .any(|g| g.contains(&commodity) && g.contains(out))
+                    })
+                    .map(|(_, q)| *q * production_scale)
+                    .sum();
+                let ratio = (available + self_supply) / required;
                 if ratio < fulfillment_ratio {
                     fulfillment_ratio = ratio;
                     #[cfg(feature = "diagnostic")]
@@ -2643,6 +2710,11 @@ pub fn execute_production_cycle(
 
         // Consume inputs (skip fixed-asset commodities — they're not consumed).
         let mut inputs_consumed: HashMap<Commodity, f64> = HashMap::default();
+        // Self-consumption draws: the share of required input covered by
+        // this turn's own group-member output (see the fulfillment gate
+        // above) — netted from the produced quantity at output credit so
+        // mass is conserved (fuel burned was fuel dug this turn).
+        let mut self_draws: HashMap<Commodity, f64> = HashMap::default();
         for (&commodity, &qty_per_1k) in &method.inputs {
             if commodity.is_fixed_asset() {
                 continue;
@@ -2675,6 +2747,23 @@ pub fn execute_production_cycle(
                     building.inventory.remove(&commodity);
                 }
                 inputs_consumed.insert(commodity, consumed);
+                // Grid-collapse fix: the still-unfilled remainder of an
+                // input leg that the fulfillment gate counted as
+                // self-supplied is drawn from this turn's own output —
+                // netted at output credit below.
+                let self_needed = required - consumed;
+                if self_needed > 0.0 {
+                    let self_covered = method.outputs.keys().any(|out| {
+                        (commodity.is_fuel() && out.is_fuel())
+                            || crate::registries::production_methods::substitution_groups()
+                                .iter()
+                                .any(|g| g.contains(&commodity) && g.contains(out))
+                    });
+                    if self_covered {
+                        *self_draws.entry(commodity).or_insert(0.0) += self_needed;
+                        *inputs_consumed.entry(commodity).or_insert(0.0) += self_needed;
+                    }
+                }
             }
         }
 
@@ -2734,9 +2823,22 @@ pub fn execute_production_cycle(
         for (&commodity, &qty_per_1k) in &method.outputs {
             let produced =
                 qty_per_1k * production_scale * fulfillment_ratio * efficiency * machinery_factor;
-            if produced > 0.0 {
-                *building.inventory.entry(commodity).or_insert(0.0) += produced;
-                outputs_produced.insert(commodity, produced);
+            // Net out self-consumption draws against the group-member
+            // output they were counted against (mine burns its own coal).
+            let self_consumed: f64 = self_draws
+                .iter()
+                .filter(|(inp, _)| {
+                    (inp.is_fuel() && commodity.is_fuel())
+                        || crate::registries::production_methods::substitution_groups()
+                            .iter()
+                            .any(|g| g.contains(inp) && g.contains(&commodity))
+                })
+                .map(|(_, q)| *q)
+                .sum();
+            let net_produced = (produced - self_consumed).max(0.0);
+            if net_produced > 0.0 {
+                *building.inventory.entry(commodity).or_insert(0.0) += net_produced;
+                outputs_produced.insert(commodity, net_produced);
             }
         }
 
