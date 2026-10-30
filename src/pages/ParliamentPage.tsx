@@ -1453,6 +1453,15 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
     15,
     ...[...trendParties.values()].flatMap((pts) => pts.map(([, v]) => v)),
   ) + 5;
+  // v4.25.0 WS6: true rolling 24-turn window — anchor the X axis to the
+  // latest recorded turn [maxTurn-23 .. maxTurn] instead of `dataMin`, so
+  // the window slides continuously and never resets/clips at the buffer's
+  // oldest retained point.
+  const trendMaxTurn = (data.support_history ?? []).reduce(
+    (m, s) => Math.max(m, s.turn),
+    0,
+  );
+  const trendMinTurn = Math.max(0, trendMaxTurn - 23);
 
   return (
     <div className="space-y-4">
@@ -1552,14 +1561,20 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
       {trendSeries.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Party Support Trend (Last {data.support_history.length} Turns)</CardTitle>
+            <CardTitle>Party Support Trend (Last {trendMaxTurn - trendMinTurn + 1} Turns)</CardTitle>
           </CardHeader>
           <CardContent>
             <EChart
               style={{ height: 220 }}
               option={{
                 grid: { left: 44, right: 16, top: 36, bottom: 30 },
-                xAxis: { type: "value", name: "Turn", min: "dataMin", axisLabel: { fontSize: 10 } },
+                xAxis: {
+                  type: "value",
+                  name: "Turn",
+                  min: trendMinTurn,
+                  max: trendMaxTurn,
+                  axisLabel: { fontSize: 10 },
+                },
                 yAxis: {
                   type: "value",
                   name: "Support %",
