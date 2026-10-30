@@ -1027,6 +1027,15 @@ pub struct GameState {
     /// Phase 66: Diplomatic configuration (spy risk, relation penalties, costs).
     #[serde(default)]
     pub diplomatic_config: crate::international::fog_of_war::DiplomaticConfig,
+    /// v4.25.0 WS7: Per-country intelligence agencies — foreign covert
+    /// operations, counter-intelligence ledgers. Keyed by country name.
+    #[serde(default)]
+    pub intelligence_agencies:
+        HashMap<String, crate::international::intelligence::IntelligenceAgency>,
+    /// v4.25.0 WS7: Intelligence configuration (operation progress,
+    /// compromise risk, espionage transfer caps).
+    #[serde(default)]
+    pub intelligence_config: crate::international::intelligence::IntelligenceConfig,
     /// Phase 67: Treaty registry (all treaties: active, pending, expired, abrogated).
     pub treaty_registry: crate::international::treaties::TreatyRegistry,
     /// v4.22.1 WS5.3: Bilateral diplomatic tensions feeding war escalation —
@@ -1088,6 +1097,9 @@ impl GameState {
             foreign_intelligence: HashMap::new(),
             fog_of_war_config: crate::international::fog_of_war::FogOfWarConfig::default(),
             diplomatic_config: crate::international::fog_of_war::DiplomaticConfig::default(),
+            intelligence_agencies: HashMap::new(),
+            intelligence_config:
+                crate::international::intelligence::IntelligenceConfig::default(),
             treaty_registry: crate::international::treaties::TreatyRegistry::default(),
             bilateral_tensions: HashMap::new(),
             declared_wars: Vec::new(),

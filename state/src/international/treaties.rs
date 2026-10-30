@@ -111,6 +111,9 @@ pub enum TreatyStatus {
     Abrogated,
     /// Treaty has expired naturally after its duration.
     Expired,
+    /// v4.25.0 WS7: negotiations collapsed — a party formally rejected
+    /// the draft before signature (relations breakdown during talks).
+    Rejected,
 }
 
 impl TreatyStatus {
@@ -123,8 +126,31 @@ impl TreatyStatus {
             TreatyStatus::Suspended => "Suspended",
             TreatyStatus::Abrogated => "Abrogated",
             TreatyStatus::Expired => "Expired",
+            TreatyStatus::Rejected => "Rejected",
         }
     }
+}
+
+/// v4.25.0 WS7: One entry in a treaty's negotiation log — who proposed,
+/// counter-offers tabled, and why the treaty was signed, suspended,
+/// resumed, abrogated, expired, or rejected. Recorded on the treaty so the
+/// expanded row can render the full negotiation history.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct TreatyNegotiationEvent {
+    /// Turn the event occurred.
+    #[serde(default)]
+    pub turn: u32,
+    /// Actor behind the event — a participant country, or "Secretariat"
+    /// for lifecycle bookkeeping (expiry, suspension bookkeeping).
+    #[serde(default)]
+    pub actor: String,
+    /// Event kind: "proposal" | "opened" | "counter_offer" | "signed" |
+    /// "rejected" | "suspended" | "resumed" | "abrogated" | "expired".
+    #[serde(default)]
+    pub kind: String,
+    /// Human-readable detail (clauses, reasons, counterparties).
+    #[serde(default)]
+    pub detail: String,
 }
 
 /// A multi-party treaty with clauses, negotiation progress, and lifecycle.
@@ -163,10 +189,15 @@ pub struct Treaty {
     /// Country that initiated the treaty proposal.
     #[serde(default)]
     pub initiator: String,
+    /// v4.25.0 WS7: negotiation log — proposals, counter-offers, and
+    /// lifecycle transitions in chronological order.
+    #[serde(default)]
+    pub negotiation_log: Vec<TreatyNegotiationEvent>,
 }
 
 impl Treaty {
     /// Creates a new proposed treaty with computed capacity cost.
+    /// Seeds the negotiation log with the proposal entry.
     pub fn new(
         id: String,
         name: String,
@@ -177,7 +208,7 @@ impl Treaty {
         initiator: String,
     ) -> Self {
         let base_cost: u32 = clauses.iter().map(|c| c.base_capacity_cost()).sum();
-        Self {
+        let mut treaty = Self {
             id,
             name,
             participants,
@@ -189,7 +220,65 @@ impl Treaty {
             signed_turn: None,
             duration_turns,
             initiator,
+            negotiation_log: Vec::new(),
+        };
+        let clause_list = treaty
+            .clauses
+            .iter()
+            .map(|c| c.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
+        let counterparties = treaty
+            .participants
+            .iter()
+            .filter(|p| **p != treaty.initiator)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join(", ");
+        treaty.record_event(
+            initiated_turn,
+            treaty.initiator.clone(),
+            "proposal",
+            format!(
+                "Proposed a {duration}-turn pact ({clause_list}) to {counterparties}",
+                duration = treaty.duration_turns,
+            ),
+        );
+        treaty
+    }
+
+    /// v4.25.0 WS7: append a negotiation-log entry. Consecutive identical
+    /// (actor, kind) entries are coalesced so sustained friction does not
+    /// flood the log with duplicate counter-offers.
+    pub fn record_event(
+        &mut self,
+        turn: u32,
+        actor: impl Into<String>,
+        kind: impl Into<String>,
+        detail: impl Into<String>,
+    ) {
+        let actor = actor.into();
+        let kind = kind.into();
+        let dominated = self
+            .negotiation_log
+            .last()
+            .map(|e| e.actor == actor && e.kind == kind)
+            .unwrap_or(false);
+        if dominated {
+            // Refresh the timestamp/detail of the last entry instead of
+            // pushing a duplicate.
+            if let Some(last) = self.negotiation_log.last_mut() {
+                last.turn = turn;
+                last.detail = detail.into();
+            }
+            return;
         }
+        self.negotiation_log.push(TreatyNegotiationEvent {
+            turn,
+            actor,
+            kind,
+            detail: detail.into(),
+        });
     }
 
     /// Returns true if both countries are participants in this treaty.
@@ -299,6 +388,11 @@ impl TreatyRegistry {
     }
 
     /// Advances negotiation progress for all pending treaties.
+    ///
+    /// v4.25.0 WS7: every step is written to the treaty's negotiation
+    /// log — the table opens, counter-offers are tabled while relations
+    /// are hostile, drafts are rejected when bilateral relations collapse
+    /// outright, and signature closes the record.
     pub fn advance_negotiations(
         &mut self,
         current_turn: u32,
@@ -309,13 +403,41 @@ impl TreatyRegistry {
         >,
         ambassador_counts: &BTreeMap<String, BTreeMap<String, u32>>,
     ) {
+        /// v4.25.0 WS7: negotiations collapse outright below this average
+        /// pairwise-relations floor — one step colder than the hostility
+        /// band that only slows talks to a crawl.
+        const REJECT_RELATIONS_FLOOR: f64 = -60.0;
+
+        let rel_between = |a: &str, b: &str| -> f64 {
+            diplomacy
+                .get(a)
+                .and_then(|p| p.get(b))
+                .map(|r| r.relations as f64)
+                .unwrap_or(0.0)
+        };
+
         for treaty in &mut self.treaties {
             if treaty.status != TreatyStatus::Proposed && treaty.status != TreatyStatus::Negotiating
             {
                 continue;
             }
 
-            treaty.status = TreatyStatus::Negotiating;
+            if treaty.status == TreatyStatus::Proposed {
+                treaty.status = TreatyStatus::Negotiating;
+                let others = treaty
+                    .participants
+                    .iter()
+                    .filter(|p| **p != treaty.initiator)
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                treaty.record_event(
+                    current_turn,
+                    treaty.initiator.clone(),
+                    "opened",
+                    format!("All parties entered formal negotiations with {others}"),
+                );
+            }
 
             let mut speed = config.negotiation_speed_base;
 
@@ -333,22 +455,67 @@ impl TreatyRegistry {
             let mut pair_count: f64 = 0.0;
             for i in 0..treaty.participants.len() {
                 for j in (i + 1)..treaty.participants.len() {
-                    let rel = diplomacy
-                        .get(&treaty.participants[i])
-                        .and_then(|p| p.get(&treaty.participants[j]))
-                        .map(|r| r.relations as f64)
-                        .unwrap_or(0.0);
-                    avg_relations += rel;
+                    avg_relations += rel_between(&treaty.participants[i], &treaty.participants[j]);
                     pair_count += 1.0;
                 }
             }
             if pair_count > 0.0 {
                 avg_relations /= pair_count;
-                if avg_relations > 50.0 {
-                    speed += config.good_relations_bonus;
-                } else if avg_relations < -50.0 {
-                    speed -= config.bad_relations_penalty;
+            }
+
+            // The most alienated participant — deterministic (first
+            // participant with the lowest mean pairwise relations).
+            let dissenter = |treaty: &Treaty| -> String {
+                let mut best: Option<(&String, f64)> = None;
+                for p in &treaty.participants {
+                    let mut sum = 0.0;
+                    let mut n = 0.0;
+                    for q in &treaty.participants {
+                        if p != q {
+                            sum += rel_between(p, q) + rel_between(q, p);
+                            n += 2.0;
+                        }
+                    }
+                    let mean = if n > 0.0 { sum / n } else { 0.0 };
+                    if best.map(|(_, s)| mean < s).unwrap_or(true) {
+                        best = Some((p, mean));
+                    }
                 }
+                best.map(|(p, _)| p.clone())
+                    .unwrap_or_else(|| treaty.initiator.clone())
+            };
+
+            // Negotiations collapse below the rejection floor — the most
+            // alienated party walks out.
+            if pair_count > 0.0 && avg_relations <= REJECT_RELATIONS_FLOOR {
+                let actor = dissenter(treaty);
+                treaty.status = TreatyStatus::Rejected;
+                treaty.record_event(
+                    current_turn,
+                    actor,
+                    "rejected",
+                    format!(
+                        "Rejected the draft — bilateral relations collapsed (avg {avg_relations:.0}); negotiations closed"
+                    ),
+                );
+                continue;
+            }
+
+            if avg_relations > 50.0 {
+                speed += config.good_relations_bonus;
+            } else if avg_relations < -50.0 {
+                speed -= config.bad_relations_penalty;
+                // Hostile relations drag talks out — the coldest party
+                // tables revisions (a real counter-offer on the log).
+                let actor = dissenter(treaty);
+                treaty.record_event(
+                    current_turn,
+                    actor,
+                    "counter_offer",
+                    format!(
+                        "Tabled a counter-draft demanding revised terms (avg relations {avg_relations:.0})"
+                    ),
+                );
             }
 
             treaty.negotiation_progress = (treaty.negotiation_progress + speed).min(1.0);
@@ -360,6 +527,12 @@ impl TreatyRegistry {
                 if treaty.duration_turns == 0 {
                     treaty.duration_turns = config.default_duration_turns;
                 }
+                treaty.record_event(
+                    current_turn,
+                    treaty.initiator.clone(),
+                    "signed",
+                    "Signed and ratified by all participants — entered into force",
+                );
             }
         }
     }
@@ -380,6 +553,13 @@ impl TreatyRegistry {
                 if treaty.duration_turns == 0 {
                     treaty.duration_turns = config.default_duration_turns;
                 }
+                let initiator = treaty.initiator.clone();
+                treaty.record_event(
+                    current_turn,
+                    initiator,
+                    "signed",
+                    "Signed and ratified by all participants — entered into force",
+                );
                 return true;
             }
         }
@@ -387,11 +567,25 @@ impl TreatyRegistry {
     }
 
     /// Abrogates a treaty unilaterally — triggers reputation penalty.
+    /// `actor` is the abrogating country (recorded on the negotiation
+    /// log and used for the violation ledger); `current_turn` timestamps
+    /// the log entry.
     /// Returns the treaty that was abrogated (for reputation processing).
-    pub fn abrogate_treaty(&mut self, treaty_id: &str) -> Option<Treaty> {
+    pub fn abrogate_treaty(
+        &mut self,
+        treaty_id: &str,
+        actor: &str,
+        current_turn: u32,
+    ) -> Option<Treaty> {
         if let Some(treaty) = self.treaties.iter_mut().find(|t| t.id == treaty_id) {
             if treaty.status == TreatyStatus::Active {
                 treaty.status = TreatyStatus::Abrogated;
+                treaty.record_event(
+                    current_turn,
+                    actor.to_string(),
+                    "abrogated",
+                    "Withdrew unilaterally — clause obligations ended",
+                );
                 return Some(treaty.clone());
             }
         }
@@ -403,6 +597,12 @@ impl TreatyRegistry {
         for treaty in &mut self.treaties {
             if treaty.is_active() && treaty.is_expired(current_turn) {
                 treaty.status = TreatyStatus::Expired;
+                treaty.record_event(
+                    current_turn,
+                    "Secretariat".to_string(),
+                    "expired",
+                    "Treaty reached the end of its term and elapsed",
+                );
             }
         }
     }
@@ -493,7 +693,7 @@ mod tests {
         assert_eq!(registry.treaties[0].signed_turn, Some(5));
 
         // Abrogate
-        let abrogated = registry.abrogate_treaty("TREATY-000001");
+        let abrogated = registry.abrogate_treaty("TREATY-000001", "A", 6);
         assert!(abrogated.is_some());
         assert_eq!(registry.treaties[0].status, TreatyStatus::Abrogated);
     }

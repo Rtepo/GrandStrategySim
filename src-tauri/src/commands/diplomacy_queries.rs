@@ -343,13 +343,13 @@ pub async fn abrogate_treaty(
         let mut engine_guard = state_clone.engine.blocking_write();
         let engine_state = engine_guard.as_mut().ok_or("No game loaded")?;
 
+        let current_turn = engine_state.game_state.calendar.global_turn;
         let abrogated = engine_state
             .game_state
             .treaty_registry
-            .abrogate_treaty(&treaty_id);
+            .abrogate_treaty(&treaty_id, &abrogating_country, current_turn);
         if let Some(treaty) = abrogated {
             let rep_config = engine_state.game_state.reputation_config.clone();
-            let current_turn = engine_state.game_state.calendar.global_turn;
             if let Some(country) = engine_state
                 .game_state
                 .countries
