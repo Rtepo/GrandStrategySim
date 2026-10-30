@@ -347,7 +347,53 @@ pub fn generate_world(
             });
     }
 
-    let diplomacy = generate_diplomacy(&selected);
+    let mut diplomacy = generate_diplomacy(&selected);
+
+    // v4.25.0 WS2: irredentist border disputes. Countries now share a
+    // continent (WS1 wiring) — a frictionless world where every pair drew
+    // friendly relations never produces the wars the military depth gate
+    // requires. Every border-adjacent pair inherits a standing territorial
+    // dispute: relations pinned hostile (frozen — armistice-line
+    // semantics, so drift cannot thaw the rivalry between wars), and a
+    // tension head-start staggered by pair index so escalation cycles
+    // interleave and at least one front is live through the horizon.
+    // Pair set mirrors `wire_international_land_borders` exactly:
+    // hub↔every ring member + consecutive ring members (sorted order ==
+    // `continent_layout` placement order).
+    {
+        let mut sorted_sel: Vec<String> = selected.clone();
+        sorted_sel.sort();
+        let mut pairs: Vec<(String, String)> = Vec::new();
+        for k in 1..sorted_sel.len() {
+            pairs.push((sorted_sel[0].clone(), sorted_sel[k].clone()));
+        }
+        for i in 1..sorted_sel.len().saturating_sub(1) {
+            pairs.push((sorted_sel[i].clone(), sorted_sel[i + 1].clone()));
+        }
+        for (idx, (a, b)) in pairs.iter().enumerate() {
+            if let Some(m) = diplomacy.get_mut(a) {
+                if let Some(rel) = m.get_mut(b) {
+                    rel.relations = -95;
+                    rel.frozen_turns = 240;
+                }
+            }
+            if let Some(m) = diplomacy.get_mut(b) {
+                if let Some(rel) = m.get_mut(a) {
+                    rel.relations = -95;
+                    rel.frozen_turns = 240;
+                }
+            }
+            let head_start = 20.0 + (idx as f64 % 3.0) * 15.0;
+            state.bilateral_tensions.insert(
+                crate::military::war_declarations::tension_key(a, b),
+                crate::military::war_declarations::BilateralTension {
+                    level: head_start,
+                    total_ever_accumulated: head_start,
+                    provocation_count: 1,
+                },
+            );
+        }
+    }
 
     // Phase 68: Spawn the World Forum — neutral, all countries as members, Unanimity voting.
     let world_forum =
@@ -505,6 +551,116 @@ pub fn generate_world(
     // same anchors, so engine edges and rendered borders always agree).
     // Hash-driven, no RNG draws — downstream generation is unaffected.
     crate::society::geography::wire_international_land_borders(&mut regions);
+
+    // v4.25.0 WS1b: maritime wiring — each country's outermost rim regions
+    // that face open water (no international LandBorder edge) become
+    // coastal: a shared SeaNode + OceanNode are generated per country and
+    // reciprocal Coastline edges are added on the LAND side so
+    // `geographic_traits.has_coastline` (derived from a region's own
+    // edges) is true and freight/navies can route region→sea→region.
+    {
+        use crate::society::geography::{EdgeType, NodeType};
+        // Owner lookup for border detection — needed before mutation.
+        let owner_of: HashMap<String, String> = regions
+            .iter()
+            .map(|(id, r)| (id.clone(), r.owner_country.clone()))
+            .collect();
+        let mut land_by_country: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for region in regions.values() {
+            if region.node_type != NodeType::LandRegion
+                || region.owner_country.is_empty()
+            {
+                continue;
+            }
+            land_by_country
+                .entry(region.owner_country.clone())
+                .or_default()
+                .push(region.id.clone());
+        }
+        for ids in land_by_country.values_mut() {
+            ids.sort();
+        }
+        let mut maritime_to_add: Vec<(String, crate::society::geography::Region)> =
+            Vec::new();
+        for (cname, ids) in &land_by_country {
+            // Outermost rim regions without an international land border
+            // are the coast; a fully landlocked hub still gets one bay.
+            let mut coastal: Vec<String> = ids
+                .iter()
+                .rev()
+                .filter(|rid| {
+                    regions
+                        .get(*rid)
+                        .map(|r| {
+                            !r.edges.iter().any(|e| {
+                                e.edge_type == EdgeType::LandBorder
+                                    && owner_of
+                                        .get(&e.target_node)
+                                        .map(|o| o != cname)
+                                        .unwrap_or(false)
+                            })
+                        })
+                        .unwrap_or(false)
+                })
+                .take(2)
+                .cloned()
+                .collect();
+            if coastal.is_empty() {
+                if let Some(outer) = ids.last() {
+                    coastal.push(outer.clone());
+                }
+            }
+            if coastal.is_empty() {
+                continue;
+            }
+            let sea_id = format!("{cname}-Morze1");
+            let nodes = crate::society::geography::generate_maritime_nodes(
+                cname, &coastal,
+            );
+            for rid in &coastal {
+                if let Some(r) = regions.get_mut(rid) {
+                    if !r.edges.iter().any(|e| {
+                        e.target_node == sea_id && e.edge_type == EdgeType::Coastline
+                    }) {
+                        r.edges.push(crate::society::geography::Edge {
+                            target_node: sea_id.clone(),
+                            edge_type: EdgeType::Coastline,
+                            distance: 50.0,
+                            is_navigable: true,
+                            territorial_owner: Some(cname.clone()),
+                        });
+                    }
+                    r.geographic_traits.has_coastline = true;
+                }
+            }
+            maritime_to_add.extend(nodes);
+        }
+        regions.extend(maritime_to_add);
+    }
+
+    // v4.25.0 WS2: standing OOBs are generated AFTER maritime wiring so
+    // `geographic_traits.has_coastline` is true on coastal regions and
+    // `has_coast` admits naval branches (Phase 70 logic, deferred). Only
+    // LandRegion nodes feed the OOB — sea/ocean nodes would otherwise
+    // displace real home regions in the sorted `home_regions` pick.
+    for name in &selected {
+        let country_regions: HashMap<String, Region> = regions
+            .iter()
+            .filter(|(_, r)| {
+                r.owner_country == *name
+                    && r.node_type == crate::society::geography::NodeType::LandRegion
+            })
+            .map(|(id, r)| (id.clone(), r.clone()))
+            .collect();
+        if let Some(country) = state.countries.get_mut(name) {
+            country.order_of_battle = spawn_standing_oob(
+                country,
+                &country_regions,
+                options.start_year.as_year(),
+                &mut rng,
+            );
+        }
+    }
 
     save_game_state(data_dir, &state)?;
     save_named_map(&data_dir.join("diplomacy.json"), &diplomacy)?;
@@ -1047,9 +1203,11 @@ fn generate_country(
         }
     }
 
-    // Phase 70: Generate the Order of Battle natively (no flat list, no shim).
-    country.order_of_battle =
-        spawn_standing_oob(&country, &country_regions, start_year.as_year(), rng);
+    // Phase 70: OOB generation is DEFERRED to the post-assembly maritime
+    // pass (v4.25.0 WS2) — coastline flags are only known once maritime
+    // nodes are wired, and `has_coast` gates naval branch creation. The
+    // standing OOB is attached there with identical draw order.
+    country.order_of_battle = crate::military::oob::OrderOfBattle::default();
     #[cfg(feature = "diagnostic")]
     eprintln!(
         "CS: {} oob draws={}",
@@ -1663,7 +1821,10 @@ fn build_treasury(
     };
     let heavy_industry_share = rng.gen_range(0.05..0.25) * industry_mult;
     let light_industry_share = rng.gen_range(0.1..0.3) * industry_mult;
-    let local_services_share = rng.gen_range(0.2..0.4) * services_mult;
+    // v4.25.0 WS5: narrow the LocalServices draw — at 0.2–0.4×mult the
+    // sector claimed >60% of national payrolls; 0.15–0.28 leaves room for
+    // construction, waste, and industry to hold real labor share.
+    let local_services_share = rng.gen_range(0.15..0.28) * services_mult;
     let export_services_share = if gdp_pc > 2.0 {
         rng.gen_range(0.05..0.3) * services_mult
     } else {

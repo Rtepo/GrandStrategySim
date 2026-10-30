@@ -735,8 +735,11 @@ pub fn generate_corporate_entities(
             pending_harvest_biomass: std::collections::HashMap::new(),
             year_built: start_year.saturating_sub(rng.gen_range(1..10)),
             sector: Sector::WasteManagement,
-            worker_capacity: 50,
-            current_employment: 40,
+            // v4.25.0 WS5: a regional sanitation utility crews collection,
+            // sorting, and landfill ops — 500 seats/region is realistic for
+            // a ~0.5–1M-population region and yields >5k national waste FTE.
+            worker_capacity: 500,
+            current_employment: 400,
             reserve: 0.0,
             active_method: ActiveProductionMethod {
                 year: start_year.saturating_sub(50),
@@ -759,7 +762,7 @@ pub fn generate_corporate_entities(
             accidents_last_year: 0,
             strike: false,
             scale_factor: 1,
-            building_capacity: 50,
+            building_capacity: 500,
             region_id: region.id.clone(),
             cluster_info: ClusterInfo {
                 region_id: region.id.clone(),

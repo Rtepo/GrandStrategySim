@@ -1652,8 +1652,10 @@ pub fn compute_construction_labor_demand(
                 .saturating_sub(project.turns_elapsed)
                 .max(1) as f64
         };
+        // v4.25.0 WS5: per-site crew cap raised 200→400 — a major
+        // infrastructure/rail project legitimately crews several hundred.
         let project_demand = (remaining_value / (labor_per_unit * remaining_schedule))
-            .min(200.0)
+            .min(400.0)
             .max(1.0);
         total_demand += project_demand;
     }

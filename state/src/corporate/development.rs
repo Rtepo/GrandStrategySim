@@ -40,9 +40,18 @@ impl Default for StateTenderConfig {
             min_ministry_cash_wage_multiple: 50.0,
             max_tender_cost_wage_multiple: 500.0,
             ministry_tender_fraction: 0.3,
-            max_tenders_per_construction_company: 1.0,
-            max_concurrent_tenders_absolute: 10,
-            target_capacity_increase: 50,
+            // v4.25.0 WS5: the public capital program must carry real
+            // volume — Investment is ~16% of GDP but 10 concurrent small
+            // tenders capped construction at ~2k FTE. Scale the pipeline
+            // with the contractor base so crews grow toward the mandate's
+            // >3%-of-workforce employment share.
+            max_tenders_per_construction_company: 2.0,
+            max_concurrent_tenders_absolute: 40,
+            // v4.25.0 WS5: larger state works (120-seat facilities, not
+            // 50-seat sheds) — BOM value, not headcount, drives crew size,
+            // and bigger projects sustain >25k construction FTE over their
+            // multi-turn schedules.
+            target_capacity_increase: 120,
             bidding_window_turns: 2,
         }
     }
