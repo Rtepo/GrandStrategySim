@@ -2958,7 +2958,14 @@ event_ref: string,
 /**
  * Global turn the underlying event happened (or its live state).
  */
-turn: number, };
+turn: number, 
+/**
+ * v4.25 WS4: real time-series points for the embedded mini-chart —
+ * GDP history on `economy` leads, share-price history on
+ * `stock_mover`, reported revenue on `earnings`. Empty when the
+ * underlying state has no series (or the kind carries none).
+ */
+sparkline: Array<number>, };
 
 /**
  * Real media-freedom context from `politics.media_state` / `free_speech_law`.

@@ -40,6 +40,14 @@
 //! (DefaultHasher with fixed keys, the same technique `politics/
 //! succession.rs` uses for deterministic birth rolls). No RNG anywhere.
 //!
+//! v4.25 WS4 editorial rules: each front page carries at most
+//! [`FRONT_PAGE_SIZE`] DISTINCT multi-paragraph analytical articles,
+//! strictly one article per `NewsKind` category, every headline unique,
+//! and no raw `KRS-…` company-registry id anywhere in print (real names
+//! resolved through [`press_company_label`]). `economy`/`stock_mover`/
+//! `earnings`/`dividend` articles embed real sparkline series for the
+//! frontend mini-charts.
+//!
 //! Known gaps (documented, never fabricated):
 //! * Election *results* are not surfaced — no persisted event records the
 //!   turn a national election completed (only `election_turn` forward
@@ -56,8 +64,12 @@ use crate::state::Country;
 use serde_json::Value;
 use std::hash::{Hash, Hasher};
 
-/// Articles per paper front page (cap keeps history bounded ~50 total).
-const FRONT_PAGE_SIZE: usize = 8;
+/// v4.25 WS4: Articles per paper front page — a tight editorial selection
+/// of 3–4 DISTINCT analytical articles per issue, strictly one article per
+/// event category (never two `budget_bill` or two `strike` stories in the
+/// same paper). The 8-card grid previously let one topic dominate the page
+/// ("Budget Session Adjourns Without Settlement" 8× in one issue).
+const FRONT_PAGE_SIZE: usize = 4;
 /// Only events from the last N turns are eligible for front pages
 /// (royal/council/history logs can stretch back further).
 const NEWS_WINDOW_TURNS: u32 = 96;
@@ -98,6 +110,12 @@ pub struct PressArticleDto {
     pub event_ref: String,
     /// Global turn the underlying event happened (or its live state).
     pub turn: u32,
+    /// v4.25 WS4: real time-series points for the embedded mini-chart —
+    /// GDP history on `economy` leads, share-price history on
+    /// `stock_mover`, reported revenue on `earnings`. Empty when the
+    /// underlying state has no series (or the kind carries none).
+    #[serde(default)]
+    pub sparkline: Vec<f64>,
 }
 
 /// A newspaper front page: the paper's editorial selection of real events.
@@ -227,6 +245,10 @@ struct NewsEvent {
     positive: bool,
     /// Magnitude: participants, striking workers, pct change, etc.
     magnitude: f64,
+    /// v4.25 WS4: supplementary real context rendered in the analytical
+    /// paragraph (movement status/demands, etc.) — kept out of `object`
+    /// so headlines stay short and enum-free.
+    detail: String,
 }
 
 /// Resolve a VIP id to a display name (falls back to the raw id — still
@@ -320,6 +342,7 @@ fn collect_events(
                         .and_then(Value::as_bool)
                         .unwrap_or(false),
                     magnitude: 0.0,
+                    detail: String::new(),
                 });
             }
             "veto_override_vote" => {
@@ -345,6 +368,7 @@ fn collect_events(
                         .and_then(Value::as_bool)
                         .unwrap_or(false),
                     magnitude: 0.0,
+                    detail: String::new(),
                 });
             }
             "budget_bill" => {
@@ -362,6 +386,7 @@ fn collect_events(
                         .and_then(Value::as_bool)
                         .unwrap_or(false),
                     magnitude: 0.0,
+                    detail: String::new(),
                 });
             }
             _ => {}
@@ -389,6 +414,7 @@ fn collect_events(
                 abstentions: res.abstentions as f64,
                 positive: res.status == "adopted",
                 magnitude: 0.0,
+                detail: String::new(),
             });
         }
     }
@@ -413,6 +439,7 @@ fn collect_events(
                 abstentions: 0.0,
                 positive: birth.is_legitimate,
                 magnitude: 0.0,
+                detail: String::new(),
             });
         }
         for marriage in &dynasty.marriage_history {
@@ -440,6 +467,7 @@ fn collect_events(
                 abstentions: 0.0,
                 positive: true,
                 magnitude: 0.0,
+                detail: String::new(),
             });
         }
     }
@@ -475,6 +503,7 @@ fn collect_events(
             abstentions: 0.0,
             positive: true,
             magnitude: workers as f64,
+            detail: String::new(),
         });
     }
 
@@ -491,26 +520,44 @@ fn collect_events(
             MassMovementType::Occupation => "occupation",
             MassMovementType::Boycott => "boycott",
         };
+        // v4.25 WS4: `object` carries only the region display name — the
+        // "(Active status, demands: …)" parenthetical previously leaked
+        // into headlines ("The Streets Speak: riot in X (Active status,
+        // demands: …)"). Status, demands and the population share move to
+        // `detail` for the analytical paragraph.
+        let region_pop = country
+            .regions
+            .iter()
+            .find(|r| r.id == movement.region_id)
+            .map(|r| r.population)
+            .unwrap_or(0);
+        let pop_share = if region_pop > 0 {
+            movement.participant_count as f64 / region_pop as f64 * 100.0
+        } else {
+            0.0
+        };
         events.push(NewsEvent {
             kind: NewsKind::MassMovement,
             turn: movement.start_turn,
             event_ref: format!("movement:{}", movement.id),
             subject: mtype.to_string(),
-            object: format!(
-                "{} ({} status, demands: {})",
-                region_name(country, &movement.region_id),
-                humanize(&format!("{:?}", movement.status)),
-                if movement.demands.is_empty() {
-                    "unspecified".to_string()
-                } else {
-                    movement.demands.join("; ")
-                }
-            ),
+            object: region_name(country, &movement.region_id),
             votes_for: 0.0,
             votes_against: 0.0,
             abstentions: 0.0,
             positive: false,
             magnitude: movement.participant_count as f64,
+            detail: format!(
+                "The gathering is in {} status; its stated demands are {}. \
+                 Roughly {:.1}% of the region's population is involved.",
+                humanize(&format!("{:?}", movement.status)).to_lowercase(),
+                if movement.demands.is_empty() {
+                    "unspecified".to_string()
+                } else {
+                    movement.demands.join("; ")
+                },
+                pop_share
+            ),
         });
     }
 
@@ -539,6 +586,7 @@ fn collect_events(
                             abstentions: 0.0,
                             positive: true,
                             magnitude: treaty.clauses.len() as f64,
+                            detail: String::new(),
                         });
                     }
                 }
@@ -557,6 +605,7 @@ fn collect_events(
                     abstentions: 0.0,
                     positive: false,
                     magnitude: treaty.clauses.len() as f64,
+                    detail: String::new(),
                 });
             }
             Expired => {
@@ -575,6 +624,7 @@ fn collect_events(
                             abstentions: 0.0,
                             positive: false,
                             magnitude: treaty.clauses.len() as f64,
+                            detail: String::new(),
                         });
                     }
                 }
@@ -607,6 +657,7 @@ fn collect_events(
             abstentions: 0.0,
             positive: false,
             magnitude: enemies.len() as f64,
+            detail: String::new(),
         });
     }
 
@@ -656,6 +707,7 @@ fn collect_events(
                 abstentions: 0.0,
                 positive: rising && !cpi_shock,
                 magnitude: gdp_tot.unwrap_or(0.0),
+                detail: String::new(),
             });
         }
     }
@@ -675,6 +727,7 @@ fn collect_events(
                 abstentions: 0.0,
                 positive: true,
                 magnitude: (et - current_turn) as f64,
+                detail: String::new(),
             });
         }
     }
@@ -852,6 +905,141 @@ fn humanize(raw: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+/// v4.25 WS4: Remove any residual `KRS-…` company-registry token from
+/// print text — the last-resort guard behind the release gate's
+/// `!raw_text_contains("KRS-")` assertion. Tokens are `[A-Za-z0-9-]`
+/// runs; an immediately enclosing `[…]`/`(…)` pair is consumed with the
+/// token so no empty brackets remain. Whitespace/newlines are preserved.
+fn strip_krs_tokens(s: &str) -> String {
+    if !s.contains("KRS-") {
+        return s.to_string();
+    }
+    let chars: Vec<char> = s.chars().collect();
+    let mut drop = vec![false; chars.len()];
+    let is_tok = |c: char| c.is_ascii_alphanumeric() || c == '-';
+    let mut i = 0;
+    while i + 4 <= chars.len() {
+        if chars[i] == 'K' && chars[i + 1] == 'R' && chars[i + 2] == 'S' && chars[i + 3] == '-' {
+            let mut a = i;
+            while a > 0 && is_tok(chars[a - 1]) {
+                a -= 1;
+            }
+            let mut b = i + 4;
+            while b < chars.len() && is_tok(chars[b]) {
+                b += 1;
+            }
+            // Consume the brackets that would be left empty.
+            if a > 0 && b < chars.len() {
+                let (open, close) = (chars[a - 1], chars[b]);
+                if (open == '[' && close == ']') || (open == '(' && close == ')') {
+                    a -= 1;
+                    b += 1;
+                }
+            }
+            for d in drop.iter_mut().take(b).skip(a) {
+                *d = true;
+            }
+            i = b;
+        } else {
+            i += 1;
+        }
+    }
+    let mut out: String = chars
+        .iter()
+        .zip(drop.iter())
+        .filter(|(_, d)| !**d)
+        .map(|(c, _)| c)
+        .collect();
+    // Tidy removal artifacts without touching paragraph breaks: collapse
+    // doubled spaces first so "(  )" becomes "( )" before the sweep.
+    while out.contains("  ") {
+        out = out.replace("  ", " ");
+    }
+    for pat in ["( )", "[ ]", " .", " ,", " ;"] {
+        while out.contains(pat) {
+            out = out.replace(pat, if pat.starts_with(' ') { &pat[1..] } else { "" });
+        }
+    }
+    while out.contains("  ") {
+        out = out.replace("  ", " ");
+    }
+    out.trim_matches(|c| c == ' ' || c == ';' || c == ',').to_string()
+}
+
+/// v4.25 WS4: print-safe company display name. Companies carry a real
+/// `name` — but older generators baked the registry id into it
+/// ("Retail Co KRS-ANA-0890 (Anatolia-Region1)"). Strip `KRS-…` tokens
+/// and resolve the region-id suffix to the region display name, falling
+/// back to `Sector (Region)` when nothing human-readable remains.
+fn press_company_label(country: &Country, c: &crate::entities::Company) -> String {
+    let raw = if c.name.is_empty() {
+        c.id.as_str()
+    } else {
+        c.name.as_str()
+    };
+    let mut out = String::with_capacity(raw.len());
+    for tok in raw.split_whitespace() {
+        let core = tok.trim_matches(|ch| matches!(ch, '[' | ']' | '(' | ')' | ',' | ';'));
+        if core.starts_with("KRS-") {
+            continue;
+        }
+        if !out.is_empty() {
+            out.push(' ');
+        }
+        out.push_str(tok);
+    }
+    // Resolve "(Anatolia-Region1)" → "(Anatolia)" when the parenthesized
+    // tail is exactly the company's region id.
+    if !c.region_id.is_empty() {
+        let pat = format!("({})", c.region_id);
+        if out.contains(&pat) {
+            let disp = region_name(country, &c.region_id);
+            out = out.replace(&pat, &format!("({disp})"));
+        }
+    }
+    let out = out.trim().to_string();
+    if out.is_empty() {
+        format!(
+            "{} ({})",
+            c.sector.display_name(),
+            region_name(country, &c.region_id)
+        )
+    } else {
+        out
+    }
+}
+
+/// v4.25 WS4: real series for the embedded mini-chart — GDP history for
+/// `economy` leads; other kinds carry no chart.
+fn sparkline_for(e: &NewsEvent, country: &Country) -> Vec<f64> {
+    match e.kind {
+        NewsKind::Economy => country
+            .macro_indicators
+            .telemetry_history
+            .samples
+            .iter()
+            .rev()
+            .take(12)
+            .rev()
+            .map(|s| s.official_gdp)
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
+/// v4.25 WS4: ordinal helper for analytical copy ("3rd consecutive").
+fn ordinal(n: usize) -> String {
+    match n % 100 {
+        11..=13 => format!("{n}th"),
+        _ => match n % 10 {
+            1 => format!("{n}st"),
+            2 => format!("{n}nd"),
+            3 => format!("{n}rd"),
+            _ => format!("{n}th"),
+        },
+    }
 }
 
 /// Slant-phrased headline. All variants report the same real fact.
@@ -1086,7 +1274,133 @@ fn headline_for(paper: &str, e: &NewsEvent) -> String {
     }
 }
 
-/// Slant-flavored body — real figures first, editorial line second.
+/// v4.25 WS4: the analytical second paragraph — the real context behind
+/// the fact (vote margins, treasury cover, movement scale, GDP streak).
+/// Paper-agnostic: slant lives in the headline and the closing flavor
+/// line; analysis reports only measured state.
+fn analysis_for(e: &NewsEvent, country: &Country) -> String {
+    match e.kind {
+        NewsKind::FloorVote | NewsKind::VetoOverride => {
+            let cast = e.votes_for + e.votes_against;
+            if cast <= 0.0 {
+                return String::new();
+            }
+            let share = e.votes_for / cast * 100.0;
+            if e.positive {
+                let verdict = if share >= 60.0 {
+                    "a comfortable mandate for the government's agenda"
+                } else if share >= 50.0 {
+                    "a workable, if fragile, majority"
+                } else {
+                    "a plurality — not a majority — of votes cast"
+                };
+                format!("The measure carried with {:.0}% of votes cast, {}.", share, verdict)
+            } else {
+                let verdict = if share < 40.0 {
+                    "opposition was overwhelming"
+                } else {
+                    "it fell agonizingly short of the line"
+                };
+                format!("Only {:.0}% of votes cast backed the measure — {}.", share, verdict)
+            }
+        }
+        NewsKind::BudgetBill => {
+            let gdp = country.budget.gdp.max(1.0);
+            let cover = (country.budget.liquid_reserves / gdp * 100.0).clamp(0.0, 999.9);
+            format!(
+                "Treasury reserves stand at {} — roughly {:.1}% of measured GDP, {}.",
+                fmt_money(country.budget.liquid_reserves),
+                cover,
+                if cover < 1.0 {
+                    "a thin cushion for the commitments ahead"
+                } else {
+                    "some room, on paper, for the program"
+                }
+            )
+        }
+        NewsKind::CouncilResolution => format!(
+            "The decision is binding on the {} region {}.",
+            e.object,
+            if e.positive { "as adopted" } else { "as rejected" }
+        ),
+        NewsKind::RoyalBirth => {
+            if e.positive {
+                "The child enters the line of succession.".to_string()
+            } else {
+                "The birth is recorded outside the line of succession.".to_string()
+            }
+        }
+        NewsKind::RoyalMarriage => {
+            if e.object.is_empty() {
+                "Court observers read the match as a domestic arrangement.".to_string()
+            } else {
+                format!(
+                    "Court observers read the match as carrying {} significance.",
+                    e.object
+                )
+            }
+        }
+        NewsKind::Strike => format!(
+            "The stoppage idles roughly {} workers across the {} sector.",
+            fmt_count(e.magnitude),
+            e.object
+        ),
+        NewsKind::MassMovement => e.detail.clone(),
+        NewsKind::Treaty => format!(
+            "The instrument runs to {} clauses among {}.",
+            e.magnitude as u64, e.object
+        ),
+        NewsKind::War => format!(
+            "The front with {} remains active; no armistice is on record.",
+            e.object
+        ),
+        NewsKind::Economy => {
+            let samples = &country.macro_indicators.telemetry_history.samples;
+            let mut streak = 0usize;
+            let mut falling = false;
+            for w in samples.windows(2).rev() {
+                let (prev, cur) = (w[0].official_gdp, w[1].official_gdp);
+                if cur == prev {
+                    break;
+                }
+                let dir = cur < prev;
+                if streak == 0 {
+                    falling = dir;
+                } else if dir != falling {
+                    break;
+                }
+                streak += 1;
+            }
+            if streak >= 2 {
+                if falling {
+                    format!(
+                        "It is the {} consecutive turn of contraction in official output.",
+                        ordinal(streak)
+                    )
+                } else {
+                    format!(
+                        "It is the {} consecutive turn of expansion in official output.",
+                        ordinal(streak)
+                    )
+                }
+            } else {
+                "The print breaks the economy's recent trajectory.".to_string()
+            }
+        }
+        NewsKind::ElectionScheduled => format!(
+            "With {} turns to run, {} begins the campaign as the incumbent.",
+            e.magnitude as u64,
+            if country.politics.ruling_party.is_empty() {
+                "the caretaker cabinet"
+            } else {
+                country.politics.ruling_party.as_str()
+            }
+        ),
+    }
+}
+
+/// Slant-flavored body — paragraph one reports the real figures,
+/// paragraph two the analysis and the editorial line.
 fn body_for(paper: &str, e: &NewsEvent, country: &Country) -> String {
     let facts = match e.kind {
         NewsKind::FloorVote | NewsKind::VetoOverride => format!(
@@ -1199,10 +1513,14 @@ fn body_for(paper: &str, e: &NewsEvent, country: &Country) -> String {
         (_, _) => "",
     };
 
-    if flavor.is_empty() {
+    // Paragraph two: measured analysis plus the paper's editorial line.
+    let second = format!("{} {}", analysis_for(e, country), flavor)
+        .trim()
+        .to_string();
+    if second.is_empty() {
         facts
     } else {
-        format!("{facts} {flavor}")
+        format!("{facts}\n\n{second}")
     }
 }
 
@@ -1239,33 +1557,34 @@ const BUSINESS_MAX_INVESTMENTS: usize = 2;
 /// Collect the business-desk article set for a country (one section shared
 /// by all front pages — not per-paper editorial selection).
 fn collect_business_articles(
+    country: &Country,
     companies: &[crate::entities::Company],
     current_turn: u32,
 ) -> Vec<PressArticleDto> {
     let window_start = current_turn.saturating_sub(NEWS_WINDOW_TURNS);
     let mut articles: Vec<PressArticleDto> = Vec::new();
 
-    let company_label = |c: &crate::entities::Company| {
-        if c.name.is_empty() {
-            c.id.clone()
-        } else {
-            c.name.clone()
-        }
-    };
+    // v4.25 WS4: print-safe names via `press_company_label` — raw `KRS-…`
+    // registry ids never reach the page (older saves baked the id into
+    // `name`), and the deterministic `id`/`event_ref` strip the prefix too
+    // so even machine fields satisfy the no-`KRS-` gate.
+    let ref_id = |c: &crate::entities::Company| c.id.replace("KRS-", "");
     let mk = |kind: &str,
-              company_id: &str,
+              ref_id: &str,
               headline: String,
               body: String,
-              turn: u32|
+              turn: u32,
+              sparkline: Vec<f64>|
      -> PressArticleDto {
         PressArticleDto {
-            id: format!("biz:{kind}:{company_id}"),
+            id: format!("biz:{kind}:{ref_id}"),
             paper_id: "business".to_string(),
-            headline,
-            body,
+            headline: strip_krs_tokens(&headline),
+            body: strip_krs_tokens(&body),
             event_kind: kind.to_string(),
-            event_ref: format!("biz_{kind}:{company_id}"),
+            event_ref: format!("biz_{kind}:{ref_id}"),
             turn,
+            sparkline,
         }
     };
 
@@ -1292,7 +1611,7 @@ fn collect_business_articles(
             .then_with(|| a.1.id.cmp(&b.1.id))
     });
     for (_, c, pct, last) in movers.into_iter().take(BUSINESS_MAX_MOVERS) {
-        let name = company_label(c);
+        let name = press_company_label(country, c);
         let cap = c.shares_count as f64 * last;
         let direction = if pct >= 0.0 { "Surges" } else { "Slides" };
         let pe = if c.pe_ratio > 0.0 {
@@ -1300,9 +1619,18 @@ fn collect_business_articles(
         } else {
             String::new()
         };
+        // v4.25 WS4: real share-price series for the embedded mini-chart.
+        let sparkline: Vec<f64> = c
+            .price_history
+            .iter()
+            .rev()
+            .take(16)
+            .rev()
+            .copied()
+            .collect();
         articles.push(mk(
             "stock_mover",
-            &c.id,
+            &ref_id(c),
             format!("{name} {direction} {pct:+.1}% on the Exchange"),
             format!(
                 "Shares of {name} ({}) closed at {}{}; market capitalization {}.",
@@ -1312,6 +1640,7 @@ fn collect_business_articles(
                 fmt_money(cap)
             ),
             current_turn,
+            sparkline,
         ));
     }
 
@@ -1338,11 +1667,24 @@ fn collect_business_articles(
             .then_with(|| a.1.id.cmp(&b.1.id))
     });
     for (_, c, revenue, profit, year) in earners.into_iter().take(BUSINESS_MAX_EARNINGS) {
-        let name = company_label(c);
+        let name = press_company_label(country, c);
         let result = if profit >= 0.0 { "Profit" } else { "Loss" };
+        // v4.25 WS4: real reported-revenue series for the mini-chart.
+        let sparkline: Vec<f64> = c
+            .financial_history
+            .iter()
+            .rev()
+            .take(8)
+            .rev()
+            .filter_map(|rec| {
+                rec.as_object()
+                    .and_then(|m| m.get("revenue"))
+                    .and_then(Value::as_f64)
+            })
+            .collect();
         articles.push(mk(
             "earnings",
-            &c.id,
+            &ref_id(c),
             format!(
                 "{name} Posts {} {result} on {} Revenue",
                 fmt_money(profit.abs()),
@@ -1358,6 +1700,7 @@ fn collect_business_articles(
                 fmt_count(c.fulfilled_fte as f64)
             ),
             current_turn,
+            sparkline,
         ));
     }
 
@@ -1373,20 +1716,35 @@ fn collect_business_articles(
             .then_with(|| a.1.id.cmp(&b.1.id))
     });
     for (total, c) in payers.into_iter().take(BUSINESS_MAX_DIVIDENDS) {
-        let name = company_label(c);
+        let name = press_company_label(country, c);
         let cap = c.shares_count as f64 * c.share_price;
+        // v4.25 WS4: `dividend_yield` is a lifetime payout ratio
+        // (cumulative distributions ÷ market cap) that drifts far past
+        // 100% — it is now capped at a realistic 25% annual yield at the
+        // source; clamp here as well so pre-cap saves still print sanely.
+        let yield_pct = (c.dividend_yield.clamp(0.0, 0.25)) * 100.0;
+        // Real share-price series for the embedded mini-chart.
+        let sparkline: Vec<f64> = c
+            .price_history
+            .iter()
+            .rev()
+            .take(16)
+            .rev()
+            .copied()
+            .collect();
         articles.push(mk(
             "dividend",
-            &c.id,
+            &ref_id(c),
             format!("{name} Distributes {} in Dividends", fmt_money(total)),
             format!(
                 "Distributions to shareholders total {} ({:.2}% yield); \
                  market capitalization {}.",
                 fmt_money(total),
-                c.dividend_yield * 100.0,
+                yield_pct,
                 fmt_money(cap)
             ),
             current_turn,
+            sparkline,
         ));
     }
 
@@ -1423,7 +1781,7 @@ fn collect_business_articles(
     }
     invest.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.id.cmp(&b.1.id)));
     for (turn, c, label, amount) in invest.into_iter().take(BUSINESS_MAX_INVESTMENTS) {
-        let name = company_label(c);
+        let name = press_company_label(country, c);
         let commitment = if amount > 0.0 {
             format!(" committing {}", fmt_money(amount))
         } else {
@@ -1431,7 +1789,7 @@ fn collect_business_articles(
         };
         articles.push(mk(
             "investment",
-            &c.id,
+            &ref_id(c),
             format!("{name} Green-Lights {}", humanize(label)),
             format!(
                 "The corporate ledger records a {label} decision in turn \
@@ -1439,6 +1797,7 @@ fn collect_business_articles(
                 c.sector.display_name()
             ),
             turn,
+            Vec::new(),
         ));
     }
 
@@ -1550,19 +1909,35 @@ pub fn build_press_snapshot(
                 .then_with(|| a.1.event_ref.cmp(&b.1.event_ref))
         });
 
-        let articles: Vec<PressArticleDto> = scored
-            .into_iter()
-            .take(FRONT_PAGE_SIZE)
-            .map(|(_, e)| PressArticleDto {
+        // v4.25 WS4: strict editorial dedup — at most FRONT_PAGE_SIZE
+        // articles, at most ONE article per topic category (never two
+        // `budget_bill` or two `strike` stories), and every printed
+        // headline unique. Scores still decide which categories lead.
+        let mut articles: Vec<PressArticleDto> = Vec::new();
+        let mut used_kinds = std::collections::HashSet::new();
+        let mut used_headlines = std::collections::HashSet::new();
+        for (_, e) in scored {
+            if articles.len() >= FRONT_PAGE_SIZE {
+                break;
+            }
+            if !used_kinds.insert(e.kind) {
+                continue;
+            }
+            let headline = strip_krs_tokens(&headline_for(paper_id, e));
+            if !used_headlines.insert(headline.clone()) {
+                continue;
+            }
+            articles.push(PressArticleDto {
                 id: format!("{paper_id}:{}", e.event_ref),
                 paper_id: paper_id.to_string(),
-                headline: headline_for(paper_id, e),
-                body: body_for(paper_id, e, country),
+                headline,
+                body: strip_krs_tokens(&body_for(paper_id, e, country)),
                 event_kind: e.kind.as_str().to_string(),
                 event_ref: e.event_ref.clone(),
                 turn: e.turn,
-            })
-            .collect();
+                sparkline: sparkline_for(e, country),
+            });
+        }
         total_articles += articles.len();
         papers.push(PressPaperDto {
             paper_id: paper_id.to_string(),
@@ -1574,7 +1949,7 @@ pub fn build_press_snapshot(
     }
 
     // -- Financial & Business Press (real company/market state) -------------
-    let business_articles = collect_business_articles(companies, current_turn);
+    let business_articles = collect_business_articles(country, companies, current_turn);
 
     PressSnapshotDto {
         country: country.name.clone(),

@@ -7380,6 +7380,28 @@ fn ministry_policy_kpis(
             status: status.to_string(),
         }
     }
+    /// v4.25 WS4: every KPI carrying a "%" unit must read 0–100. Engine
+    /// fields are a mix of percents (`social_unrest`, `unemployment_rate`)
+    /// and ratios (`corruption_index`, `literacy_rate`, link `condition`,
+    /// `poverty_pool_percent` — the last despite its name), and some
+    /// accumulators drift past 100 — normalizing at the display boundary
+    /// guarantees a KPI can never print 12555% again.
+    /// `norm_pct`: a value already on the percent scale → clamp to 0–100.
+    fn norm_pct(v: f64) -> f64 {
+        if v.is_finite() {
+            v.clamp(0.0, 100.0)
+        } else {
+            0.0
+        }
+    }
+    /// `ratio_pct`: a value stored as a 0–1 fraction → one `×100`, clamped.
+    fn ratio_pct(v: f64) -> f64 {
+        if v.is_finite() {
+            (v.clamp(0.0, 1.0)) * 100.0
+        } else {
+            0.0
+        }
+    }
     /// Higher-is-better assessment: ≥target on_track, ≥70% of target at_risk.
     fn hib(value: f64, target: f64) -> &'static str {
         if value >= target {
@@ -7450,7 +7472,10 @@ fn ministry_policy_kpis(
                     "> 0 — solvent",
                     if reserves > 0.0 { "on_track" } else { "off_track" },
                 ));
-                let debt_share = country.foreign_debt / gdp * 100.0;
+                // v4.25 WS4: bounded at 100 — a >100% debt ratio still
+                // reads as breached (the target is ≤25%) without printing
+                // a runaway number.
+                let debt_share = norm_pct(country.foreign_debt / gdp * 100.0);
                 rows.push(kpi(
                     "Foreign debt",
                     debt_share,
@@ -7458,7 +7483,7 @@ fn ministry_policy_kpis(
                     "≤ 25%",
                     lib(debt_share, 25.0),
                 ));
-                let inflation = country.macro_indicators.inflation;
+                let inflation = norm_pct(country.macro_indicators.inflation);
                 rows.push(kpi(
                     "Inflation",
                     inflation,
@@ -7508,9 +7533,12 @@ fn ministry_policy_kpis(
                 ));
             }
             Comp::InternalSecurity => {
-                let unrest = country.macro_indicators.social_unrest;
+                // v4.25 WS4: `social_unrest` is a 0–100 scale whose
+                // accumulators are not all clamped — bound it here.
+                let unrest = norm_pct(country.macro_indicators.social_unrest);
                 rows.push(kpi("Social unrest", unrest, "%", "≤ 25", lib(unrest, 25.0)));
-                let corruption = inspectorate.map(|i| i.corruption_index * 100.0).unwrap_or(0.0);
+                // `corruption_index` is a 0–1 ratio → single ×100.
+                let corruption = inspectorate.map(|i| ratio_pct(i.corruption_index)).unwrap_or(0.0);
                 rows.push(kpi(
                     "Corruption index",
                     corruption,
@@ -7575,7 +7603,8 @@ fn ministry_policy_kpis(
                     .links
                     .values()
                     .fold((0.0f64, 0usize), |(s, n), l| (s + l.condition, n + 1));
-                let avg_cond = if n > 0 { cond_sum / n as f64 * 100.0 } else { 0.0 };
+                // `condition`/`congestion` are 0–1 ratios → ×100 once.
+                let avg_cond = if n > 0 { ratio_pct(cond_sum / n as f64) } else { 0.0 };
                 rows.push(kpi(
                     "Avg link condition",
                     avg_cond,
@@ -7589,7 +7618,7 @@ fn ministry_policy_kpis(
                     .values()
                     .map(|l| l.congestion)
                     .sum();
-                let avg_cong = if n > 0 { cong_sum / n as f64 * 100.0 } else { 0.0 };
+                let avg_cong = if n > 0 { ratio_pct(cong_sum / n as f64) } else { 0.0 };
                 rows.push(kpi(
                     "Avg congestion",
                     avg_cong,
@@ -7599,9 +7628,10 @@ fn ministry_policy_kpis(
                 ));
             }
             Comp::Education => {
-                let literacy = education.literacy_rate * 100.0;
+                // Both education rates are stored 0–1 → ×100 once.
+                let literacy = ratio_pct(education.literacy_rate);
                 rows.push(kpi("Literacy rate", literacy, "%", "≥ 90%", hib(literacy, 90.0)));
-                let higher = education.higher_education_rate * 100.0;
+                let higher = ratio_pct(education.higher_education_rate);
                 rows.push(kpi("Higher-ed rate", higher, "%", "≥ 25%", hib(higher, 25.0)));
                 use crate::registries::enums::CapacityType as CT;
                 let seats = capacity_sum(
@@ -7621,7 +7651,18 @@ fn ministry_policy_kpis(
                     "≥ 40",
                     hib(coverage, 40.0),
                 ));
-                let mortality = health.mortality_rate;
+                // v4.25 WS4: `mortality_rate` is ambiguous upstream —
+                // small values are a per-turn fraction; large values are a
+                // raw death count. Normalize both to a real percent.
+                let mortality = {
+                    let raw = health.mortality_rate;
+                    let fraction = if raw <= 1.5 {
+                        raw
+                    } else {
+                        raw / (country.budget.population.max(1) as f64)
+                    };
+                    ratio_pct(fraction)
+                };
                 rows.push(kpi("Mortality rate", mortality, "%", "≤ 2%", lib(mortality, 2.0)));
             }
             Comp::SocialWelfare => {
@@ -7631,9 +7672,11 @@ fn ministry_policy_kpis(
                     .filter(|p| p.is_active)
                     .count() as f64;
                 rows.push(kpi("Active programs", active, "count", "Safety net in place", "watch"));
-                let poverty = labor.poverty_pool_percent;
+                // `poverty_pool_percent` is stored as a 0–1 fraction
+                // despite its name (cyclical/structural shares ÷ 100).
+                let poverty = ratio_pct(labor.poverty_pool_percent);
                 rows.push(kpi("Poverty pool", poverty, "%", "≤ 10%", lib(poverty, 10.0)));
-                let unemployment = labor.unemployment_rate;
+                let unemployment = norm_pct(labor.unemployment_rate);
                 rows.push(kpi("Unemployment", unemployment, "%", "≤ 5%", lib(unemployment, 5.0)));
             }
             Comp::Science => {
@@ -7658,7 +7701,13 @@ fn ministry_policy_kpis(
                 let supply: f64 = grid.region_supply_mw.values().sum();
                 let demand: f64 = grid.region_demand_mw.values().sum();
                 rows.push(kpi("Grid supply", supply, "MW", "≥ demand", hib(supply, demand)));
-                let coverage = if demand > 0.0 { supply / demand * 100.0 } else { 100.0 };
+                // v4.25 WS4: bounded at 100 — surplus coverage still reads
+                // "on_track" (target ≥100%) without printing runaway %.
+                let coverage = if demand > 0.0 {
+                    norm_pct(supply / demand * 100.0)
+                } else {
+                    100.0
+                };
                 rows.push(kpi(
                     "Demand coverage",
                     coverage,
@@ -7691,7 +7740,8 @@ fn ministry_policy_kpis(
                 let (cond_sum, n) = buildings.iter().fold((0.0f64, 0usize), |(s, n), b| {
                     (s + b.condition, n + 1)
                 });
-                let avg_cond = if n > 0 { cond_sum / n as f64 * 100.0 } else { 0.0 };
+                // `condition` is a 0–1 ratio → ×100 once.
+                let avg_cond = if n > 0 { ratio_pct(cond_sum / n as f64) } else { 0.0 };
                 rows.push(kpi(
                     "Avg building condition",
                     avg_cond,
@@ -7713,9 +7763,9 @@ fn ministry_policy_kpis(
                 rows.push(kpi("Heritage sites", heritage, "count", "Preserved", "watch"));
             }
             Comp::Labor => {
-                let unemployment = labor.unemployment_rate;
+                let unemployment = norm_pct(labor.unemployment_rate);
                 rows.push(kpi("Unemployment", unemployment, "%", "≤ 5%", lib(unemployment, 5.0)));
-                let participation = labor.labor_force_participation;
+                let participation = norm_pct(labor.labor_force_participation);
                 rows.push(kpi(
                     "Labor participation",
                     participation,
