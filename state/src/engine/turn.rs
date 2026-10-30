@@ -13710,6 +13710,12 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
                 national_gdp,
                 &ents.cross_border_gross_by_region,
             );
+            // v4.25.0 WS1: development_level now tracks live regional GDP
+            // per capita, parcel infrastructure condition, literacy, and
+            // fiscal health each turn (it previously froze at the genesis
+            // value); regions at ≥35% development graduate out of Commissary
+            // Administration into an autonomous council.
+            crate::society::geography::update_regional_development(country);
         }
     }
 

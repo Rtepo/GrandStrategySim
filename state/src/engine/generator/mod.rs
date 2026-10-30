@@ -481,6 +481,13 @@ pub fn generate_world(
         );
     }
 
+    // v4.25.0 WS1: Wire international LandBorder edges between neighbouring
+    // countries on the shared continents (deterministic `continent_layout`
+    // anchors — the map snapshot builds its Voronoi country cells from the
+    // same anchors, so engine edges and rendered borders always agree).
+    // Hash-driven, no RNG draws — downstream generation is unaffected.
+    crate::society::geography::wire_international_land_borders(&mut regions);
+
     save_game_state(data_dir, &state)?;
     save_named_map(&data_dir.join("diplomacy.json"), &diplomacy)?;
     save_named_map(&data_dir.join("regions.json"), &regions)?;

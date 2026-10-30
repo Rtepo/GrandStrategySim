@@ -1,4 +1,8 @@
 //! v4.24.0 WS5 — Interactive procedural world map snapshot.
+//! v4.25.0 WS1 — Countries now share continental landmasses: 1–2 continent
+//! blobs tile into Voronoi country cells with real shared borders, and every
+//! polygon edge is subdivided with position-keyed value noise so borders are
+//! organic and identical on both sides.
 //!
 //! Builds a deterministic planar layout for every land region of every
 //! country and ships it to the Tauri frontend as Voronoi-style polygon
@@ -16,21 +20,30 @@
 //!
 //! # Layout
 //!
-//! * Countries are anchored on a sorted-name grid with a deterministic
-//!   per-name jitter, spaced by the largest country radius plus a sea gap.
+//! * Countries are packed onto 1–2 continent blobs via
+//!   `geography::continent_layout` — the same anchors world generation uses
+//!   to wire international `LandBorder` edges, so rendered borders and the
+//!   engine adjacency graph always agree. Inside a continent the first
+//!   country anchors the hub and the rest sit on a jittered ring; each
+//!   country's boundary is its Voronoi cell inside the continent blob.
 //! * Inside a country, the capital sits at the anchor and remaining
 //!   regions are placed on concentric rings (6, 12, 18, …) in creation
 //!   order so the circular `LandBorder` adjacency maps onto neighbouring
 //!   cells. A small hash jitter breaks the hex-grid symmetry.
-//! * Each region polygon is its Voronoi cell — the country boundary blob
+//! * Each region polygon is its Voronoi cell — the country boundary cell
 //!   clipped by the perpendicular bisectors against every sibling site —
-//!   so shared borders are exact straight lines.
-//! * Regions whose cell touches the country boundary are flagged coastal
-//!   when the engine itself records no coastline (maritime graph nodes
-//!   are not generated on the live path).
+//!   then subdivided with deterministic fractal noise (≥6 segments per
+//!   edge, so ≥18 vertices per region) for natural borders.
+//! * Regions whose cell touches the continent's sea frontier are flagged
+//!   coastal when the engine itself records no coastline (maritime graph
+//!   nodes are not generated on the live path).
 
 use crate::military::fronts::RegionControl;
-use crate::society::geography::{EdgeType, NodeType, Region};
+use crate::society::cadastre::ZoningDesignation;
+use crate::society::geography::{
+    continent_layout, map_hash_unit, map_region_sort_key, map_ring_layout, EdgeType, NodeType,
+    Region, MAP_REGION_SPACING,
+};
 use crate::state::{Country, GameState};
 
 /// A single 2D point in world-map space (procedural units, not lat/lon).
@@ -81,8 +94,14 @@ pub struct MapRegionDto {
     pub active_battle: bool,
     /// Region belongs to a currently-active military front.
     pub on_front: bool,
-    /// Land-border neighbour region ids (engine edge graph).
+    /// Land-border neighbour region ids (engine edge graph + synthesized
+    /// geometric cross-country borders).
     pub neighbors: Vec<String>,
+    /// v4.25.0 WS1: Index into the country's `megaregions` list (-1 when the
+    /// region belongs to no megaregion). Drives the Megaregions map mode.
+    pub megaregion_index: i64,
+    /// v4.25.0 WS1: Megaregion display name (empty when unassigned).
+    pub megaregion_name: String,
 }
 
 /// One land-border adjacency edge between two regions (deduplicated).
@@ -114,6 +133,17 @@ pub struct CountryMapDto {
     pub regions: Vec<MapRegionDto>,
 }
 
+/// A decorative map feature (inland lake or mountain range) — pure
+/// presentation geometry derived from the same deterministic layout.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MapFeatureDto {
+    /// `lake` | `mountain`.
+    pub kind: String,
+    /// `lake`: closed polygon vertices. `mountain`: ridge polyline points.
+    pub points: Vec<MapPoint>,
+}
+
 /// Complete world-map snapshot for the Map tab and mini-map embeds.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
@@ -125,84 +155,63 @@ pub struct WorldMapSnapshot {
     pub countries: Vec<CountryMapDto>,
     /// Land-border adjacency edges across the whole world.
     pub edges: Vec<MapEdgeDto>,
+    /// v4.25.0 WS1: Decorative features (inland lakes, mountain ranges).
+    pub features: Vec<MapFeatureDto>,
+    /// v4.25.0 WS1 release gate: number of deduplicated `land_border` edges
+    /// whose endpoints belong to DIFFERENT countries — the shared
+    /// international borders migration/freight routing can cross.
+    pub shared_land_borders_count: u32,
+    /// v4.25.0 WS1 release gate: smallest region-polygon vertex count in the
+    /// snapshot (fractal subdivision guarantees ≥16).
+    pub min_region_polygon_vertices: u32,
 }
 
 // ============================================================================
 // Deterministic hashing / layout constants
 // ============================================================================
 
-/// FNV-1a 64 — stable across runs and platforms (no `HashMap` seeding).
-fn stable_hash(s: &str) -> u64 {
-    let mut h = 0xcbf29ce484222325u64;
-    for b in s.as_bytes() {
-        h ^= u64::from(*b);
-        h = h.wrapping_mul(0x0000_0100_0000_01b3);
-    }
-    h
-}
-
-/// Hash a string with a salt into `[0, 1)` — splitmix64 finalizer for
-/// well-scattered jitter coordinates.
+/// Thin aliases over the shared geography hashing helpers — the worldgen
+/// border wiring (`wire_international_land_borders`) and this snapshot must
+/// agree bit-for-bit on every jitter value.
 fn hash_unit(s: &str, salt: u64) -> f64 {
-    let mut x = stable_hash(s) ^ salt.wrapping_mul(0x9e37_79b9_7f4a_7c15);
-    x ^= x >> 30;
-    x = x.wrapping_mul(0xbf58_476d_1ce4_e5b9);
-    x ^= x >> 27;
-    x = x.wrapping_mul(0x94d0_49bb_1331_11eb);
-    x ^= x >> 31;
-    ((x >> 11) as f64) / ((1u64 << 53) as f64)
+    map_hash_unit(s, salt)
 }
 
 /// Mean centre-to-centre distance between neighbouring region sites.
-const REGION_SPACING: f64 = 10.0;
-/// Open-sea gap between neighbouring country cells (world units).
-const SEA_GAP: f64 = 16.0;
-/// Vertices of the jittered country boundary blob.
-const BOUNDARY_VERTICES: usize = 14;
+const REGION_SPACING: f64 = MAP_REGION_SPACING;
 
 /// Recover generation order (`Region1, Region2, …`) — the circular
 /// `LandBorder` adjacency was built over that order, so laying regions out
 /// in it keeps engine-graph neighbours geometric neighbours.
 fn region_sort_key(id: &str) -> (u64, String) {
-    let digits: String = id.chars().rev().take_while(|c| c.is_ascii_digit()).collect();
-    let suffix: String = digits.chars().rev().collect();
-    match suffix.parse::<u64>() {
-        Ok(n) => (0, format!("{:020}{}", n, id)),
-        Err(_) => (1, id.to_string()),
-    }
+    map_region_sort_key(id)
 }
 
 /// Ring assignment for `k` non-capital regions: rings hold 6, 12, 18, …
 /// Returns `(ring_index, position_in_ring, ring_capacity)` per input index.
 fn ring_layout(k: usize) -> Vec<(usize, usize, usize)> {
-    let mut layout = Vec::with_capacity(k);
-    let mut remaining = k;
-    let mut ring = 1usize;
-    while remaining > 0 {
-        let cap = 6 * ring;
-        let take = cap.min(remaining);
-        for j in 0..take {
-            layout.push((ring, j, cap));
-        }
-        remaining -= take;
-        ring += 1;
-    }
-    layout
+    map_ring_layout(k)
 }
 
-/// Jittered N-gon boundary blob around `center` with mean radius `r`.
-/// Deterministic per `country` — identical output every run.
-fn country_boundary(country: &str, center: (f64, f64), r: f64) -> Vec<MapPoint> {
-    let mut pts = Vec::with_capacity(BOUNDARY_VERTICES);
-    for i in 0..BOUNDARY_VERTICES {
-        let angle = (i as f64 / BOUNDARY_VERTICES as f64) * std::f64::consts::TAU
-            + hash_unit(country, 7) * std::f64::consts::TAU / BOUNDARY_VERTICES as f64;
-        // ±18% radius jitter → organic coastline silhouette.
-        let jr = 1.0 + (hash_unit(country, 1000 + i as u64) - 0.5) * 0.36;
-        pts.push(MapPoint {
-            x: center.0 + r * jr * angle.cos(),
-            y: center.1 + r * jr * angle.sin(),
-        });
+/// Vertices of the jittered continent boundary blob (before subdivision).
+const CONTINENT_BOUNDARY_VERTICES: usize = 26;
+
+/// Jittered N-gon continent silhouette around `center` with mean radius `r`.
+/// A three-lobe sinusoidal wobble plus per-vertex hash jitter produces
+/// natural coastlines with bays and peninsulas once subdivided.
+fn continent_blob(continent: usize, center: (f64, f64), r: f64) -> Vec<(f64, f64)> {
+    let lobe_phase = hash_unit(&format!("continent-lobe-{continent}"), 61) * std::f64::consts::TAU;
+    let mut pts = Vec::with_capacity(CONTINENT_BOUNDARY_VERTICES);
+    for i in 0..CONTINENT_BOUNDARY_VERTICES {
+        let frac = i as f64 / CONTINENT_BOUNDARY_VERTICES as f64;
+        let angle = frac * std::f64::consts::TAU
+            + hash_unit(&format!("continent-{continent}"), 7) * std::f64::consts::TAU
+                / CONTINENT_BOUNDARY_VERTICES as f64;
+        // ±20% vertex jitter + 8% slow wobble → organic continent outline.
+        let jr = 1.0
+            + (hash_unit(&format!("continent-{continent}-{i}"), 83) - 0.5) * 0.40
+            + 0.08 * (angle * 3.0 + lobe_phase).sin();
+        pts.push((center.0 + r * jr * angle.cos(), center.1 + r * jr * angle.sin()));
     }
     pts
 }
@@ -331,6 +340,100 @@ fn cell_touches_boundary(
 }
 
 // ============================================================================
+// Fractal border subdivision (deterministic value noise)
+// ============================================================================
+//
+// Every polygon edge is subdivided into ≥6 segments and each interior point
+// is displaced perpendicular to the edge by deterministic 2-octave value
+// noise. The displacement is a pure function of the point's POSITION (not of
+// the edge or region), so a border shared by two cells/subdivided polygons
+// is displaced identically on both sides — shared borders stay shared.
+
+/// Integer-coordinate hash → `[0, 1)`; the value-noise lattice corner.
+fn lattice_hash(ix: i64, iy: i64, salt: u64) -> f64 {
+    let mut x = (ix as u64)
+        .wrapping_mul(0x9e37_79b9_7f4a_7c15)
+        ^ (iy as u64).wrapping_mul(0xbf58_476d_1ce4_e5b9)
+        ^ salt.wrapping_mul(0x94d0_49bb_1331_11eb);
+    x ^= x >> 30;
+    x = x.wrapping_mul(0xbf58_476d_1ce4_e5b9);
+    x ^= x >> 27;
+    x = x.wrapping_mul(0x94d0_49bb_1331_11eb);
+    x ^= x >> 31;
+    ((x >> 11) as f64) / ((1u64 << 53) as f64)
+}
+
+/// Smoothstep `3t² − 2t³`.
+fn smoothstep(t: f64) -> f64 {
+    t * t * (3.0 - 2.0 * t)
+}
+
+/// 2D value noise on a unit lattice — bilinear-smooth between hashed
+/// corners. Deterministic, platform-stable (integer math only).
+fn value_noise_2d(x: f64, y: f64, salt: u64) -> f64 {
+    let xi = x.floor() as i64;
+    let yi = y.floor() as i64;
+    let xf = x - xi as f64;
+    let yf = y - yi as f64;
+    let a = lattice_hash(xi, yi, salt);
+    let b = lattice_hash(xi + 1, yi, salt);
+    let c = lattice_hash(xi, yi + 1, salt);
+    let d = lattice_hash(xi + 1, yi + 1, salt);
+    let u = smoothstep(xf);
+    let v = smoothstep(yf);
+    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+}
+
+/// Fractal displacement for an edge-interior point — position-keyed.
+fn fractal_displace(
+    p: (f64, f64),
+    edge_dir: (f64, f64),
+    edge_len: f64,
+    salt: u64,
+) -> (f64, f64) {
+    let n = 0.62 * value_noise_2d(p.0 * 0.11, p.1 * 0.11, salt)
+        + 0.38 * value_noise_2d(p.0 * 0.34, p.1 * 0.34, salt + 91);
+    // Amplitude: ~16% of edge length, capped so small cells stay sane.
+    let amp = (edge_len * 0.16).min(REGION_SPACING * 0.45);
+    let inv = 1.0 / edge_len.max(1e-9);
+    let (nx, ny) = (-edge_dir.1 * inv, edge_dir.0 * inv);
+    (
+        p.0 + nx * (n - 0.5) * 2.0 * amp,
+        p.1 + ny * (n - 0.5) * 2.0 * amp,
+    )
+}
+
+/// Salt shared by every subdivided edge in the snapshot — a single global
+/// noise field is what makes shared borders line up across adjacent cells.
+const SUBDIV_SALT: u64 = 424_242;
+
+/// Subdivide every polygon edge into ≥6 (up to 24) segments with fractal
+/// interior displacement. Guarantees ≥18 vertices for any triangle+ cell —
+/// the `min_region_polygon_vertices` release gate asserts ≥16.
+fn subdivide_polygon(poly: &[(f64, f64)]) -> Vec<(f64, f64)> {
+    let m = poly.len();
+    if m < 3 {
+        return poly.to_vec();
+    }
+    let mut out = Vec::with_capacity(m * 8);
+    for i in 0..m {
+        let a = poly[i];
+        let b = poly[(i + 1) % m];
+        out.push(a);
+        let dir = (b.0 - a.0, b.1 - a.1);
+        let len = (dir.0 * dir.0 + dir.1 * dir.1).sqrt();
+        // ≥6 segments per edge; longer edges get proportionally more.
+        let n = ((len / (REGION_SPACING * 0.55)).ceil() as usize).clamp(6, 24);
+        for k in 1..n {
+            let t = k as f64 / n as f64;
+            let p = (a.0 + dir.0 * t, a.1 + dir.1 * t);
+            out.push(fractal_displace(p, dir, len, SUBDIV_SALT));
+        }
+    }
+    out
+}
+
+// ============================================================================
 // Stats aggregation
 // ============================================================================
 
@@ -430,8 +533,10 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     country_names.sort();
 
     // ------------------------------------------------------------------
-    // Pass 1: lay out region sites per country (anchor-relative), then
-    // compute country radii → cell grid → absolute anchors.
+    // Pass 1: continent placement — countries packed onto 1–2 landmasses.
+    // `geography::continent_layout` is the SAME function world generation
+    // calls to wire international `LandBorder` edges, so the rendered
+    // shared borders always mirror the engine adjacency graph.
     // ------------------------------------------------------------------
     struct CountryLayout {
         name: String,
@@ -439,13 +544,19 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         regions: Vec<Region>,
         /// Site per region (absolute coords after anchoring).
         sites: Vec<(f64, f64)>,
-        /// Boundary blob vertices.
+        /// Country cell — the Voronoi cell of the country's anchor inside
+        /// its continent blob (this is the rendered country boundary).
         boundary: Vec<(f64, f64)>,
+        /// Owning continent's sea frontier (coastal detection + bounds).
+        continent_boundary: Vec<(f64, f64)>,
+        /// Continent index for cross-country adjacency grouping.
+        continent: usize,
         radius: f64,
         anchor: (f64, f64),
     }
 
     let mut layouts: Vec<CountryLayout> = Vec::with_capacity(country_names.len());
+    let mut continent_entries: Vec<(String, usize)> = Vec::with_capacity(country_names.len());
     for name in &country_names {
         let country = &state.countries[*name];
         // Land regions only, in creation order — maritime nodes are never
@@ -458,42 +569,53 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             .collect();
         regions.sort_by_key(|r| region_sort_key(&r.id));
 
-        let land_count = regions.len().max(1) as f64;
-        // Blob radius grows with sqrt(region count) → uniform site density.
-        let n_rings = ring_layout(regions.len().saturating_sub(1))
-            .last()
-            .map(|l| l.0)
-            .unwrap_or(0);
-        let radius = REGION_SPACING * (n_rings as f64 + 0.75).max(land_count.sqrt() * 1.05);
+        continent_entries.push(((*name).clone(), regions.len()));
         layouts.push(CountryLayout {
             name: (*name).clone(),
             regions,
             sites: Vec::new(),
             boundary: Vec::new(),
-            radius,
+            continent_boundary: Vec::new(),
+            continent: 0,
+            radius: 0.0,
             anchor: (0.0, 0.0),
         });
     }
 
-    // Cell pitch: largest blob + sea gap. Jittered anchor offsets break
-    // the grid regularity while staying fully deterministic.
-    let max_radius = layouts
+    let placements = continent_layout(&continent_entries);
+    let n_continents = placements
         .iter()
-        .map(|l| l.radius)
-        .fold(0.0_f64, f64::max)
-        .max(REGION_SPACING);
-    let pitch = 2.0 * max_radius + SEA_GAP;
-    let cols = (layouts.len() as f64).sqrt().ceil() as usize;
-    for (i, layout) in layouts.iter_mut().enumerate() {
-        let row = i / cols.max(1);
-        let col = i % cols.max(1);
-        let jx = (hash_unit(&layout.name, 11) - 0.5) * pitch * 0.3;
-        let jy = (hash_unit(&layout.name, 23) - 0.5) * pitch * 0.3;
-        layout.anchor = (col as f64 * pitch + jx, row as f64 * pitch + jy);
-        layout.boundary = country_boundary(&layout.name, layout.anchor, layout.radius)
-            .into_iter()
-            .map(|p| (p.x, p.y))
+        .map(|p| p.continent)
+        .max()
+        .map(|c| c + 1)
+        .unwrap_or(0);
+    for ci in 0..n_continents {
+        let members: Vec<usize> = placements
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| p.continent == ci)
+            .map(|(i, _)| i)
             .collect();
+        if members.is_empty() {
+            continue;
+        }
+        let blob = continent_blob(
+            ci,
+            placements[members[0]].continent_center,
+            placements[members[0]].continent_radius,
+        );
+        let sites: Vec<(f64, f64)> = members.iter().map(|&i| placements[i].anchor).collect();
+        for &mi in &members {
+            // Country boundary = the anchor's Voronoi cell inside the
+            // continent blob. A single-country continent gets the whole
+            // blob (no sibling bisectors to clip against).
+            let cell = voronoi_cell(placements[mi].anchor, &sites, &blob);
+            layouts[mi].boundary = cell;
+            layouts[mi].continent_boundary = blob.clone();
+            layouts[mi].continent = ci;
+            layouts[mi].anchor = placements[mi].anchor;
+            layouts[mi].radius = placements[mi].blob_radius;
+        }
     }
 
     // ------------------------------------------------------------------
@@ -606,22 +728,121 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     }
 
     // ------------------------------------------------------------------
-    // Pass 4: Voronoi cells + DTO assembly.
+    // Pass 4a: all region cells + cross-country adjacency bookkeeping.
+    // ------------------------------------------------------------------
+    let mut region_cells: Vec<Vec<Vec<(f64, f64)>>> = Vec::with_capacity(layouts.len());
+    let mut region_owner: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::new();
+    for (li, layout) in layouts.iter().enumerate() {
+        let mut cells = Vec::with_capacity(layout.regions.len());
+        for (idx, _) in layout.regions.iter().enumerate() {
+            let site = layout.sites[idx];
+            // Passing ALL sites (including the region's own) is fine —
+            // `voronoi_cell` skips coincident sites.
+            cells.push(voronoi_cell(site, &layout.sites, &layout.boundary));
+        }
+        for region in &layout.regions {
+            region_owner.insert(region.id.clone(), li);
+        }
+        region_cells.push(cells);
+    }
+
+    // Country pairs already wired in the engine graph (worldgen adds
+    // `LandBorder` edges between neighbouring countries' rim regions).
+    let mut wired_pairs: std::collections::HashSet<(usize, usize)> =
+        std::collections::HashSet::new();
+    for (li, layout) in layouts.iter().enumerate() {
+        for region in &layout.regions {
+            for e in &region.edges {
+                if !matches!(e.edge_type, EdgeType::LandBorder | EdgeType::River) {
+                    continue;
+                }
+                if let Some(&oj) = region_owner.get(&e.target_node) {
+                    if oj != li {
+                        wired_pairs.insert((li.min(oj), li.max(oj)));
+                    }
+                }
+            }
+        }
+    }
+
+    // Geometric adjacency: two country cells share a border when ≥2 of one
+    // cell's vertices lie on the other's outline (Voronoi clipping makes
+    // shared vertices bit-identical, so a hairline epsilon suffices).
+    // For adjacent pairs with no engine edge (saves predating the worldgen
+    // wiring) we synthesize one border edge between the rim regions so the
+    // map still shows real land borders; mountain ridges decorate a
+    // deterministic subset of shared borders either way.
+    let mut features_out: Vec<MapFeatureDto> = Vec::new();
+    let mut synth_neighbors: std::collections::HashMap<String, Vec<String>> =
+        std::collections::HashMap::new();
+    let mut synth_edges: Vec<(String, String)> = Vec::new();
+    for i in 0..layouts.len() {
+        for j in (i + 1)..layouts.len() {
+            if layouts[i].continent != layouts[j].continent {
+                continue;
+            }
+            let eps2 =
+                (layouts[i].radius.max(layouts[j].radius) * 2e-3).powi(2).max(1e-9);
+            let shared = shared_vertices(&layouts[i].boundary, &layouts[j].boundary, eps2);
+            if shared.len() < 2 {
+                continue;
+            }
+            let mid = shared.iter().fold((0.0, 0.0), |(sx, sy), p| {
+                (sx + p.0 / shared.len() as f64, sy + p.1 / shared.len() as f64)
+            });
+            if !wired_pairs.contains(&(i, j)) {
+                let ra = border_region_at(&region_cells[i], &layouts[i].regions, mid);
+                let rb = border_region_at(&region_cells[j], &layouts[j].regions, mid);
+                if let (Some(ra), Some(rb)) = (ra, rb) {
+                    let (a, b) = if ra < rb { (ra, rb) } else { (rb, ra) };
+                    synth_neighbors
+                        .entry(a.clone())
+                        .or_default()
+                        .push(b.clone());
+                    synth_neighbors
+                        .entry(b.clone())
+                        .or_default()
+                        .push(a.clone());
+                    synth_edges.push((a, b));
+                }
+            }
+            if hash_unit(&format!("mtn:{}:{}", layouts[i].name, layouts[j].name), 73) < 0.4
+                && shared.len() >= 2
+            {
+                features_out.push(MapFeatureDto {
+                    kind: "mountain".to_string(),
+                    points: mountain_ridge(&shared, i as u64 * 131 + j as u64)
+                        .into_iter()
+                        .map(|p| MapPoint { x: p.0, y: p.1 })
+                        .collect(),
+                });
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Pass 4b: fractal subdivision + DTO assembly.
     // ------------------------------------------------------------------
     let mut countries_out = Vec::with_capacity(layouts.len());
     let mut edges_out: Vec<MapEdgeDto> = Vec::new();
     let mut edge_seen: std::collections::HashSet<(String, String)> =
         std::collections::HashSet::new();
     let mut bounds = [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY];
+    let mut min_poly_verts = usize::MAX;
+    let mut shared_land_borders: u32 = 0;
 
     for (color_index, layout) in layouts.iter().enumerate() {
         let country = &state.countries[layout.name.as_str()];
-        let boundary_pts: Vec<MapPoint> = layout
-            .boundary
+        // Country boundary = its Voronoi cell, subdivided with the same
+        // position-keyed noise as the region cells so coastlines and shared
+        // borders stay seamless.
+        let boundary_sub = subdivide_polygon(&layout.boundary);
+        let boundary_pts: Vec<MapPoint> = boundary_sub
             .iter()
             .map(|p| MapPoint { x: p.0, y: p.1 })
             .collect();
-        for p in &layout.boundary {
+        for p in &boundary_sub {
             bounds[0] = bounds[0].min(p.0);
             bounds[1] = bounds[1].min(p.1);
             bounds[2] = bounds[2].max(p.0);
@@ -639,26 +860,23 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         };
         for (idx, region) in layout.regions.iter().enumerate() {
             let site = layout.sites[idx];
-            let others: Vec<(f64, f64)> = layout
-                .sites
-                .iter()
-                .enumerate()
-                .filter(|(j, _)| *j != idx)
-                .map(|(_, s)| *s)
-                .collect();
-            let cell = voronoi_cell(site, &others, &layout.boundary);
-            let polygon: Vec<MapPoint> = cell
-                .iter()
-                .map(|p| MapPoint { x: p.0, y: p.1 })
-                .collect();
+            let cell = &region_cells[color_index][idx];
+            let sub = subdivide_polygon(cell);
+            min_poly_verts = min_poly_verts.min(sub.len());
+            let polygon: Vec<MapPoint> =
+                sub.iter().map(|p| MapPoint { x: p.0, y: p.1 }).collect();
 
-            // Land-border neighbours from the engine edge graph.
+            // Land-border neighbours from the engine edge graph, merged with
+            // any geometric cross-country border synthesized above.
             let mut neighbors: Vec<String> = region
                 .edges
                 .iter()
                 .filter(|e| matches!(e.edge_type, EdgeType::LandBorder | EdgeType::River))
                 .map(|e| e.target_node.clone())
                 .collect();
+            if let Some(extra) = synth_neighbors.get(&region.id) {
+                neighbors.extend(extra.iter().cloned());
+            }
             neighbors.sort();
             neighbors.dedup();
             for e in &region.edges {
@@ -672,6 +890,13 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                     (e.target_node.clone(), region.id.clone())
                 };
                 if edge_seen.insert((a.clone(), b.clone())) {
+                    if e.edge_type == EdgeType::LandBorder {
+                        if let Some(&oj) = region_owner.get(&e.target_node) {
+                            if oj != color_index {
+                                shared_land_borders += 1;
+                            }
+                        }
+                    }
                     edges_out.push(MapEdgeDto {
                         from_region: a,
                         to_region: b,
@@ -680,6 +905,15 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 }
             }
 
+            // Megaregion membership for the Megaregions map mode.
+            let (megaregion_index, megaregion_name) = country
+                .megaregions
+                .iter()
+                .enumerate()
+                .find(|(_, m)| m.regions.contains(&region.id))
+                .map(|(i, m)| (i as i64, m.name.clone()))
+                .unwrap_or((-1, String::new()));
+
             if region.is_capital {
                 capital_name = if region.display_name.is_empty() {
                     region.id.clone()
@@ -687,6 +921,16 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                     region.display_name.clone()
                 };
                 capital_anchor = MapPoint { x: site.0, y: site.1 };
+            }
+
+            let is_coastal = region_engine_coastal(region)
+                || cell_touches_boundary(cell, &layout.continent_boundary, eps2);
+
+            // Inland lake on a deterministic subset of roomy interior cells.
+            if !is_coastal && hash_unit(&format!("lake:{}", region.id), 71) < 0.16 {
+                if let Some(lake) = lake_feature(cell, &region.id) {
+                    features_out.push(lake);
+                }
             }
 
             let (control, controller) = control_label(region_control.get(&region.id));
@@ -701,8 +945,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 polygon,
                 centroid: MapPoint { x: site.0, y: site.1 },
                 is_capital_district: region.is_capital,
-                is_coastal: region_engine_coastal(region)
-                    || cell_touches_boundary(&cell, &layout.boundary, eps2),
+                is_coastal,
                 is_city_region: region.city_metadata.is_some(),
                 population: region.population,
                 gdp: region.gdp,
@@ -715,6 +958,8 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 active_battle: battle_recent.contains(&region.id),
                 on_front: on_front.contains(&region.id),
                 neighbors,
+                megaregion_index,
+                megaregion_name,
             });
         }
 
@@ -727,6 +972,20 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             boundary: boundary_pts,
             regions: regions_out,
         });
+    }
+
+    // Synthesized cross-country borders (geometric adjacency the engine
+    // graph predates) — emitted as land_border edges and counted in the
+    // shared-border release gate.
+    for (a, b) in synth_edges {
+        if edge_seen.insert((a.clone(), b.clone())) {
+            shared_land_borders += 1;
+            edges_out.push(MapEdgeDto {
+                from_region: a,
+                to_region: b,
+                edge_type: "land_border".to_string(),
+            });
+        }
     }
 
     if !bounds[0].is_finite() {
@@ -743,7 +1002,303 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         bounds: bounds.to_vec(),
         countries: countries_out,
         edges: edges_out,
+        features: features_out,
+        shared_land_borders_count: shared_land_borders,
+        min_region_polygon_vertices: if min_poly_verts == usize::MAX {
+            0
+        } else {
+            min_poly_verts as u32
+        },
     }
+}
+
+// ============================================================================
+// Cross-country adjacency helpers
+// ============================================================================
+
+/// Vertices of polygon `a` that lie on polygon `b`'s outline within `eps2`.
+/// Voronoi clipping makes shared vertices bit-identical, so `eps2` only
+/// guards against degenerate fallbacks.
+fn shared_vertices(
+    a: &[(f64, f64)],
+    b: &[(f64, f64)],
+    eps2: f64,
+) -> Vec<(f64, f64)> {
+    let mut out = Vec::new();
+    for &v in a {
+        let on_b =
+            (0..b.len()).any(|i| seg_dist2(v, b[i], b[(i + 1) % b.len()]) <= eps2);
+        if on_b {
+            out.push(v);
+        }
+    }
+    out
+}
+
+/// Region whose cell has a vertex closest to `mid` — the rim region a
+/// synthesized cross-border edge should attach to.
+fn border_region_at(
+    cells: &[Vec<(f64, f64)>],
+    regions: &[Region],
+    mid: (f64, f64),
+) -> Option<String> {
+    let mut best: Option<(f64, usize)> = None;
+    for (idx, cell) in cells.iter().enumerate() {
+        for v in cell {
+            let d2 = (v.0 - mid.0).powi(2) + (v.1 - mid.1).powi(2);
+            if best.map(|(b, _)| d2 < b).unwrap_or(true) {
+                best = Some((d2, idx));
+            }
+        }
+    }
+    best.map(|(_, idx)| regions[idx].id.clone())
+}
+
+/// Jagged polyline along a shared country border → mountain ridge.
+fn mountain_ridge(shared: &[(f64, f64)], salt: u64) -> Vec<(f64, f64)> {
+    if shared.len() < 2 {
+        return Vec::new();
+    }
+    // Extremes of the shared span = ridge endpoints.
+    let (mut a, mut b, mut best) = (shared[0], shared[0], 0.0_f64);
+    for &p in shared {
+        for &q in shared {
+            let d = (p.0 - q.0).powi(2) + (p.1 - q.1).powi(2);
+            if d > best {
+                best = d;
+                a = p;
+                b = q;
+            }
+        }
+    }
+    let dir = (b.0 - a.0, b.1 - a.1);
+    let len = (dir.0 * dir.0 + dir.1 * dir.1).sqrt().max(1e-9);
+    let (nx, ny) = (-dir.1 / len, dir.0 / len);
+    let mut out = Vec::with_capacity(9);
+    for k in 0..=8 {
+        let t = k as f64 / 8.0;
+        let base = (a.0 + dir.0 * t, a.1 + dir.1 * t);
+        let h = (value_noise_2d(base.0 * 0.3, base.1 * 0.3, salt) - 0.5) * len * 0.22;
+        out.push((base.0 + nx * h, base.1 + ny * h));
+    }
+    out
+}
+
+/// Small noise-jittered blob → inland lake inside a roomy interior cell.
+fn lake_feature(cell: &[(f64, f64)], region_id: &str) -> Option<MapFeatureDto> {
+    if cell.is_empty() {
+        return None;
+    }
+    let (mut minx, mut miny, mut maxx, mut maxy) =
+        (f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+    let (mut sx, mut sy) = (0.0, 0.0);
+    for v in cell {
+        minx = minx.min(v.0);
+        miny = miny.min(v.1);
+        maxx = maxx.max(v.0);
+        maxy = maxy.max(v.1);
+        sx += v.0 / cell.len() as f64;
+        sy += v.1 / cell.len() as f64;
+    }
+    let (w, h) = (maxx - minx, maxy - miny);
+    if w < REGION_SPACING * 2.0 || h < REGION_SPACING * 2.0 {
+        return None;
+    }
+    let r = w.min(h) * 0.18;
+    let mut pts = Vec::with_capacity(9);
+    for i in 0..9 {
+        let a = (i as f64 / 9.0) * std::f64::consts::TAU + hash_unit(region_id, 77);
+        let jr = 1.0 + (hash_unit(&format!("{region_id}-lk{i}"), 79) - 0.5) * 0.45;
+        pts.push(MapPoint {
+            x: sx + r * jr * a.cos(),
+            y: sy + r * jr * a.sin(),
+        });
+    }
+    Some(MapFeatureDto {
+        kind: "lake".to_string(),
+        points: pts,
+    })
+}
+
+// ============================================================================
+// Regional cadastral parcel map (Regions-page drill-down)
+// ============================================================================
+
+/// One parcel cell on a region's cadastral map.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MapParcelDto {
+    /// Slotmap key of the `ParcelChunk` (unique within the country).
+    pub id: String,
+    /// Ordered quad vertices (cadastral-map units, y-down for SVG).
+    pub polygon: Vec<MapPoint>,
+    /// `unplanned` | `agricultural` | `industrial` | `residential` |
+    /// `commercial` | `mixed` | `protected_natural` | `strategic_military`.
+    pub zoning: String,
+    /// Render class — zoning overlaid with land-use signals:
+    /// `devastated` (devastation ≥ 0.3), `resource_mines` (industrial zoning
+    /// in an extraction region), or the zoning key itself.
+    pub use_class: String,
+    /// `state` | `private` | `corporate` | `municipal` | `cooperative` |
+    /// `religious` | `foreign_fund`.
+    pub owner_type: String,
+    /// Raw owner entity id (`TREASURY`, `JST:<region>`, company/VIP id).
+    pub owner_id: String,
+    pub size_hectares: f64,
+    /// Cadastre devastation index, 0.0 pristine – 1.0 total ruin.
+    pub devastation: f64,
+    /// Legal certainty (0 = unsurveyed, 1 = fully surveyed).
+    pub legal_certainty: f64,
+    /// Infrastructure access score (0 = no road/utilities, 1 = full).
+    pub infrastructure_access: f64,
+    pub is_frozen: bool,
+    pub is_border_zone: bool,
+    /// Phase 61.4 endowment tag (`forest_district`, `PrivateEstate`, …).
+    pub land_use_tag: String,
+}
+
+/// A region's cadastral parcel layout for the Regions-page drill-down map.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct RegionParcelMapDto {
+    pub country: String,
+    pub region_id: String,
+    /// Display name (`display_name` with `id` fallback).
+    pub region_name: String,
+    /// `[min_x, min_y, max_x, max_y]` of the parcel grid.
+    pub bounds: Vec<f64>,
+    pub parcels: Vec<MapParcelDto>,
+}
+
+/// `ZoningDesignation` → stable snake_case label (mirrors serde naming).
+fn zoning_label(z: ZoningDesignation) -> &'static str {
+    match z {
+        ZoningDesignation::Unplanned => "unplanned",
+        ZoningDesignation::Agricultural => "agricultural",
+        ZoningDesignation::Industrial => "industrial",
+        ZoningDesignation::Residential => "residential",
+        ZoningDesignation::Commercial => "commercial",
+        ZoningDesignation::Mixed => "mixed",
+        ZoningDesignation::ProtectedNatural => "protected_natural",
+        ZoningDesignation::StrategicMilitary => "strategic_military",
+    }
+}
+
+/// `ParcelOwnerType` → stable snake_case label (mirrors serde naming).
+fn owner_type_label(t: crate::society::cadastre::ParcelOwnerType) -> &'static str {
+    use crate::society::cadastre::ParcelOwnerType as T;
+    match t {
+        T::State => "state",
+        T::Private => "private",
+        T::Corporate => "corporate",
+        T::Municipal => "municipal",
+        T::Cooperative => "cooperative",
+        T::Religious => "religious",
+        T::ForeignFund => "foreign_fund",
+    }
+}
+
+/// Build the deterministic cadastral parcel map for one land region.
+///
+/// Parcels carry no stored geometry — the cadastre is topological — so the
+/// grid below lays `region.parcel_ids` out on a jittered lattice (shared
+/// vertices → seamless cells) in slotmap order. Deterministic per
+/// `(region_id, lattice vertex)`, identical every call.
+pub fn build_region_parcel_map(
+    country: &Country,
+    region_id: &str,
+) -> Option<RegionParcelMapDto> {
+    let region = country
+        .regions
+        .iter()
+        .find(|r| r.id == region_id && r.node_type == NodeType::LandRegion)?;
+
+    let mut pids = region.parcel_ids.clone();
+    pids.sort();
+    let n = pids.len();
+
+    const GRID: f64 = 100.0;
+    let cols = ((n as f64).sqrt().ceil() as usize).max(1);
+    let rows = n.div_ceil(cols).max(1);
+    let cell_w = GRID / cols as f64;
+    let cell_h = GRID / rows as f64;
+
+    // Jittered lattice shared between neighbouring cells — no gaps/overlaps.
+    let mut lattice = vec![vec![(0.0_f64, 0.0_f64); cols + 1]; rows + 1];
+    for r in 0..=rows {
+        for c in 0..=cols {
+            let on_rim = r == 0 || c == 0 || r == rows || c == cols;
+            let amp = if on_rim { 0.08 } else { 0.30 } * cell_w.min(cell_h);
+            let jx =
+                (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 3) - 0.5) * 2.0 * amp;
+            let jy =
+                (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 4) - 0.5) * 2.0 * amp;
+            lattice[r][c] = (c as f64 * cell_w + jx, r as f64 * cell_h + jy);
+        }
+    }
+
+    // Industrial parcels in an extraction region render as resource mines.
+    let has_extraction = region.extraction_limits.values().any(|v| *v > 0);
+
+    let mut parcels = Vec::with_capacity(n);
+    for (i, pid) in pids.iter().enumerate() {
+        let Some(p) = country.cadastre.get(*pid) else {
+            continue;
+        };
+        let (r, c) = (i / cols, i % cols);
+        let polygon = vec![
+            MapPoint {
+                x: lattice[r][c].0,
+                y: lattice[r][c].1,
+            },
+            MapPoint {
+                x: lattice[r][c + 1].0,
+                y: lattice[r][c + 1].1,
+            },
+            MapPoint {
+                x: lattice[r + 1][c + 1].0,
+                y: lattice[r + 1][c + 1].1,
+            },
+            MapPoint {
+                x: lattice[r + 1][c].0,
+                y: lattice[r + 1][c].1,
+            },
+        ];
+        let use_class = if p.devastation_index >= 0.3 {
+            "devastated"
+        } else if p.zoning == ZoningDesignation::Industrial && has_extraction {
+            "resource_mines"
+        } else {
+            zoning_label(p.zoning)
+        };
+        parcels.push(MapParcelDto {
+            id: format!("{pid:?}"),
+            polygon,
+            zoning: zoning_label(p.zoning).to_string(),
+            use_class: use_class.to_string(),
+            owner_type: owner_type_label(p.owner_type).to_string(),
+            owner_id: p.owner_id.clone(),
+            size_hectares: p.size_hectares,
+            devastation: p.devastation_index,
+            legal_certainty: p.legal_certainty,
+            infrastructure_access: p.infrastructure_access,
+            is_frozen: p.is_frozen,
+            is_border_zone: p.is_border_zone,
+            land_use_tag: p.land_use_tag.clone(),
+        });
+    }
+
+    Some(RegionParcelMapDto {
+        country: country.name.clone(),
+        region_id: region_id.to_string(),
+        region_name: if region.display_name.is_empty() {
+            region.id.clone()
+        } else {
+            region.display_name.clone()
+        },
+        bounds: vec![0.0, 0.0, GRID, GRID],
+        parcels,
+    })
 }
 
 // ============================================================================
