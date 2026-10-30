@@ -1050,6 +1050,9 @@ pub fn process_political_turn(
     if country.politics.government_form.is_democratic()
         && !country.politics.active_parties.is_empty()
     {
+        // v4.25.0 WS6: drift the polled shares BEFORE recording so the
+        // trend moves every turn instead of pinning flat between elections.
+        apply_polling_drift(country, unions, current_turn);
         let mut support: Vec<(String, f64)> = country
             .politics
             .active_parties
@@ -1071,6 +1074,165 @@ pub fn process_political_turn(
     }
 
     messages
+}
+
+/// v4.25.0 WS6: Continuous opinion polling between elections.
+///
+/// `party.support` was previously only mutated by campaign events and the
+/// yearly `regenerate_parties` rebase, so the 24-turn trend chart rendered
+/// flat lines for ~20 turns of every term. Every turn the governing bloc's
+/// polled share now drifts with the lived macro climate — inflation above
+/// the 2% target and high/rising unemployment erode it, enacted tax hikes
+/// cost approval (cuts buy it back), active strikes and war exhaustion
+/// bleed it further — and the lost points re-flow to the opposition in
+/// proportion to their standing. A deterministic per-party wobble (FNV-1a
+/// of name×turn — no RNG-stream consumption) keeps the series alive in
+/// quiet turns, and a slow pull toward each party's electoral mandate
+/// (seat share) anchors the random walk so it cannot diverge without
+/// bound. The electorate is renormalized to 100 points at the end.
+fn apply_polling_drift(
+    country: &mut Country,
+    unions: &[crate::entities::union::Union],
+    current_turn: u32,
+) {
+    // ── Governing-bloc performance shock, in support points ────────────
+    let lm = &country.macro_indicators.labor_market;
+    // Inflation: punish deviation above the 2% target; small bonus for
+    // running below it.
+    let inflation_hit = ((country.macro_indicators.inflation - 2.0) * 0.03).clamp(-0.10, 0.30);
+    // Unemployment (percent): a sustained level above 5% bleeds support and
+    // a rising rate bleeds faster.
+    let unemp_level_hit = ((lm.unemployment_rate - 5.0) * 0.015).clamp(-0.10, 0.30);
+    let unemp_rise_hit =
+        ((lm.unemployment_rate - lm.prev_unemployment_rate) * 0.10).clamp(-0.15, 0.15);
+
+    // Tax changes: combined statutory wedge vs last turn's reading. Sorted
+    // VAT keys keep the mean deterministic (HashMap order is not).
+    let mut vat_keys: Vec<&String> = country.tax_rates.vat.keys().collect();
+    vat_keys.sort();
+    let vat_mean = if vat_keys.is_empty() {
+        0.0
+    } else {
+        vat_keys
+            .iter()
+            .map(|k| country.tax_rates.vat[*k].rate)
+            .sum::<f64>()
+            / vat_keys.len() as f64
+    };
+    let tax_burden = country.tax_rates.income_tax.rate + country.tax_rates.corporate_tax + vat_mean;
+    let tax_hit = match country.politics.prev_polling_tax_burden {
+        Some(prev) => ((tax_burden - prev) * 6.0).clamp(-0.20, 0.40),
+        None => 0.0,
+    };
+    country.politics.prev_polling_tax_burden = Some(tax_burden);
+
+    // Strikes: unions currently out plus union-backed street movements.
+    let strikes = unions.iter().filter(|u| u.on_strike).count()
+        + country
+            .politics
+            .mass_movements
+            .iter()
+            .filter(|m| {
+                m.union_backed && m.status == super::mass_movements::MassMovementStatus::Active
+            })
+            .count();
+    let strike_hit = (strikes as f64 * 0.04).min(0.30);
+
+    // War exhaustion on this country's fronts (mirrors morale.rs context).
+    let war_exhaustion = country
+        .military_fronts
+        .iter()
+        .map(|f| {
+            f.war_exhaustion
+                .get(country.name.as_str())
+                .copied()
+                .unwrap_or(0.0)
+        })
+        .fold(0.0_f64, f64::max);
+    let war_hit = (war_exhaustion * 0.02
+        + if country.at_war_with.is_empty() {
+            0.0
+        } else {
+            0.05
+        })
+    .min(0.50);
+
+    let gov_delta = -(inflation_hit
+        + unemp_level_hit
+        + unemp_rise_hit
+        + tax_hit
+        + strike_hit
+        + war_hit)
+        .clamp(-0.75, 0.45);
+
+    // ── Electoral-mandate anchors (seat share = last election result) ──
+    let seat_map: HashMap<String, u32> = country
+        .politics
+        .parliament_struct
+        .as_ref()
+        .map(|parl| parl.lower_seat_map())
+        .filter(|m| !m.is_empty())
+        .unwrap_or_else(|| country.politics.parliament.clone());
+    let seat_total: f64 = seat_map.values().map(|s| *s as f64).sum();
+
+    // The governing bloc = ruling party + coalition partners actually on
+    // the ballot.
+    let mut gov_bloc: std::collections::HashSet<String> =
+        country.politics.coalition.iter().cloned().collect();
+    if !country.politics.ruling_party.is_empty() {
+        gov_bloc.insert(country.politics.ruling_party.clone());
+    }
+
+    // Canonical order — the sums below feed a HashMap mutation, so iterate
+    // sorted names like everywhere else in this module.
+    let mut names: Vec<String> = country.politics.active_parties.keys().cloned().collect();
+    names.sort();
+    let gov_total: f64 = names
+        .iter()
+        .filter(|n| gov_bloc.contains(*n))
+        .map(|n| country.politics.active_parties[n].support.max(0.0))
+        .sum();
+    let opp_total: f64 = names
+        .iter()
+        .filter(|n| !gov_bloc.contains(*n))
+        .map(|n| country.politics.active_parties[n].support.max(0.0))
+        .sum();
+    // Redistribution only makes sense when both blocs hold measurable
+    // support — otherwise the flow would be normalized away anyway.
+    let redistribute = gov_total > f64::EPSILON && opp_total > f64::EPSILON;
+
+    for name in names {
+        let party = match country.politics.active_parties.get_mut(&name) {
+            Some(p) => p,
+            None => continue,
+        };
+        // Deterministic poll wobble ±0.12pp — FNV-1a of (name, turn).
+        let mut h: u64 = 0xcbf29ce484222325;
+        for b in format!("{name}:{current_turn}").as_bytes() {
+            h ^= *b as u64;
+            h = h.wrapping_mul(0x100000001b3);
+        }
+        let wobble = ((h % 1000) as f64 / 1000.0 - 0.5) * 0.24;
+        party.support = (party.support + wobble).max(0.0);
+
+        // Slow pull toward the electoral mandate (2%/turn mean reversion).
+        if seat_total > 0.0 {
+            if let Some(seats) = seat_map.get(&name) {
+                let anchor = *seats as f64 / seat_total * 100.0;
+                party.support += (anchor - party.support) * 0.02;
+            }
+        }
+
+        if redistribute {
+            if gov_bloc.contains(&name) {
+                party.support += gov_delta * (party.support.max(0.0) / gov_total).min(1.0);
+            } else {
+                party.support -= gov_delta * (party.support.max(0.0) / opp_total).min(1.0);
+            }
+        }
+        party.support = party.support.max(0.0);
+    }
+    super::system::normalize_party_supports(&mut country.politics.active_parties);
 }
 
 /// Ensure the legislative session and committee system exist when the country

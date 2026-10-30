@@ -1171,6 +1171,11 @@ pub struct Politics {
     /// v4.22.1 WS2.3: Rolling 24-turn party support history (latest last).
     #[serde(default)]
     pub party_support_history: Vec<SupportSnapshot>,
+    /// v4.25.0 WS6: Previous turn's statutory tax wedge (PIT + CIT + mean
+    /// VAT) — the opinion-poll drift reads the delta so enacted tax
+    /// hikes/cuts move party support. `None` until the first poll runs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prev_polling_tax_burden: Option<f64>,
     #[serde(default)]
     pub active_parties: HashMap<String, Party>,
     #[serde(default)]

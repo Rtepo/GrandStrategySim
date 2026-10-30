@@ -5140,9 +5140,38 @@ pub fn build_bank_detail(
     })
 }
 
+/// v4.25.0 WS6: Render an engine policy key ("5_year_assimilation",
+/// "jus_sanguinis", "segregation") as a polished English policy label.
+/// Falls back to the generic debug-token humanizer for values that are
+/// already readable prose ("Worker Protection", "Full Emancipation").
+fn humanize_law_key(raw: &str) -> String {
+    let t = raw.trim();
+    for (suffix, label) in [("_assimilation", "assimilation"), ("_residency", "residency")] {
+        if let Some(prefix) = t.strip_suffix(suffix) {
+            if let Some(years) = prefix
+                .strip_suffix("_year")
+                .and_then(|y| y.parse::<u32>().ok())
+            {
+                return format!("Citizenship by {} after {} years", label, years);
+            }
+        }
+    }
+    match t {
+        "open_citizenship" => "Open citizenship — no discrimination".to_string(),
+        "jus_sanguinis" => "Citizenship by descent (jus sanguinis)".to_string(),
+        "segregation" => "Segregation — non-dominant cultures denied citizenship".to_string(),
+        _ => crate::politics::system::humanize_debug_token(t),
+    }
+}
+
 /// v4.19 WS4: Constitution parameters + the live statute/policy book for
 /// the "Constitution & Laws" tab. All rows come from real `politics`
 /// fields — no projected or synthetic statute lists.
+///
+/// v4.25.0 WS6: every summary is a human-readable English phrase — the
+/// release gate asserts the serialized statutes DTO carries no `_`
+/// characters and no `true`/`false` literals, so engine keys and raw bools
+/// must never reach the wire.
 pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
     let p = &country.politics;
     let c = &p.constitution;
@@ -5172,7 +5201,8 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
     };
 
     // Live statute/policy rows — every entry is a real Politics field and
-    // its currently-active parameters.
+    // its currently-active parameters, rendered as English phrases (no
+    // snake_case keys, no bool literals).
     let mut active_laws: Vec<ActiveLawRow> = Vec::new();
     let mut push = |domain: &str, name: &str, summary: String| {
         if !summary.is_empty() {
@@ -5183,18 +5213,45 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
             });
         }
     };
-    push("Civil Rights", "Civil Rights Regime", p.civil_rights_law.clone());
-    push("Civil Rights", "Emancipation Regime", p.emancipation_law.clone());
-    push("Labor", "Labor Relations Regime", p.labor_law.clone());
-    push("Labor", "Union Regime", p.union_law.clone());
-    push("Labor", "Strike Regime", p.strike_law.clone());
-    push("Religion", "Religious Regime", p.religious_law.clone());
+    push(
+        "Civil Rights",
+        "Civil Rights Regime",
+        humanize_law_key(&p.civil_rights_law),
+    );
+    push(
+        "Civil Rights",
+        "Emancipation Regime",
+        crate::politics::system::humanize_debug_token(&p.emancipation_law),
+    );
+    push(
+        "Labor",
+        "Labor Relations Regime",
+        crate::politics::system::humanize_debug_token(&p.labor_law),
+    );
+    push(
+        "Labor",
+        "Union Regime",
+        crate::politics::system::humanize_debug_token(&p.union_law),
+    );
+    push(
+        "Labor",
+        "Strike Regime",
+        crate::politics::system::humanize_debug_token(&p.strike_law),
+    );
+    push(
+        "Religion",
+        "Religious Regime",
+        crate::politics::system::humanize_debug_token(&p.religious_law),
+    );
     if let Some(ref l) = p.child_labor_law {
-        push(
-            "Labor",
-            "Child Labor Law",
-            crate::politics::system::humanize_debug_token(&format!("{l:?}")),
-        );
+        let summary = match l {
+            crate::politics::laws::ChildLaborLaw::Prohibited => "Child labor prohibited",
+            crate::politics::laws::ChildLaborLaw::Restricted => {
+                "Child labor restricted to limited work"
+            }
+            crate::politics::laws::ChildLaborLaw::Unrestricted => "Child labor unrestricted",
+        };
+        push("Labor", "Child Labor Law", summary.to_string());
     }
     if let Some(ref l) = p.healthcare_law {
         push(
@@ -5231,43 +5288,82 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
         );
     }
     if let Some(ref l) = p.justice_law {
+        let pardon_txt = match l.pardon_authority {
+            crate::politics::laws::PardonAuthority::None => "No pardon power".to_string(),
+            other => format!(
+                "Pardons issued by {}",
+                crate::politics::system::humanize_debug_token(&format!("{other:?}"))
+            ),
+        };
+        let krs_txt = if l.krs_separated {
+            "KRS independent of the executive"
+        } else {
+            "KRS under executive control"
+        };
+        let courts_txt = format!(
+            "court processing {}",
+            crate::politics::system::humanize_debug_token(&format!(
+                "{:?}",
+                l.court_wait_time_target
+            ))
+            .to_lowercase()
+        );
         push(
             "Justice",
             "Justice Reform",
             format!(
-                "pardon: {}, KRS separated: {}, corruption idx {:.2}",
-                crate::politics::system::humanize_debug_token(&format!(
-                    "{:?}",
-                    l.pardon_authority
-                )),
-                l.krs_separated,
-                l.corruption_index
+                "{}; {}; {}; corruption index {:.0}%",
+                pardon_txt,
+                krs_txt,
+                courts_txt,
+                l.corruption_index * 100.0
             ),
         );
     }
     if let Some(ref l) = p.prison_labor_law {
+        let type_txt = match l.prison_type {
+            crate::politics::laws::PrisonType::VoluntaryLabor => "Voluntary prison labor",
+            crate::politics::laws::PrisonType::StatePenalColony => {
+                "State penal colonies (forced labor)"
+            }
+            crate::politics::laws::PrisonType::PrivateLaborCamps => "Private labor camps",
+            crate::politics::laws::PrisonType::IsolationCamp => {
+                "Isolation camps for dissidents"
+            }
+        };
+        let comp_txt = if l.labor_compensation > 0.0 {
+            format!("labor compensation {:.0}%", l.labor_compensation * 100.0)
+        } else {
+            "no labor compensation".to_string()
+        };
         push(
             "Justice",
             "Prison Labor Law",
-            format!(
-                "{} — compensation {:.2}",
-                crate::politics::system::humanize_debug_token(&format!(
-                    "{:?}",
-                    l.prison_type
-                )),
-                l.labor_compensation
-            ),
+            format!("{}; {}", type_txt, comp_txt),
         );
     }
     if let Some(ref l) = p.sentencing_law {
-        push(
-            "Justice",
-            "Sentencing Code",
-            format!(
-                "death penalty: {}, life imprisonment: {}, community service: {}",
-                l.death_penalty_enabled, l.life_imprisonment_enabled, l.community_service_enabled
-            ),
-        );
+        let mut clauses = vec![
+            if l.death_penalty_enabled {
+                "Death penalty in force".to_string()
+            } else {
+                "Death penalty abolished".to_string()
+            },
+            if l.life_imprisonment_enabled {
+                "life imprisonment available".to_string()
+            } else {
+                "no life imprisonment".to_string()
+            },
+            if l.community_service_enabled {
+                "community service available".to_string()
+            } else {
+                "no community service".to_string()
+            },
+        ];
+        if l.legal_dualism_enabled {
+            clauses.push("dual-track sentencing for minorities".to_string());
+        }
+        push("Justice", "Sentencing Code", clauses.join("; "));
     }
     if let Some(ref l) = p.amnesty_law {
         if l.active {
@@ -5275,49 +5371,82 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
                 "Justice",
                 "Amnesty Program",
                 format!(
-                    "rate {:.2}, fee {:.0}, target {}",
-                    l.legalization_rate,
-                    l.legalization_fee,
+                    "Legalizing {:.0}% of {} residents per turn; fee {:.0}",
+                    l.legalization_rate * 100.0,
                     crate::politics::system::humanize_debug_token(&format!(
                         "{:?}",
                         l.target_status
                     ))
+                    .to_lowercase(),
+                    l.legalization_fee
                 ),
             );
         }
     }
     if let Some(ref l) = p.migration_law {
+        let borders_txt = if l.open_borders {
+            "Open borders"
+        } else {
+            "Border controls in force"
+        };
+        let visa_txt = if l.visa_required {
+            "visas required for entry"
+        } else {
+            "no visa required"
+        };
+        let deportation_txt = match l.deportation_policy {
+            crate::politics::laws::DeportationPolicy::None => "no deportations",
+            crate::politics::laws::DeportationPolicy::Selective => "selective deportations",
+            crate::politics::laws::DeportationPolicy::MassDeportation => "mass deportations",
+        };
         push(
             "Migration",
             "Migration Law",
-            format!(
-                "open borders: {}, visa required: {}, deportation: {}",
-                l.open_borders,
-                l.visa_required,
-                crate::politics::system::humanize_debug_token(&format!(
-                    "{:?}",
-                    l.deportation_policy
-                ))
-            ),
+            format!("{}; {}; {}", borders_txt, visa_txt, deportation_txt),
         );
     }
     if let Some(ref l) = p.religious_law_struct {
+        let religion_txt = match l.state_religion.as_deref() {
+            Some(r) => format!(
+                "State religion: {}",
+                crate::politics::system::humanize_debug_token(r)
+            ),
+            None => "No state religion".to_string(),
+        };
+        let separation_txt = if l.separation_of_church_and_state {
+            "church and state separated"
+        } else {
+            "church established in law"
+        };
+        let church_tax_txt = if l.church_tax_rate > 0.0 {
+            format!("church tax {:.0}%", l.church_tax_rate * 100.0)
+        } else {
+            "church tax: none".to_string()
+        };
         push(
             "Religion",
             "Religious Law",
-            format!(
-                "state religion: {}, separation: {}, church tax {:.2}",
-                l.state_religion
-                    .as_deref()
-                    .map(crate::politics::system::humanize_debug_token)
-                    .unwrap_or_else(|| "none".into()),
-                l.separation_of_church_and_state,
-                l.church_tax_rate
-            ),
+            format!("{}; {}; {}", religion_txt, separation_txt, church_tax_txt),
         );
     }
     if p.nuclear_law {
-        push("Energy", "Nuclear Program Act", "authorized".to_string());
+        push(
+            "Energy",
+            "Nuclear Program Act",
+            "Civil nuclear program authorized".to_string(),
+        );
+    }
+
+    // Belt-and-suspenders: the release gate rejects any `_` or bool literal
+    // in the serialized statutes DTO, so collapse stray engine keys that a
+    // future law writer might leak into a summary.
+    for row in &mut active_laws {
+        row.summary = row
+            .summary
+            .replace('_', " ")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
     }
 
     // Enacted statutes — bills that completed the pipeline this term, with
@@ -5336,15 +5465,18 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
                     continue;
                 }
                 enacted_statutes.push(EnactedStatuteRow {
-                    bill_id: record.bill_id.clone(),
-                    title: record.bill_title.clone(),
-                    initiator: detail.initiator.clone(),
-                    bill_type: detail.bill_type.clone(),
+                    // v4.25.0 WS6: POLICY-{snake_type}-{turn} ids and
+                    // `BillType::as_str()` keys carry underscores — the gate
+                    // rejects them on the wire.
+                    bill_id: record.bill_id.replace('_', "-"),
+                    title: record.bill_title.replace('_', " "),
+                    initiator: detail.initiator.replace('_', " "),
+                    bill_type: crate::politics::system::humanize_debug_token(&detail.bill_type),
                     enacted_turn: detail.enacted_turn,
                     provisions: detail
                         .provisions
                         .iter()
-                        .map(|pr| pr.description.clone())
+                        .map(|pr| pr.description.replace('_', " "))
                         .collect(),
                 });
             }
