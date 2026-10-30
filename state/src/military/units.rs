@@ -50,6 +50,19 @@ pub enum UnitType {
 }
 
 impl UnitType {
+    /// v4.25.0: Display label used for battle force lines and OOB unit-type
+    /// groupings ("Infantry", "Artillery", "Armor", "Air", "Naval", "Militia").
+    pub fn branch_label(&self) -> &'static str {
+        match self {
+            UnitType::Infantry => "Infantry",
+            UnitType::Tanks => "Armor",
+            UnitType::Artillery => "Artillery",
+            UnitType::AirForce => "Air",
+            UnitType::Naval => "Naval",
+            UnitType::PeasantBattalion => "Militia",
+        }
+    }
+
     /// Get base stats for this unit type
     ///
     /// # Returns

@@ -413,6 +413,37 @@ impl OrderOfBattle {
     pub fn flatten(&self) -> Vec<MilitaryUnit> {
         self.all_units().cloned().collect()
     }
+
+    /// v4.25.0: Map every unit id to the chain of commander VIPs above it —
+    /// `(vip_id, echelon)` pairs in ascending echelon order
+    /// (regiment, then division, then army). Used to resolve the
+    /// participating commanders of an engaged force for battle records.
+    pub fn commanders_by_unit(&self) -> HashMap<String, Vec<(String, String)>> {
+        let mut map = HashMap::default();
+        for army in &self.armies {
+            for division in &army.divisions {
+                for regiment in &division.regiments {
+                    let mut chain: Vec<(String, String)> = Vec::new();
+                    if let Some(id) = &regiment.commander_id {
+                        chain.push((id.clone(), "Regiment".to_string()));
+                    }
+                    if let Some(id) = &division.commander_id {
+                        chain.push((id.clone(), "Division".to_string()));
+                    }
+                    if let Some(id) = &army.commander_id {
+                        chain.push((id.clone(), "Army".to_string()));
+                    }
+                    if chain.is_empty() {
+                        continue;
+                    }
+                    for unit in &regiment.units {
+                        map.insert(unit.id.clone(), chain.clone());
+                    }
+                }
+            }
+        }
+        map
+    }
 }
 
 // ============================================================================

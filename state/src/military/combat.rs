@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, HashMap};
 
 use crate::military::config::MilitaryCombatConfig;
-use crate::military::fronts::{Battle, BattleResult, Casualties};
+use crate::military::fronts::{Battle, BattleForceLine, BattleResult, Casualties};
 use crate::military::units::MilitaryUnit;
 use crate::society::geography::{ClassDemographics, RuralClass};
 
@@ -176,7 +176,42 @@ pub fn resolve_battle(
         captured_by_attacker: 0,
         captured_by_defender: 0,
         phases,
+        // v4.25.0: force lines + commanders are recorded post-hoc by the
+        // caller (the war bridge knows the OOB chain-of-command).
+        attacker_forces: Vec::new(),
+        defender_forces: Vec::new(),
+        attacker_commanders: Vec::new(),
+        defender_commanders: Vec::new(),
     }
+}
+
+/// v4.25.0: Build per-branch committed-vs-surviving force lines for one
+/// side of a resolved battle.
+///
+/// `engaged` are the unit clones committed to the battle (their `manpower`
+/// is the pre-casualty initial strength). `surviving_manpower_of` resolves
+/// the post-writeback manpower for a unit id — returning 0 for units that
+/// were destroyed or removed by `cleanup_dead`.
+pub(crate) fn battle_force_lines(
+    engaged: &[MilitaryUnit],
+    surviving_manpower_of: &dyn Fn(&str) -> i64,
+) -> Vec<BattleForceLine> {
+    let mut by_branch: BTreeMap<&'static str, (usize, i64, i64)> = BTreeMap::new();
+    for u in engaged {
+        let e = by_branch.entry(u.unit_type.branch_label()).or_default();
+        e.0 += 1;
+        e.1 += u.manpower;
+        e.2 += surviving_manpower_of(&u.id);
+    }
+    by_branch
+        .into_iter()
+        .map(|(branch, (units, initial, surviving))| BattleForceLine {
+            branch: branch.to_string(),
+            units,
+            initial_manpower: initial,
+            surviving_manpower: surviving,
+        })
+        .collect()
 }
 
 /// Calculate casualties for a set of units (deterministic, no RNG).
