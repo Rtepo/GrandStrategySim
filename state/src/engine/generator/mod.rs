@@ -183,6 +183,13 @@ pub fn generate_world(
     let mut rng = crate::engine::seeded_rng::thread_rng();
     let mut state = GameState::new();
 
+    // v4.25.0 WS3: the gold market must exist from turn 0 — seed the
+    // canonical 1900 spot price and a mild inflation drift so
+    // `update_gold_price` has a real anchor (was left at default 0.0,
+    // which made every gold valuation read 0.00 forever).
+    state.gold_exchange.gold_price_in_ieu = crate::state::gold::GOLD_PRICE_IEU_1900;
+    state.gold_exchange.global_inflation_rate = 0.005;
+
     // World Generation & Climate Audit (v0.5.3): Populate the climate-season
     // matrix with biologically sensible multipliers for all 7 climate profiles
     // × 4 seasons. Without this, the matrix is empty and agricultural yields
@@ -261,6 +268,17 @@ pub fn generate_world(
             .and_then(|v| v.as_str().map(|s| s.to_string()))
             .unwrap_or_else(|| "Banking".to_string());
         let _ = company_store.save_sector(name, &banking_sector_name, None, &bank_companies);
+
+        // v4.25.0 WS3: mirror the seeded bullion into the global vault
+        // registry (execute_cb_trade treats vaults as the physical truth
+        // and syncs physical_gold_reserves back from them), and stock the
+        // GOLD_POOL with ~2x the world's CB holdings as tradable supply.
+        {
+            let cb_id = country.central_bank.id.clone();
+            let cb_gold = country.central_bank.physical_gold_reserves;
+            state.vaults.insert(cb_id, cb_gold);
+            *state.vaults.entry("GOLD_POOL".to_string()).or_insert(0.0) += cb_gold * 2.0;
+        }
 
         state.countries.insert(name.clone(), country);
         state.currencies.insert(currency.prefix.clone(), currency);
@@ -2320,7 +2338,12 @@ fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> cr
         }),
         reserve_requirement_ratio: 0.10,
         fx_reserves,
-        physical_gold_reserves: 0.0,
+        // v4.25.0 WS3: the 1900 world starts on a metallic standard —
+        // ~30% of the country's fx-reserve value held as physical bullion
+        // in the central bank vault (credited to state.vaults where the
+        // GameState is assembled).
+        physical_gold_reserves: fx_reserve_value * 0.30
+            / crate::state::gold::GOLD_PRICE_IEU_1900,
         liquidity_injected: 0.0,
         domestic_currency_repatriated: 0.0,
         omo_bond_holdings: 0.0,

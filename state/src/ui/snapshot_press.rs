@@ -629,7 +629,9 @@ fn collect_events(
                     }
                 }
             }
-            Proposed | Negotiating => {}
+            // v4.25.0 WS7: Rejected is a negotiation outcome — no treaty
+            // event to report (mirrors Proposed/Negotiating).
+            Proposed | Negotiating | Rejected => {}
         }
     }
 

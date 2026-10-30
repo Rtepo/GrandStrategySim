@@ -58,7 +58,8 @@ pub struct DiplomaticPostCap {
     pub ambassador: usize,
     /// Maximum consuls per host country (2 — consular representation).
     pub consul: usize,
-    /// Maximum spies per host country (3 — higher risk justifies more).
+    /// Maximum spies per host country (8 — a resident ring, not a lone
+    /// asset; major services run multi-operative networks per target).
     pub spy: usize,
     /// Maximum military attachés per host country (1 — single defense liaison).
     pub military_attache: usize,
@@ -69,7 +70,7 @@ impl Default for DiplomaticPostCap {
         Self {
             ambassador: 1,
             consul: 2,
-            spy: 3,
+            spy: 8,
             military_attache: 1,
         }
     }
@@ -470,21 +471,31 @@ pub fn staff_diplomatic_posts(
         // per 250B GDP. Both targets clamp to the number of foreign hosts.
         let pop_tier = ((population.max(1) as f64).log10() - 6.0).max(0.0) as usize;
         let gdp_tier = (gdp.max(0.0) / 250_000_000_000.0) as usize;
-        // v4.23 WS5b / v4.24.0 WS5: corps size by power tier —
-        //   * major powers (pop_tier + gdp_tier ≥ 4): full corps ~30
-        //     (21 envoys + 9 spies),
-        //   * medium powers (tier ≥ 2): regional corps ~12
-        //     (8 envoys + 4 spies),
+        // v4.23 WS5b / v4.24.0 WS5 / v4.25.0 WS7: corps size by power tier —
+        //   * major powers (pop_tier + gdp_tier ≥ 4): full corps with a
+        //     scaled intelligence service — 15–40 operatives distributed as
+        //     multi-agent rings across hosts (cap 8/ring),
+        //   * medium powers (tier ≥ 2): regional corps ~16
+        //     (8 envoys + 8 operatives),
         //   * minor powers: the lean bilateral corps from v4.22.
-        // The old binary floor left mediums at ~4 staff — well under the
-        // 12–30 band medium/major states warrant.
+        // The old binary floor left mediums at ~4 staff and majors at ~9
+        // total operatives — well under the 15–40 band a major power's
+        // intelligence service fields.
         let tier = pop_tier + gdp_tier;
         let is_major = tier >= 4;
         let is_medium = !is_major && tier >= 2;
         let (target_envoys, target_spies) = if is_major {
-            (21usize.min(foreign_count * 2), 9usize.min(foreign_count))
+            (
+                21usize.min(foreign_count * 2),
+                (15 + (tier - 4) * 3)
+                    .min(40)
+                    .min(foreign_count * 8),
+            )
         } else if is_medium {
-            (8usize.min(foreign_count * 2), 4usize.min(foreign_count))
+            (
+                8usize.min(foreign_count * 2),
+                8usize.min(foreign_count * 8),
+            )
         } else {
             (
                 (1 + tier).min(foreign_count),

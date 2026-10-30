@@ -602,6 +602,61 @@ pub struct DiplomacySnapshot {
     pub intelligence_agency: IntelligenceAgencyRow,
 }
 
+/// v4.25.0 WS7: one foreign covert operation in the Intelligence &
+/// Espionage sub-tab — spy ring per target country with progress and
+/// outcome.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CovertOperationRow {
+    /// Operation ID (`OP-000042`).
+    pub id: String,
+    /// Host country the ring operates against.
+    pub target_country: String,
+    /// Mission label ("Military Recon" | "Industrial Espionage" |
+    /// "Political Subversion").
+    pub mission_type: String,
+    /// Operatives currently assigned (live posted spies on the target).
+    pub ring_size: u32,
+    /// Mission progress (0.0–1.0).
+    pub progress: f64,
+    /// Lifecycle status label.
+    pub status: String,
+    /// Latest outcome note (empty while running cleanly).
+    pub outcome: String,
+    /// Turn the operation was launched.
+    pub launched_turn: u32,
+    /// Turn the operation resolved (None while active).
+    pub resolved_turn: Option<u32>,
+}
+
+/// v4.25.0 WS7: per-country intelligence agency panel — budget allocation,
+/// operatives, counter-intelligence record, and foreign covert operations.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct IntelligenceAgencyRow {
+    /// Total active field operatives (posted `DiplomaticPostType::Spy`
+    /// VIPs, live and not expelled).
+    pub active_spies: u32,
+    /// Non-spy diplomatic staff posted abroad.
+    pub diplomats_posted: u32,
+    /// Intelligence budget pool remaining this turn.
+    pub budget_allocated: f64,
+    /// Fiat actually spent sustaining operations this turn.
+    pub budget_spent_this_turn: f64,
+    /// Agency efficiency (0.0–1.0): funding adequacy + HQ capacity.
+    pub efficiency: f64,
+    /// Domestic counter-intelligence posture (0.0–1.0).
+    pub security_level: f64,
+    /// Foreign spies captured on home soil (cumulative).
+    pub spies_captured: u32,
+    /// Hostile covert operations foiled on home soil (cumulative).
+    pub plots_foiled: u32,
+    /// Foreign covert operations (active + resolved history).
+    pub operations: Vec<CovertOperationRow>,
+    /// Bounded recent agency event log (captures, compromises, successes).
+    pub recent_events: Vec<String>,
+}
+
 /// v4.22.1 WS5.3: A localized war declared through diplomatic friction.
 #[derive(Debug, Clone, Default, serde::Serialize)]
 pub struct DeclaredWarRow {
@@ -2085,6 +2140,73 @@ pub fn build_diplomacy_snapshot(
             .unwrap_or(std::cmp::Ordering::Equal)
     });
 
+    // v4.25.0 WS7: intelligence agency panel — live operative counts from
+    // the VIP registry, agency state from the WS7 covert-ops ledger, and
+    // the real intelligence budget pool.
+    let intelligence_agency = {
+        let agency = state.intelligence_agencies.get(country_name);
+        let budget_allocated = state
+            .countries
+            .get(country_name)
+            .map(|c| c.intelligence_budget.current_budget.max(0.0))
+            .unwrap_or(0.0);
+        let (active_spies, diplomats_posted) = state
+            .countries
+            .get(country_name)
+            .and_then(|c| c.politics.vip_registry.as_ref())
+            .map(|reg| {
+                let mut spies = 0u32;
+                let mut envoys = 0u32;
+                for vip in reg.vips.values() {
+                    if vip.is_dead {
+                        continue;
+                    }
+                    match vip
+                        .diplomatic_post
+                        .as_ref()
+                        .map(|p| &p.post_type)
+                    {
+                        Some(crate::politics::vip_registry::DiplomaticPostType::Spy) => {
+                            spies += 1
+                        }
+                        Some(_) => envoys += 1,
+                        None => {}
+                    }
+                }
+                (spies, envoys)
+            })
+            .unwrap_or((0, 0));
+        IntelligenceAgencyRow {
+            active_spies,
+            diplomats_posted,
+            budget_allocated,
+            budget_spent_this_turn: agency.map(|a| a.budget_spent_this_turn).unwrap_or(0.0),
+            efficiency: agency.map(|a| a.efficiency).unwrap_or(0.0),
+            security_level: agency.map(|a| a.security_level).unwrap_or(0.0),
+            spies_captured: agency.map(|a| a.spies_captured).unwrap_or(0),
+            plots_foiled: agency.map(|a| a.plots_foiled).unwrap_or(0),
+            operations: agency
+                .map(|a| {
+                    a.operations
+                        .iter()
+                        .map(|o| CovertOperationRow {
+                            id: o.id.clone(),
+                            target_country: o.target_country.clone(),
+                            mission_type: o.mission_type.as_str().to_string(),
+                            ring_size: o.ring_size,
+                            progress: o.progress,
+                            status: o.status.as_str().to_string(),
+                            outcome: o.outcome.clone(),
+                            launched_turn: o.launched_turn,
+                            resolved_turn: o.resolved_turn,
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
+            recent_events: agency.map(|a| a.events.clone()).unwrap_or_default(),
+        }
+    };
+
     DiplomacySnapshot {
         country: country_name.to_string(),
         relations,
@@ -2097,6 +2219,7 @@ pub fn build_diplomacy_snapshot(
         sanctions_against,
         declared_wars,
         tensions,
+        intelligence_agency,
     }
 }
 
@@ -9633,6 +9756,12 @@ pub struct MilitaryDashboardResponse {
     /// v4.24.0 WS4.3: resolved plots across all countries ("Coup Crushed",
     /// "Monarch Abdicated", "Junta Installed", ...).
     pub coup_resolutions: Vec<CoupResolutionRow>,
+    /// v4.25.0 WS2: at least one country's OOB reports a Land/Navy/Air
+    /// branch manpower split (expandable branch breakdown present).
+    pub oob_has_branch_breakdown: bool,
+    /// v4.25.0 WS2: at least one region row in the OOB carries real
+    /// division/unit counts (per-region force disposition present).
+    pub oob_regions_have_divisions: bool,
 }
 
 /// Builds the full military dashboard response.
@@ -10279,6 +10408,17 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             .then_with(|| a.plot_id.cmp(&b.plot_id))
     });
 
+    // v4.25.0 WS2: OOB completeness flags — derived from the composed
+    // rows so the UI/gate can assert the expandable data actually landed.
+    let oob_has_branch_breakdown = army_compositions.iter().any(|ac| {
+        ac.armies
+            .iter()
+            .any(|a| a.branch_manpower.len() > 1)
+    });
+    let oob_regions_have_divisions = army_compositions
+        .iter()
+        .any(|ac| ac.region_breakdown.iter().any(|r| r.unit_count > 0));
+
     MilitaryDashboardResponse {
         wars: wars.into_values().collect(),
         recent_battles,
@@ -10290,6 +10430,8 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         ended_wars,
         internal_conflicts,
         coup_resolutions,
+        oob_has_branch_breakdown,
+        oob_regions_have_divisions,
     }
 }
 

@@ -7,13 +7,17 @@ Base: `main` @ `431a3e08` (post-v4.24.0)
 
 | WS | Scope | Worker branch | Status |
 |----|-------|---------------|--------|
-| WS1 | Connected continents, fractal borders, Megaregions, parcel sub-map, dynamic dev level | `feat/agent-5-v4250-ws1-map` | dispatched |
-| WS2 | Expandable wars/battles/OOB branches, casualties, POW camps | `feat/agent-5-v4250-ws2-military` | dispatched |
-| WS3 | Land arbitration overflow, court backlog, CB gold reserves | `feat/agent-5-v4250-ws3-land-bank` | dispatched |
-| WS4 | Press dedup, KRS- strings, embedded charts, 12555% unrest | `feat/agent-5-v4250-ws4-press` | dispatched |
-| WS5 | Sector employment rebalance (construction vs LocalServices) | `feat/agent-5-v4250-ws5-sectors` | dispatched |
-| WS6 | Statutes string cleanup, rolling 24-turn party support | `feat/agent-5-v4250-ws6-statutes` | dispatched |
-| WS7 | Diplomacy espionage sub-tab, expandable treaties/resolutions | `feat/agent-5-v4250-ws7-intel` | dispatched |
+| WS1 | Connected continents, fractal borders, Megaregions, parcel sub-map, dynamic dev level | `feat/agent-5-v4250-ws1-map` | resuming (WIP committed; worker d2741f68) |
+| WS2 | Expandable wars/battles/OOB branches, casualties, POW camps | `feat/agent-5-v4250-ws2-military` | resuming (WIP committed; worker 98eb969e) |
+| WS3 | Land arbitration overflow, court backlog, CB gold reserves | `feat/agent-5-v4250-ws3-land-bank` | resuming (WIP committed; worker 12aad781) |
+| WS4 | Press dedup, KRS- strings, embedded charts, 12555% unrest | `feat/agent-5-v4250-ws4-press` | resuming (WIP committed; worker 2d4265ca) |
+| WS5 | Sector employment rebalance (construction vs LocalServices) | `feat/agent-5-v4250-ws5-sectors` | resuming (restart from near-zero; worker 5e32a130) |
+| WS6 | Statutes string cleanup, rolling 24-turn party support | `feat/agent-5-v4250-ws6-statutes` | **committed bbf07b7e** — needs integration review |
+| WS7 | Diplomacy espionage sub-tab, expandable treaties/resolutions | `feat/agent-5-v4250-ws7-intel` | resuming (WIP committed; worker a4aacaeb) |
+
+## Notes
+- Wave-1 workers died to a rate limit mid-flight; partial work committed as `wip(v4.25)` per branch, wave-2 resume workers dispatched.
+- Gate nuance: statutes assertion must walk string *values* (serde keys are snake_case field names).
 
 ## Release Gate (v4250_release_gate_test.rs)
 

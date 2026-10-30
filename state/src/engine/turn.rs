@@ -13937,6 +13937,25 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
         &state.diplomatic_config.clone(),
     );
 
+    // v4.25.0 WS7: intelligence agencies — covert ops progress, ring
+    // sustainment funded from intelligence budgets (double-entry into
+    // foreign_sector_balance), counter-intel captures credited to hosts.
+    // Runs after the action drain so this turn's posts/expulsions are live.
+    crate::international::intelligence::process_intelligence_agencies(
+        state,
+        &diplomacy,
+        &expel_actions,
+        &mut market,
+        state.calendar.global_turn,
+    );
+
+    // v4.25.0 WS3: central-bank gold accumulation — CBs with fx surplus
+    // convert a slice into physical bullion via the GlobalGoldExchange.
+    crate::state::gold::process_cb_gold_accumulation(
+        state,
+        state.calendar.global_turn,
+    );
+
     // v4.23.0 WS5b: Dynamic diplomacy — cultural-group regional blocs
     // federate into Compact organizations, and bilateral treaties are
     // proposed + suspended/resumed from real relations and tensions.
@@ -14534,18 +14553,58 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
         // 59.4: Apply externality penalties
         cad::apply_externality_penalties(&mut country.cadastre, &country.externality_config);
 
-        // 59.5: Arbitration case processing
+        // 59.5: Arbitration case processing — regional court staffing
+        // capacity, real state-strength assessment, and GDP-bounded awards
+        // so total exposure cannot runaway past a sovereign's means.
+        let justice = country
+            .politics
+            .justice_law
+            .clone()
+            .unwrap_or_default();
+        let wait_time = &justice.court_wait_time_target;
+        let capacity_by_region: std::collections::BTreeMap<String, f64> = country
+            .regions
+            .iter()
+            .filter_map(|r| {
+                r.governance.as_ref().map(|g| {
+                    (
+                        r.id.clone(),
+                        cad::compute_court_capacity(&g.budget, &justice, wait_time),
+                    )
+                })
+            })
+            .collect();
+        let state_strength = cad::assess_state_strength(
+            &justice,
+            wait_time,
+            country.budget.liquid_reserves,
+            &country.arbitration_config,
+        );
+        let gdp_for_awards = country
+            .macro_indicators
+            .gdp_breakdown
+            .official_gdp
+            .max(1.0);
+        let award_cap = gdp_for_awards * 0.005;
         cad::process_arbitration_cases(
             &mut country.arbitration_court,
+            &country.cadastre,
             &country.arbitration_config,
             current_turn,
+            &capacity_by_region,
+            state_strength,
+            award_cap,
             &mut rng,
         );
 
         // 59.5: Pay accrued arbitration compensation from treasury
+        let payout_cap = (country.budget.liquid_reserves * 0.10)
+            .max(gdp_for_awards * 0.01)
+            .min(country.budget.liquid_reserves.max(0.0));
         cad::pay_arbitration_compensation(
             &mut country.arbitration_court,
             &mut country.budget.liquid_reserves,
+            payout_cap,
         );
 
         // Phase 62.2: Process adverse possession (Zasiedzenie)

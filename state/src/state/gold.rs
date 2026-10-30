@@ -10,6 +10,11 @@ use uuid;
 
 use crate::state::forex::ForexOrderType;
 
+/// v4.25.0 WS3: canonical gold spot price (IEU per unit) at world
+/// generation. The 1900 world starts on a metallic standard — a single
+/// fixed anchor keeps seeded reserves and the market pool coherent.
+pub const GOLD_PRICE_IEU_1900: f64 = 10_000.0;
+
 /// Gold order (buy/sell physical gold).
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct GoldOrder {
@@ -369,5 +374,70 @@ impl GlobalGoldExchange {
 
         self.trade_history.push_back(trade.clone());
         Ok(trade)
+    }
+}
+
+/// v4.25.0 WS3: per-turn central-bank gold accumulation. A central bank
+/// whose foreign-exchange pool exceeds its comfort target converts a
+/// slice of the surplus into physical bullion via the GlobalGoldExchange
+/// (the pool stands in for the world's mined supply — its vault going
+/// negative is the same convention as the FX-crisis seller path).
+///
+/// Real behavior, not a print: fiat leaves `fx_reserves` and gold mass
+/// lands in `state.vaults[cb_id]` (which `execute_cb_trade` then mirrors
+/// into `physical_gold_reserves`).
+pub fn process_cb_gold_accumulation(state: &mut crate::state::GameState, current_turn: u32) {
+    let mut country_names: Vec<String> = state.countries.keys().cloned().collect();
+    country_names.sort();
+    for name in country_names {
+        // Decide the purchase against an immutable read, then execute with
+        // split mutable borrows across the gold exchange, vaults, and CB.
+        let (cb_id, buy_grams) = {
+            let Some(country) = state.countries.get(&name) else {
+                continue;
+            };
+            let fx_total: f64 = country.central_bank.fx_reserves.values().sum();
+            let target_fx = country.budget.gdp.max(0.0) * 0.10;
+            let surplus = fx_total - target_fx * 1.5;
+            if surplus <= 0.0 {
+                continue;
+            }
+            // Convert up to 2% of the surplus per turn — slow accumulation,
+            // not a reserve shock.
+            let value = surplus * 0.02;
+            (country.central_bank.id.clone(), value / GOLD_PRICE_IEU_1900)
+        };
+        if buy_grams <= 0.0 {
+            continue;
+        }
+        let order = GoldOrder {
+            id: format!("CB-ACC-{}-{}", cb_id, current_turn),
+            entity_id: cb_id.clone(),
+            order_type: ForexOrderType::Buy,
+            gold_amount: buy_grams,
+            payment_currency: "USD".to_string(),
+            limit_price_in_ieu: None,
+            expiry_turn: 1,
+            extra: Map::new(),
+        };
+        let currencies = state.currencies.clone();
+        let exchange = &mut state.gold_exchange;
+        let vaults = &mut state.vaults;
+        let Some(country) = state.countries.get_mut(&name) else {
+            continue;
+        };
+        let fx_reserves = &mut country.central_bank.fx_reserves;
+        let physical = &mut country.central_bank.physical_gold_reserves;
+        // A rejected trade (e.g., insufficient USD leg) is skipped — the
+        // CB simply tries again next turn.
+        let _ = exchange.execute_cb_trade(
+            order,
+            &currencies,
+            vaults,
+            fx_reserves,
+            physical,
+            &cb_id,
+            current_turn,
+        );
     }
 }
