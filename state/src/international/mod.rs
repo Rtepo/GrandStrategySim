@@ -10,6 +10,7 @@
 pub mod ai_doctrines;
 pub mod diplomacy;
 pub mod fog_of_war;
+pub mod intelligence;
 pub mod organizations;
 pub mod reputation;
 pub mod sanctions;
@@ -21,6 +22,10 @@ pub use diplomacy::{compute_diplomat_modifiers, generate_diplomacy, process_dipl
 pub use fog_of_war::{
     apply_fog_of_war, compute_intel_level, process_intel_turn, DiplomaticConfig, FogOfWarConfig,
     FogOfWarResult, ForeignIntelligence, IntelLevel,
+};
+pub use intelligence::{
+    process_intelligence_agencies, CovertMissionType, CovertOpStatus, CovertOperation,
+    IntelligenceAgency, IntelligenceConfig,
 };
 pub use organizations::{
     CouncilMember, Directive, IntegrationLevel, InternationalOrganization, MandateType, OrgConfig,

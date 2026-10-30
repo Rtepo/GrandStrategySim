@@ -594,6 +594,12 @@ pub struct DiplomacySnapshot {
     /// v4.22.1 WS5.3: Bilateral friction levels (tension toward war).
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub tensions: Vec<TensionRow>,
+    /// v4.25.0 WS7: intelligence agency — budget allocation, field
+    /// operatives, counter-intelligence, and foreign covert operations.
+    /// Always populated (every country has an agency entry); drives the
+    /// release gate `intelligence_agency.active_spies >= 10 &&
+    /// !operations.is_empty()`.
+    pub intelligence_agency: IntelligenceAgencyRow,
 }
 
 /// v4.22.1 WS5.3: A localized war declared through diplomatic friction.
@@ -734,11 +740,52 @@ pub struct TreatyRow {
     pub expires_turn: Option<u32>,
     /// v4.24.0 WS5: compliance status — "In force — full compliance" |
     /// "Violated by {country} (T{n})" | "Suspended — clauses not applied"
-    /// | "Abrogated by {country}" | "Elapsed" | "Under negotiation".
+    /// | "Abrogated by {country}" | "Elapsed" | "Under negotiation" |
+    /// "Rejected".
     #[serde(default)]
     pub compliance: String,
+    /// v4.25.0 WS7: full statutory text — preamble, articles (clause
+    /// obligations), and term — synthesized from the treaty record for
+    /// the expandable row.
+    #[serde(default)]
+    pub statutory_text: String,
+    /// v4.25.0 WS7: per-participant compliance standing for the
+    /// expandable row.
+    #[serde(default)]
+    pub member_compliance: Vec<MemberComplianceRow>,
+    /// v4.25.0 WS7: treaty negotiation log — proposal, counter-offers,
+    /// signature/rejection reasons, lifecycle transitions.
+    #[serde(default)]
+    pub negotiation_log: Vec<NegotiationEventRow>,
     /// Initiating country.
     pub initiator: String,
+}
+
+/// v4.25.0 WS7: one participant's standing under a treaty or assembly
+/// resolution — drives the expandable member-compliance grid.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct MemberComplianceRow {
+    /// Member country name.
+    pub country: String,
+    /// Standing under the instrument (e.g. "In force — compliant",
+    /// "Violated (T{n})", "Fined — non-compliance", "Under negotiation").
+    pub status: String,
+}
+
+/// v4.25.0 WS7: one negotiation-log entry on a treaty — who proposed,
+/// counter-offers tabled, and why the instrument was signed, suspended,
+/// resumed, abrogated, expired, or rejected.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct NegotiationEventRow {
+    /// Turn the event occurred.
+    pub turn: u32,
+    /// Actor — participant country or "Secretariat".
+    pub actor: String,
+    /// Event kind (proposal | opened | counter_offer | signed | rejected |
+    /// suspended | resumed | abrogated | expired).
+    pub kind: String,
+    /// Human-readable detail (clauses, reasons).
+    pub detail: String,
 }
 
 /// v4.24.0 WS5: build a TreatyRow — shared by the diplomacy snapshot and
@@ -770,8 +817,95 @@ pub fn treaty_row_from(
         duration_turns: treaty.duration_turns,
         expires_turn: treaty.signed_turn.map(|s| s + treaty.duration_turns),
         compliance: treaty_compliance_text(treaty, state),
+        statutory_text: treaty_statutory_text(treaty),
+        member_compliance: treaty_member_compliance(treaty, state),
+        negotiation_log: treaty
+            .negotiation_log
+            .iter()
+            .map(|e| NegotiationEventRow {
+                turn: e.turn,
+                actor: e.actor.clone(),
+                kind: e.kind.clone(),
+                detail: e.detail.clone(),
+            })
+            .collect(),
         initiator: treaty.initiator.clone(),
     }
+}
+
+/// v4.25.0 WS7: full statutory text for the expandable row — preamble
+/// naming the parties and term, one article per clause obligation.
+fn treaty_statutory_text(treaty: &crate::international::treaties::Treaty) -> String {
+    use crate::international::treaties::TreatyStatus as S;
+    let mut articles = String::new();
+    for (i, clause) in treaty.clauses.iter().enumerate() {
+        articles.push_str(&format!(
+            "\nArticle {} — {}: {}.",
+            i + 1,
+            clause.as_str(),
+            clause.effect_description()
+        ));
+    }
+    let term = match treaty.status {
+        S::Active | S::Suspended | S::Abrogated | S::Expired => match treaty.signed_turn {
+            Some(s) => format!(
+                "in force since T{s} for {} turns (expires T{})",
+                treaty.duration_turns,
+                s + treaty.duration_turns
+            ),
+            None => format!("a {}-turn term", treaty.duration_turns),
+        },
+        _ => format!("a {}-turn term upon ratification", treaty.duration_turns),
+    };
+    format!(
+        "THE PARTIES ({}) agree to the following provisions, {term}.{articles}",
+        treaty.participants.join(", ")
+    )
+}
+
+/// v4.25.0 WS7: per-participant compliance standing — violation turns are
+/// pulled from each country's reputation ledger; lifecycle states map to
+/// the participant's position on the instrument.
+fn treaty_member_compliance(
+    treaty: &crate::international::treaties::Treaty,
+    state: &GameState,
+) -> Vec<MemberComplianceRow> {
+    use crate::international::treaties::TreatyStatus as S;
+    treaty
+        .participants
+        .iter()
+        .map(|p| {
+            let latest_violation = state
+                .countries
+                .get(p)
+                .and_then(|c| {
+                    c.global_reputation
+                        .violation_history
+                        .iter()
+                        .filter(|v| v.treaty_id == treaty.id)
+                        .map(|v| v.turn)
+                        .max()
+                });
+            let status = match treaty.status {
+                S::Proposed | S::Negotiating => "Under negotiation".to_string(),
+                S::Rejected => "Rejected the draft".to_string(),
+                S::Suspended => "Suspended — clauses not applied".to_string(),
+                S::Expired => "Elapsed — term complete".to_string(),
+                S::Abrogated => match latest_violation {
+                    Some(t) => format!("Withdrew unilaterally (T{t})"),
+                    None => "Released — counterparty withdrew".to_string(),
+                },
+                S::Active => match latest_violation {
+                    Some(t) => format!("Violated obligations (T{t})"),
+                    None => "In force — compliant".to_string(),
+                },
+            };
+            MemberComplianceRow {
+                country: p.clone(),
+                status,
+            }
+        })
+        .collect()
 }
 
 /// v4.24.0 WS5: compliance status line — violations recorded on
@@ -788,6 +922,7 @@ fn treaty_compliance_text(
             treaty.negotiation_progress * 100.0
         ),
         S::Suspended => "Suspended — clauses not currently applied".to_string(),
+        S::Rejected => "Rejected — negotiations collapsed before signature".to_string(),
         S::Abrogated => {
             let who = violators_of(treaty, state);
             if who.is_empty() {
