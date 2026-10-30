@@ -88,6 +88,22 @@ pub struct BattlePhase {
     pub note: String,
 }
 
+/// Per-branch force commitment recorded on a battle (v4.25.0).
+///
+/// The expandable battle view shows initial-vs-surviving strength per
+/// branch (Infantry, Artillery, Armor, Air, Naval, Militia) for each side.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct BattleForceLine {
+    /// Branch/type label (e.g., "Infantry", "Armor", "Naval").
+    pub branch: String,
+    /// Number of units committed to the battle.
+    pub units: usize,
+    /// Manpower engaged at the start of the battle.
+    pub initial_manpower: i64,
+    /// Manpower remaining after casualty writeback.
+    pub surviving_manpower: i64,
+}
+
 /// Battle record
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Battle {
@@ -134,6 +150,21 @@ pub struct Battle {
     /// Decision) for the expandable battle view. Empty on legacy records.
     #[serde(default)]
     pub phases: Vec<BattlePhase>,
+
+    /// v4.25.0: Attacker committed-vs-surviving forces by branch.
+    #[serde(default)]
+    pub attacker_forces: Vec<BattleForceLine>,
+    /// v4.25.0: Defender committed-vs-surviving forces by branch.
+    #[serde(default)]
+    pub defender_forces: Vec<BattleForceLine>,
+    /// v4.25.0: Commanding VIPs on the attacker side —
+    /// `(vip_id, echelon)` pairs resolved from the engaged units' OOB
+    /// chain (regiment → division → army). Empty on legacy records.
+    #[serde(default)]
+    pub attacker_commanders: Vec<(String, String)>,
+    /// v4.25.0: Commanding VIPs on the defender side.
+    #[serde(default)]
+    pub defender_commanders: Vec<(String, String)>,
 }
 
 /// Battle outcome
