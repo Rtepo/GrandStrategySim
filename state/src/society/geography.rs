@@ -4279,6 +4279,398 @@ fn generate_megaregion_name(
     format!("{prefix} {country} {descriptor}")
 }
 
+// ============================================================================
+// v4.25.0 WS1: Continental layout — shared world-map geometry
+// ============================================================================
+//
+// The world map lays countries out on one or two shared continental
+// landmasses instead of the old isolated sea-islands. The placement below is
+// a pure function of the sorted country list and each country's land-region
+// count — world generation (`wire_international_land_borders`) and the map
+// snapshot (`ui::snapshot_map`) call the same code, so the engine's
+// `LandBorder` edge graph and the rendered borders always describe the same
+// adjacency.
+
+/// Mean centre-to-centre distance between neighbouring region sites on the
+/// procedural world map (SVG units, not kilometres).
+pub const MAP_REGION_SPACING: f64 = 10.0;
+
+/// FNV-1a 64 — stable across runs and platforms (no `HashMap` seeding).
+pub fn map_stable_hash(s: &str) -> u64 {
+    let mut h = 0xcbf29ce484222325u64;
+    for b in s.as_bytes() {
+        h ^= u64::from(*b);
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    h
+}
+
+/// Hash a string with a salt into `[0, 1)` — splitmix64 finalizer for
+/// well-scattered jitter coordinates.
+pub fn map_hash_unit(s: &str, salt: u64) -> f64 {
+    let mut x = map_stable_hash(s) ^ salt.wrapping_mul(0x9e37_79b9_7f4a_7c15);
+    x ^= x >> 30;
+    x = x.wrapping_mul(0xbf58_476d_1ce4_e5b9);
+    x ^= x >> 27;
+    x = x.wrapping_mul(0x94d0_49bb_1331_11eb);
+    x ^= x >> 31;
+    ((x >> 11) as f64) / ((1u64 << 53) as f64)
+}
+
+/// Recover generation order (`Region1, Region2, …`) — the circular
+/// `LandBorder` adjacency was built over that order, so laying regions out
+/// in it keeps engine-graph neighbours geometric neighbours.
+pub fn map_region_sort_key(id: &str) -> (u64, String) {
+    let digits: String = id.chars().rev().take_while(|c| c.is_ascii_digit()).collect();
+    let suffix: String = digits.chars().rev().collect();
+    match suffix.parse::<u64>() {
+        Ok(n) => (0, format!("{:020}{}", n, id)),
+        Err(_) => (1, id.to_string()),
+    }
+}
+
+/// Ring assignment for `k` items — rings hold 6, 12, 18, … items.
+/// Returns `(ring_index, position_in_ring, ring_capacity)` per input index.
+pub fn map_ring_layout(k: usize) -> Vec<(usize, usize, usize)> {
+    let mut layout = Vec::with_capacity(k);
+    let mut remaining = k;
+    let mut ring = 1usize;
+    while remaining > 0 {
+        let cap = 6 * ring;
+        let take = cap.min(remaining);
+        for j in 0..take {
+            layout.push((ring, j, cap));
+        }
+        remaining -= take;
+        ring += 1;
+    }
+    layout
+}
+
+/// Radius of a country's blob on the world map — grows with the square root
+/// of its land-region count so site density stays uniform.
+pub fn map_country_blob_radius(land_region_count: usize) -> f64 {
+    let n_rings = map_ring_layout(land_region_count.saturating_sub(1))
+        .last()
+        .map(|l| l.0)
+        .unwrap_or(0);
+    let land_count = land_region_count.max(1) as f64;
+    MAP_REGION_SPACING * (n_rings as f64 + 0.75).max(land_count.sqrt() * 1.05)
+}
+
+/// One country's placement on a continental landmass.
+#[derive(Debug, Clone)]
+pub struct ContinentAnchor {
+    /// Country name (sorted `GameState.countries` key).
+    pub country: String,
+    /// Continent index — 0 for the primary landmass, 1 for the secondary.
+    pub continent: usize,
+    /// Country anchor site — the Voronoi site the country's map cell is
+    /// grown around (world-map units).
+    pub anchor: (f64, f64),
+    /// Continent blob centre.
+    pub continent_center: (f64, f64),
+    /// Continent blob radius — the sea frontier wraps all anchors.
+    pub continent_radius: f64,
+    /// Country blob radius (`map_country_blob_radius`) — used for site
+    /// placement and rim-epsilon heuristics in the snapshot.
+    pub blob_radius: f64,
+}
+
+/// Deterministically pack countries onto 1–2 continental landmasses.
+///
+/// * Up to 8 countries → a single continent; more → two continents holding
+///   contiguous halves of the sorted country list.
+/// * The first country of each continent anchors the hub; the rest sit on a
+///   jittered ring. When each anchor's cell is clipped against the continent
+///   blob and sibling anchors (Voronoi), hub↔ring and ring-neighbour cells
+///   share real borders — no more isolated sea islands.
+///
+/// Pure function of `(sorted country name, land region count)` — identical
+/// output at world generation and in every map snapshot.
+pub fn continent_layout(countries: &[(String, usize)]) -> Vec<ContinentAnchor> {
+    let n = countries.len();
+    if n == 0 {
+        return Vec::new();
+    }
+    let split = if n <= 8 { n } else { n.div_ceil(2) };
+    let ranges: [std::ops::Range<usize>; 2] = [0..split, split..n];
+    let mut out = Vec::with_capacity(n);
+    let mut cursor_x = 0.0;
+    let mut prev_blob_r = 0.0;
+    for (ci, range) in ranges.into_iter().enumerate() {
+        let members = &countries[range];
+        if members.is_empty() {
+            continue;
+        }
+        let m = members.len();
+        let max_r = members
+            .iter()
+            .map(|(_, c)| map_country_blob_radius(*c))
+            .fold(0.0_f64, f64::max);
+        // Ring radius ≈ twice the mean blob spacing — ring cells touch the
+        // hub and both ring neighbours after Voronoi clipping.
+        let ring_r = if m <= 1 { 0.0 } else { max_r * 2.3 };
+        let blob_r = ring_r + max_r * 1.2;
+        if ci > 0 {
+            cursor_x += prev_blob_r + blob_r + MAP_REGION_SPACING * 5.0;
+        }
+        let center = (
+            cursor_x,
+            (map_hash_unit("continent", 100 + ci as u64) - 0.5) * blob_r * 0.35,
+        );
+        prev_blob_r = blob_r;
+        for (i, (name, count)) in members.iter().enumerate() {
+            let blob_radius = map_country_blob_radius(*count);
+            // First member anchors the hub at the continent centre; the rest
+            // sit on a jittered ring in sorted order.
+            let anchor = if i == 0 || m == 1 {
+                center
+            } else {
+                let k = (i - 1) as f64;
+                let angle = (k / (m - 1) as f64) * std::f64::consts::TAU
+                    + (map_hash_unit(name, 5) - 0.5) * 0.35;
+                let jr = 1.0 + (map_hash_unit(name, 6) - 0.5) * 0.18;
+                (
+                    center.0 + ring_r * jr * angle.cos(),
+                    center.1 + ring_r * jr * angle.sin(),
+                )
+            };
+            out.push(ContinentAnchor {
+                country: name.clone(),
+                continent: ci,
+                anchor,
+                continent_center: center,
+                continent_radius: blob_r,
+                blob_radius,
+            });
+        }
+    }
+    out
+}
+
+/// v4.25.0 WS1: Wire `LandBorder` edges between neighbouring countries.
+///
+/// Runs once at world generation over the global region table (all
+/// countries' regions live in one `HashMap`). Country adjacency comes from
+/// `continent_layout` — the same deterministic anchors the map snapshot
+/// uses — so every engine edge mirrors a rendered border:
+///
+/// * hub ↔ every ring country in its continent (the hub cell borders them
+///   all after Voronoi clipping);
+/// * ring ↔ its two ring neighbours (circular order).
+///
+/// Each country pair shares up to four border-region edges, picked from the
+/// highest-numbered (outermost ring) land regions — the ones the map lays
+/// out on the country rim. Edges are symmetric and `is_navigable` = false,
+/// so freight, migration, and commuting can route across them wherever
+/// diplomacy allows.
+pub fn wire_international_land_borders(regions: &mut HashMap<String, Region>) {
+    // Group land regions per country, ordered by numeric suffix (creation
+    // order — Region1, Region2, …; the map lays them out in this order).
+    let mut land_by_country: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for region in regions.values() {
+        if region.node_type != NodeType::LandRegion || region.owner_country.is_empty() {
+            continue;
+        }
+        land_by_country
+            .entry(region.owner_country.clone())
+            .or_default()
+            .push(region.id.clone());
+    }
+    for ids in land_by_country.values_mut() {
+        ids.sort_by(|a, b| map_region_sort_key(a).cmp(&map_region_sort_key(b)));
+    }
+
+    let countries: Vec<(String, usize)> = land_by_country
+        .iter()
+        .map(|(name, ids)| (name.clone(), ids.len()))
+        .collect();
+    let placements = continent_layout(&countries);
+
+    // Country adjacency per continent — mirrors the Voronoi tiling the map
+    // snapshot builds from the same anchors.
+    let mut pairs: Vec<(usize, usize)> = Vec::new();
+    let mut seen: HashSet<(usize, usize)> = HashSet::new();
+    for ci in 0..2usize {
+        let members: Vec<usize> = placements
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| p.continent == ci)
+            .map(|(i, _)| i)
+            .collect();
+        let m = members.len();
+        if m <= 1 {
+            continue;
+        }
+        // Hub ↔ every ring country. `members[0]` anchors the hub (first
+        // sorted country of the continent).
+        for &k in &members[1..] {
+            let (lo, hi) = (members[0].min(k), members[0].max(k));
+            if seen.insert((lo, hi)) {
+                pairs.push((lo, hi));
+            }
+        }
+        // Ring neighbours — members[1..] are emitted in ring-angle order.
+        for w in 1..members.len() {
+            let a = members[w];
+            let b = members[if w + 1 < members.len() { w + 1 } else { 1 }];
+            let (lo, hi) = (a.min(b), a.max(b));
+            if seen.insert((lo, hi)) {
+                pairs.push((lo, hi));
+            }
+        }
+    }
+
+    // For each adjacent pair wire up to four border-region edges between the
+    // outermost (highest-numbered) land regions — those are the cells the
+    // map places on the country rim.
+    let mut edges_to_add: Vec<(String, String)> = Vec::new();
+    for (ia, ib) in pairs {
+        let (a, b) = (&placements[ia].country, &placements[ib].country);
+        let (ra, rb) = (&land_by_country[a], &land_by_country[b]);
+        let shared = 2.min(ra.len()).min(rb.len());
+        for k in 0..shared {
+            edges_to_add.push((ra[ra.len() - 1 - k].clone(), rb[rb.len() - 1 - k].clone()));
+        }
+        if ra.len() >= 4 && rb.len() >= 4 {
+            edges_to_add.push((ra[ra.len() - 2].clone(), rb[rb.len() - 1].clone()));
+            edges_to_add.push((ra[ra.len() - 1].clone(), rb[rb.len() - 2].clone()));
+        }
+    }
+    for (from, to) in edges_to_add {
+        for (src, dst) in [(from.clone(), to.clone()), (to, from)] {
+            if let Some(region) = regions.get_mut(&src) {
+                let exists = region
+                    .edges
+                    .iter()
+                    .any(|e| e.target_node == dst && e.edge_type == EdgeType::LandBorder);
+                if !exists {
+                    region.edges.push(Edge {
+                        target_node: dst,
+                        edge_type: EdgeType::LandBorder,
+                        distance: 120.0,
+                        is_navigable: false,
+                        territorial_owner: None,
+                    });
+                }
+            }
+        }
+    }
+}
+
+// ============================================================================
+// v4.25.0 WS1: Dynamic regional development
+// ============================================================================
+
+/// Development-level convergence rate per turn (~5% per half-month) — the
+/// stored level drifts toward its economic target instead of freezing at
+/// the genesis value forever.
+const DEVELOPMENT_UPDATE_LAMBDA: f64 = 0.05;
+
+/// Development level (0–1) at which a region under Commissary
+/// Administration graduates to an autonomous council (35%).
+const COMMISSARY_EXIT_DEVELOPMENT: f64 = 0.35;
+
+/// Recompute every land region's `development_level` from live economic
+/// conditions — regional GDP per capita, parcel infrastructure condition,
+/// literacy, and regional fiscal health — then drift the stored level
+/// toward the computed target.
+///
+/// Governance consequence: a region under `CommissaryAdministration` (the
+/// genesis default for low-development regions, and the takeover status for
+/// fiscal collapse) graduates to a normal elected council —
+/// `RegionalHeadType::Mayor` renders as "Autonomous Council" in the
+/// snapshots — once its development level reaches 35%.
+pub fn update_regional_development(country: &mut crate::state::Country) {
+    let national_pop = country.budget.population.max(1) as f64;
+    let national_gdp_pc = (country.budget.gdp / national_pop).max(1e-9);
+    let national_literacy = country
+        .macro_indicators
+        .education_statistics
+        .literacy_rate
+        .clamp(0.0, 1.0);
+
+    for region in &mut country.regions {
+        if region.node_type != NodeType::LandRegion {
+            continue;
+        }
+
+        // GDP per capita relative to the national mean (2× national = max).
+        let gdp_pc = if region.population > 0 {
+            region.gdp / region.population as f64
+        } else {
+            region.gdp_pc
+        };
+        let gdp_score = (gdp_pc / (2.0 * national_gdp_pc)).clamp(0.0, 1.0);
+
+        // Infrastructure condition: mean cadastre parcel access score;
+        // falls back to capacity utilisation, then to the current level.
+        let (mut infra_total, mut infra_count) = (0.0_f64, 0usize);
+        for pid in &region.parcel_ids {
+            if let Some(parcel) = country.cadastre.get(*pid) {
+                infra_total += parcel.infrastructure_access;
+                infra_count += 1;
+            }
+        }
+        let infra_score = if infra_count > 0 {
+            (infra_total / infra_count as f64).clamp(0.0, 1.0)
+        } else if !region.capacity_utilization.is_empty() {
+            let mean = region.capacity_utilization.values().sum::<f64>()
+                / region.capacity_utilization.len() as f64;
+            mean.clamp(0.0, 1.0)
+        } else {
+            region.development_level.clamp(0.0, 1.0)
+        };
+
+        // Literacy: regional education shares when populated, else the
+        // national literacy rate.
+        let edu = &region.education;
+        let edu_total = edu.none + edu.basic + edu.secondary_share() + edu.higher_share();
+        let literacy_score = if edu_total > 1e-6 {
+            (1.0 - edu.none).clamp(0.0, 1.0)
+        } else {
+            national_literacy
+        };
+
+        // Fiscal health: reserve coverage minus a debt-load penalty.
+        let fiscal_score = match region.governance.as_ref() {
+            Some(g) => {
+                let reserve_ratio =
+                    (g.budget.liquid_reserves / g.budget.local_expenditures.max(1.0))
+                        .clamp(0.0, 1.0);
+                let debt_penalty = (g.debt.debt_to_revenue_ratio / 5.0).clamp(0.0, 1.0);
+                (0.6 * reserve_ratio + 0.4 * (1.0 - debt_penalty)).clamp(0.0, 1.0)
+            }
+            None => 0.35,
+        };
+
+        let target = (0.40 * gdp_score
+            + 0.25 * infra_score
+            + 0.20 * literacy_score
+            + 0.15 * fiscal_score)
+            .clamp(0.0, 1.0);
+        region.development_level = (region.development_level
+            * (1.0 - DEVELOPMENT_UPDATE_LAMBDA)
+            + target * DEVELOPMENT_UPDATE_LAMBDA)
+            .clamp(0.02, 0.98);
+
+        // Graduate from commissary administration to an autonomous council
+        // once the region is developed (35% threshold).
+        if let Some(gov) = region.governance.as_mut() {
+            if gov.admin_status == AdministrativeStatus::CommissaryAdministration
+                && region.development_level >= COMMISSARY_EXIT_DEVELOPMENT
+            {
+                gov.admin_status = AdministrativeStatus::Normal;
+                gov.head_type = RegionalHeadType::Mayor;
+                if gov.years_to_next_election == 0 {
+                    gov.years_to_next_election = 4;
+                }
+            }
+        }
+    }
+}
+
 /// Pathfinding result for maritime routes.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PathResult {
