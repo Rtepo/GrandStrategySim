@@ -24,6 +24,66 @@ const STATUS_BADGE: Record<string, string> = {
 /// v4.23 WS7: editorial ordering + labels for the business-desk categories.
 const BUSINESS_KIND_ORDER = ["stock_mover", "earnings", "dividend", "investment"];
 
+/// v4.25 WS4: embedded SVG mini-chart for economic/financial lead articles.
+/// Renders the real series shipped on `PressArticleDto.sparkline`; color
+/// follows the last-vs-first trend. Returns null when there is no series.
+function Sparkline({ data }: { data?: number[] }) {
+  if (!data || data.length < 2) return null;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const span = max - min || 1;
+  const W = 120;
+  const H = 32;
+  const pts = data
+    .map((v, i) => `${((i / (data.length - 1)) * W).toFixed(1)},${(H - 3 - ((v - min) / span) * (H - 6)).toFixed(1)}`)
+    .join(" ");
+  const up = data[data.length - 1] >= data[0];
+  const stroke = up ? "#34d399" : "#f87171";
+  const area = `0,${H} ${pts} ${W},${H}`;
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="h-8 w-28 shrink-0"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <polygon points={area} fill={stroke} opacity={0.15} />
+      <polyline points={pts} fill="none" stroke={stroke} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+/// v4.25 WS4: article bodies are multi-paragraph — split on blank lines so
+/// each paragraph renders as its own block. When `clampClass` (a literal
+/// Tailwind `line-clamp-*` class) is set the card is collapsed: only the
+/// first paragraph shows, truncated (line-clamp inside -webkit-box drops
+/// nested <p> margins, so clamping must wrap a single paragraph).
+function ArticleBody({
+  body,
+  className,
+  clampClass,
+}: {
+  body: string;
+  className?: string;
+  clampClass?: string;
+}) {
+  const paragraphs = body.split(/\n\s*\n/).filter(Boolean);
+  if (clampClass != null) {
+    return (
+      <p className={`whitespace-pre-line ${clampClass} ${className ?? ""}`}>
+        {paragraphs[0] ?? ""}
+      </p>
+    );
+  }
+  return (
+    <div className={`space-y-1.5 ${className ?? ""}`}>
+      {paragraphs.map((p, i) => (
+        <p key={i} className="whitespace-pre-line">{p}</p>
+      ))}
+    </div>
+  );
+}
+
 function MediaContext({ snap }: { snap: PressSnapshotDto }) {
   return (
     <div className="flex flex-wrap gap-2 text-xs">
@@ -72,10 +132,15 @@ function FrontPage({ paper, year }: { paper: PressPaperDto; year: number }) {
       {lead ? (
         <article className="px-4 py-3 border-b border-border cursor-pointer hover:bg-accent/40"
           onClick={() => setExpanded(expanded === lead.id ? null : lead.id)}>
-          <h4 className="font-serif text-lg font-bold leading-snug">{lead.headline}</h4>
-          <p className={`mt-1 text-xs text-muted-foreground whitespace-pre-line ${expanded === lead.id ? "" : "line-clamp-3"}`}>
-            {lead.body}
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <h4 className="font-serif text-lg font-bold leading-snug">{lead.headline}</h4>
+            <Sparkline data={lead.sparkline} />
+          </div>
+          <ArticleBody
+            body={lead.body}
+            className="mt-1 text-xs text-muted-foreground"
+            clampClass={expanded === lead.id ? undefined : "line-clamp-4"}
+          />
           <div className="mt-1 text-[10px] text-muted-foreground uppercase tracking-wider">{humanize(lead.event_kind)} · T{lead.turn}</div>
         </article>
       ) : (
@@ -86,10 +151,15 @@ function FrontPage({ paper, year }: { paper: PressPaperDto; year: number }) {
           <article key={a.id}
             className={`px-4 py-3 cursor-pointer hover:bg-accent/40 ${i % 2 === 0 ? "border-r border-border" : ""} border-b border-border`}
             onClick={() => setExpanded(expanded === a.id ? null : a.id)}>
-            <h5 className="font-serif text-sm font-semibold leading-snug">{a.headline}</h5>
-            <p className={`mt-1 text-[11px] text-muted-foreground whitespace-pre-line ${expanded === a.id ? "" : "line-clamp-2"}`}>
-              {a.body}
-            </p>
+            <div className="flex items-start justify-between gap-2">
+              <h5 className="font-serif text-sm font-semibold leading-snug">{a.headline}</h5>
+              <Sparkline data={a.sparkline} />
+            </div>
+            <ArticleBody
+              body={a.body}
+              className="mt-1 text-[11px] text-muted-foreground"
+              clampClass={expanded === a.id ? undefined : "line-clamp-3"}
+            />
             <div className="mt-1 text-[10px] text-muted-foreground uppercase tracking-wider">{humanize(a.event_kind)}</div>
           </article>
         ))}
@@ -129,10 +199,15 @@ function BusinessPress({ articles, year }: { articles: PressArticleDto[]; year: 
             <div className="space-y-2">
               {list.map((a) => (
                 <article key={a.id} className="cursor-pointer" onClick={() => setExpanded(expanded === a.id ? null : a.id)}>
-                  <h5 className="font-serif text-sm font-semibold leading-snug">{a.headline}</h5>
-                  <p className={`mt-0.5 text-[11px] text-muted-foreground whitespace-pre-line ${expanded === a.id ? "" : "line-clamp-2"}`}>
-                    {a.body}
-                  </p>
+                  <div className="flex items-start justify-between gap-2">
+                    <h5 className="font-serif text-sm font-semibold leading-snug">{a.headline}</h5>
+                    <Sparkline data={a.sparkline} />
+                  </div>
+                  <ArticleBody
+                    body={a.body}
+                    className="mt-0.5 text-[11px] text-muted-foreground"
+                    clampClass={expanded === a.id ? undefined : "line-clamp-3"}
+                  />
                 </article>
               ))}
             </div>

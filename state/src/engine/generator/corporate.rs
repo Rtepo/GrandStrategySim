@@ -7384,7 +7384,15 @@ fn generate_retail_stores(
         let company_id = idgen.next_company();
         let building_id = idgen.next_building();
 
-        let company_name = format!("Retail Co {} ({})", company_id, region.id);
+        // v4.25 WS4: the registry id must not leak into the display name —
+        // the Press business section prints `name` verbatim and raw
+        // `KRS-…` ids are banned from copy by the release gate.
+        let region_label = if region.display_name.is_empty() {
+            region.id.as_str()
+        } else {
+            region.display_name.as_str()
+        };
+        let company_name = format!("Retail Co ({region_label})");
         let company_fixed = region_pop * 10.0 * format_spec.upkeep_mult;
         let company_liquid = region_pop * 5.0 * format_spec.upkeep_mult;
         // Labor sizing must fit inside the store's gross margin: a worker is
