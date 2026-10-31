@@ -18,6 +18,7 @@ import type {
   BankingHistoryResponse,
   RegionRow,
   RegionDetail,
+  RegionParcelMapDto,
   MegaregionDetail,
   ParliamentResponse,
   GovernmentSnapshot,
@@ -152,6 +153,10 @@ export async function getRegions(country: string): Promise<RegionRow[]> {
 
 export async function getRegionDetail(country: string, regionId: string): Promise<RegionDetail | null> {
   return invoke<RegionDetail | null>("get_region_detail", { country, regionId });
+}
+
+export async function getRegionParcelMap(country: string, regionId: string): Promise<RegionParcelMapDto | null> {
+  return invoke<RegionParcelMapDto | null>("get_region_parcel_map", { country, regionId });
 }
 
 export async function getMegaregionDetail(country: string, megaregionId: string): Promise<MegaregionDetail | null> {
