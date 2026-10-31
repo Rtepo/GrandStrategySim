@@ -3,7 +3,7 @@
   "schema": "daemon-v2-backlog",
   "release": "v4.26.0-ui-complete",
   "base_ref": "origin/main",
-  "updated_at": "2026-10-31T15:47:57.855Z",
+  "updated_at": "2026-10-31T15:53:44.682Z",
   "tasks": [
     {
       "id": "TASK-001",
@@ -95,7 +95,7 @@
     {
       "id": "TASK-003",
       "title": "Deep expandable Military view: war detail, battle phases, OOB branches, generals, POW camps",
-      "status": "PENDING",
+      "status": "DONE",
       "priority": 9,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-003.md",
@@ -170,13 +170,13 @@
         }
       ],
       "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T16:00:00Z",
+      "updated_at": "2026-10-31T15:53:31.696Z",
       "verify_history": []
     },
     {
       "id": "TASK-004",
       "title": "Statutes prose + 24-turn support window, Espionage sub-tab, expandable treaties/resolutions, analytical press",
-      "status": "PENDING",
+      "status": "IN_PROGRESS",
       "priority": 8,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-004.md",
@@ -233,7 +233,7 @@
         }
       ],
       "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T16:00:00Z",
+      "updated_at": "2026-10-31T15:53:44.682Z",
       "verify_history": []
     }
   ]

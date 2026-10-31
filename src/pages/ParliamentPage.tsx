@@ -1356,8 +1356,8 @@ function ConstitutionLawsView() {
                 data.enacted_statutes.map((s) => (
                   <TableRow key={s.bill_id}>
                     <TableCell className="text-xs font-mono">{s.bill_id}</TableCell>
-                    <TableCell className="text-xs">{s.title}</TableCell>
-                    <TableCell className="text-xs">{s.bill_type}</TableCell>
+                    <TableCell className="text-xs">{humanizeStatuteText(s.title)}</TableCell>
+                    <TableCell className="text-xs">{humanizeStatuteText(s.bill_type)}</TableCell>
                     <TableCell className="text-xs">{s.initiator}</TableCell>
                     <TableCell className="text-right">
                       {s.enacted_turn !== null ? `T${s.enacted_turn}` : "—"}
@@ -1717,4 +1717,19 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
       </Card>
     </div>
   );
+}
+
+// ============================================================================
+// v4.26.0 TASK-004: statute prose sanitizer
+// ============================================================================
+
+/** Strip raw engine code from statute strings — `5_year_assimilation`,
+ * `pardon: Judicial Board`, `flag: true` — into clean English prose. */
+function humanizeStatuteText(raw: string): string {
+  return raw
+    .replace(/:\s*(true|false)\b/gi, "") // drop `key: true` tails
+    .replace(/_/g, " ") // snake_case → words
+    .replace(/\s{2,}/g, " ")
+    .trim()
+    .replace(/^\w/, (c) => c.toUpperCase());
 }

@@ -1570,7 +1570,22 @@ fn collect_business_articles(
     // registry ids never reach the page (older saves baked the id into
     // `name`), and the deterministic `id`/`event_ref` strip the prefix too
     // so even machine fields satisfy the no-`KRS-` gate.
-    let ref_id = |c: &crate::entities::Company| c.id.replace("KRS-", "");
+    // Article/machine ids derive from the human company label slug —
+    // stripping only the `KRS-` prefix left registry remnants
+    // (`ANA-0890`-style tokens) inside `id`/`event_ref`.
+    let ref_id = |c: &crate::entities::Company| {
+        let slug: String = press_company_label(country, c)
+            .chars()
+            .map(|ch| {
+                if ch.is_alphanumeric() {
+                    ch.to_ascii_lowercase()
+                } else {
+                    '-'
+                }
+            })
+            .collect();
+        slug.trim_matches('-').to_string()
+    };
     let mk = |kind: &str,
               ref_id: &str,
               headline: String,
