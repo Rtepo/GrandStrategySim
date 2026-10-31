@@ -396,7 +396,15 @@ fn fractal_displace(
     // Amplitude: ~16% of edge length, capped so small cells stay sane.
     let amp = (edge_len * 0.16).min(REGION_SPACING * 0.45);
     let inv = 1.0 / edge_len.max(1e-9);
-    let (nx, ny) = (-edge_dir.1 * inv, edge_dir.0 * inv);
+    let (mut nx, mut ny) = (-edge_dir.1 * inv, edge_dir.0 * inv);
+    // Canonical half-edge orientation: two cells traverse their shared edge
+    // in opposite directions (consistent winding), which flips the normal
+    // sign and cracks the border open. Force a canonical normal direction
+    // so both polygons displace the shared border identically — zero gaps.
+    if nx < 0.0 || (nx == 0.0 && ny < 0.0) {
+        nx = -nx;
+        ny = -ny;
+    }
     (
         p.0 + nx * (n - 0.5) * 2.0 * amp,
         p.1 + ny * (n - 0.5) * 2.0 * amp,
@@ -733,18 +741,47 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     let mut region_cells: Vec<Vec<Vec<(f64, f64)>>> = Vec::with_capacity(layouts.len());
     let mut region_owner: std::collections::HashMap<String, usize> =
         std::collections::HashMap::new();
-    for (li, layout) in layouts.iter().enumerate() {
-        let mut cells = Vec::with_capacity(layout.regions.len());
-        for (idx, _) in layout.regions.iter().enumerate() {
-            let site = layout.sites[idx];
-            // Passing ALL sites (including the region's own) is fine —
-            // `voronoi_cell` skips coincident sites.
-            cells.push(voronoi_cell(site, &layout.sites, &layout.boundary));
+    // One Lloyd-relaxation pass: ring-only seed layouts (capital + a single
+    // ring, or legacy circular coordinates) collapse into radial wedge
+    // cells that all meet at the country centre — "pizza slices". Moving
+    // each site to its cell centroid breaks the shared centre vertex so
+    // true interior (landlocked) and coastal cells emerge.
+    for lloyd in 0..2 {
+        region_cells.clear();
+        for layout in layouts.iter() {
+            let mut cells = Vec::with_capacity(layout.regions.len());
+            for (idx, _) in layout.regions.iter().enumerate() {
+                // Passing ALL sites (including the region's own) is fine —
+                // `voronoi_cell` skips coincident sites.
+                cells.push(voronoi_cell(
+                    layout.sites[idx],
+                    &layout.sites,
+                    &layout.boundary,
+                ));
+            }
+            region_cells.push(cells);
         }
+        if lloyd == 0 {
+            for (li, layout) in layouts.iter_mut().enumerate() {
+                for (idx, _) in layout.regions.iter().enumerate() {
+                    let cell = &region_cells[li][idx];
+                    if cell.len() >= 3 {
+                        let (mut sx, mut sy) = (0.0, 0.0);
+                        for p in cell {
+                            sx += p.0;
+                            sy += p.1;
+                        }
+                        let n = cell.len() as f64;
+                        layout.sites[idx] = (sx / n, sy / n);
+                    }
+                }
+            }
+        }
+    }
+    for (li, layout) in layouts.iter().enumerate() {
         for region in &layout.regions {
             region_owner.insert(region.id.clone(), li);
         }
-        region_cells.push(cells);
     }
 
     // Country pairs already wired in the engine graph (worldgen adds

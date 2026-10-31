@@ -21,7 +21,8 @@ use crate::registries::Registries;
 use crate::society::cadastre::generate_cadastre;
 use crate::society::cultures::{generate_cultural_background, CulturalBackground};
 use crate::society::geography::{
-    generate_megaregions, generate_regional_topology, Megaregion, Region, RuralClass, UrbanClass,
+    generate_megaregions, generate_regional_topology, map_region_sort_key, Megaregion, Region,
+    RuralClass, UrbanClass,
 };
 use crate::state::banking::{BankBalanceSheet, BankType as BankingBankType};
 use crate::state::macro_data::{
@@ -1631,9 +1632,14 @@ fn spawn_standing_oob(
         // Naval Fleet (if coastal, year >= 1880, and country can afford navy)
         if has_coast && start_year >= 1880 && gdp_per_capita > 800.0 {
             let naval_manpower = (army_size / 20).max(50);
+            // Deterministic pick: HashMap `.values().find()` takes the first
+            // coastal hit in RandomState order, which differs between the
+            // two generate_world calls in `same_seed_same_world`. Pick the
+            // earliest coastal region in generation order instead.
             let coastal_region = regions
                 .values()
-                .find(|r| r.geographic_traits.has_coastline)
+                .filter(|r| r.geographic_traits.has_coastline)
+                .min_by_key(|r| map_region_sort_key(&r.id))
                 .map(|r| r.id.clone())
                 .unwrap_or_else(|| home_regions[0].clone());
             let mut naval = MilitaryUnit::new(

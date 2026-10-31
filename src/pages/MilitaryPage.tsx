@@ -17,6 +17,8 @@ import {
 } from "../components/ui";
 import { fmt, num } from "../lib/format";
 import { MiniMap } from "../components/map/MiniMap";
+import { VipHoverCard } from "../components/VipHoverCard";
+import { getWorldMap } from "../hooks/useTauriCommand";
 import type { MilitaryDashboardResponse } from "../types/api";
 
 // ============================================================================
@@ -51,6 +53,11 @@ function warExhaustionColor(exhaustion: number): string {
 // ============================================================================
 
 function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
+  // v4.26.0 TASK-003: rows expand → war goal/casus belli, war-score bar,
+  // per-side force & casualty totals, nested expandable battles.
+  const [expandedWar, setExpandedWar] = useState<string | null>(null);
+  const [expandedBattle, setExpandedBattle] = useState<string | null>(null);
+  const scorePct = (s: number) => Math.max(0, Math.min(100, (s + 100) / 2));
   return (
     <Card>
       <CardHeader>
@@ -60,40 +67,213 @@ function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
         {wars.length === 0 ? (
           <p className="text-sm text-muted-foreground">No active wars.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Front</TableHead>
-                <TableHead>Countries</TableHead>
-                <TableHead>Regions</TableHead>
-                <TableHead>Battles</TableHead>
-                <TableHead>Last Result</TableHead>
-                <TableHead>Exhaustion</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {wars.map((w) => (
-                <TableRow key={w.front_id}>
-                  <TableCell className="font-medium">{w.front_name}</TableCell>
-                  <TableCell className="text-xs">{w.involved_countries.join(", ")}</TableCell>
-                  <TableCell className="text-xs">{w.regions.length} regions</TableCell>
-                  <TableCell>{w.battle_count}</TableCell>
-                  <TableCell>
+          <div className="space-y-2">
+            {wars.map((w) => {
+              const open = expandedWar === w.front_id;
+              return (
+                <div key={w.front_id} className="border border-border rounded-md">
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-accent/50"
+                    onClick={() => setExpandedWar(open ? null : w.front_id)}
+                  >
+                    <span className="font-medium text-sm">
+                      {open ? "▾" : "▸"} {w.front_name}
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {w.aggressor} vs {w.defender} · {w.regions.length} regions ·{" "}
+                        {w.battle_count} battles
+                      </span>
+                    </span>
                     <Badge variant="outline">{w.last_battle_result}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-0.5">
-                      {w.war_exhaustion.map(([country, exh]) => (
-                        <span key={country} className={warExhaustionColor(exh)}>
-                          {country}: {exh.toFixed(1)}%
-                        </span>
-                      ))}
+                  </button>
+                  {open && (
+                    <div className="px-4 pb-3 space-y-3 border-t border-border">
+                      <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
+                        <div>
+                          <div className="text-xs text-muted-foreground uppercase">War Goal / Casus Belli</div>
+                          <div>{w.war_goal || "—"}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground uppercase">Started</div>
+                          <div>Turn {w.start_turn}</div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span>{w.aggressor}: {num(Number(w.aggressor_forces))} troops / {num(Number(w.aggressor_casualties))} casualties</span>
+                          <span className="font-medium">War Score {w.war_score.toFixed(0)}</span>
+                          <span>{w.defender}: {num(Number(w.defender_forces))} troops / {num(Number(w.defender_casualties))} casualties</span>
+                        </div>
+                        <div className="h-2 rounded bg-[#8f1d1d] overflow-hidden">
+                          <div className="h-full bg-[#3f7fd4]" style={{ width: `${scorePct(w.war_score)}%` }} />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground uppercase mb-1">Battles</div>
+                        {w.battles.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">No battles fought yet.</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {w.battles.map((b) => {
+                              const bOpen = expandedBattle === b.battle_id;
+                              return (
+                                <div key={b.battle_id} className="border border-border/60 rounded">
+                                  <button
+                                    className="w-full flex justify-between px-2 py-1 text-xs hover:bg-accent/40"
+                                    onClick={() => setExpandedBattle(bOpen ? null : b.battle_id)}
+                                  >
+                                    <span>{bOpen ? "▾" : "▸"} T{b.turn} — {b.location}</span>
+                                    <Badge variant="outline">{b.result}</Badge>
+                                  </button>
+                                  {bOpen && (
+                                    <div className="px-3 pb-2 pt-1 text-xs space-y-1 border-t border-border/60">
+                                      <div>
+                                        <span className="text-muted-foreground">Attackers:</span>{" "}
+                                        {b.attacker_units.join(", ")}
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Defenders:</span>{" "}
+                                        {b.defender_units.join(", ")}
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-1">
+                                        <div>
+                                          Attacker — KIA {num(Number(b.attacker_dead))} · WIA{" "}
+                                          {num(Number(b.attacker_wounded))} · POW{" "}
+                                          {num(Number(b.attacker_captured))} · Deserted{" "}
+                                          {num(Number(b.attacker_deserted))}
+                                        </div>
+                                        <div>
+                                          Defender — KIA {num(Number(b.defender_dead))} · WIA{" "}
+                                          {num(Number(b.defender_wounded))} · POW{" "}
+                                          {num(Number(b.defender_captured))} · Deserted{" "}
+                                          {num(Number(b.defender_deserted))}
+                                        </div>
+                                      </div>
+                                      {b.phases.length > 0 && (
+                                        <div>
+                                          <div className="text-muted-foreground uppercase mt-1">Tactical Phases</div>
+                                          {b.phases.map((p, i) => (
+                                            <div key={i} className="flex justify-between gap-2">
+                                              <span>{p.name}</span>
+                                              <span className="text-muted-foreground">
+                                                atk {p.attacker_power.toFixed(0)} / def {p.defender_power.toFixed(0)}
+                                                {p.note ? ` — ${p.note}` : ""}
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** v4.26.0 TASK-003: concluded wars with peace terms. */
+function HistoricalWarsPanel({ endedWars }: { endedWars: MilitaryDashboardResponse["ended_wars"] }) {
+  const [open, setOpen] = useState<string | null>(null);
+  return (
+    <Card>
+      <CardHeader><CardTitle>Historical Wars</CardTitle></CardHeader>
+      <CardContent>
+        {endedWars.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No concluded wars.</p>
+        ) : (
+          <div className="space-y-2">
+            {endedWars.map((w, i) => {
+              const key = `${w.aggressor}-${w.defender}-${w.end_turn}-${i}`;
+              const isOpen = open === key;
+              return (
+                <div key={key} className="border border-border rounded-md">
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-accent/50"
+                    onClick={() => setOpen(isOpen ? null : key)}
+                  >
+                    <span className="font-medium text-sm">
+                      {isOpen ? "▾" : "▸"} {w.aggressor} vs {w.defender}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      T{w.start_turn}–T{w.end_turn}
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="px-4 pb-3 pt-1 text-sm border-t border-border">
+                      <div className="text-xs text-muted-foreground uppercase">War Goal / Peace Terms</div>
+                      <div>{w.war_goal || "—"}</div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** v4.26.0 TASK-003: expandable POW camps — prisoners, living quality,
+ *  forced labour, captures/escapes/repatriations. */
+function PowCampsPanel({ camps }: { camps: MilitaryDashboardResponse["pow_camps"] }) {
+  const [expandedPowCamp, setExpandedPowCamp] = useState<string | null>(null);
+  return (
+    <Card>
+      <CardHeader><CardTitle>POW Camps</CardTitle></CardHeader>
+      <CardContent>
+        {camps.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No POW camps.</p>
+        ) : (
+          <div className="space-y-2">
+            {camps.map((c) => {
+              const isOpen = expandedPowCamp === c.country;
+              return (
+                <div key={c.country} className="border border-border rounded-md">
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-accent/50"
+                    onClick={() => setExpandedPowCamp(isOpen ? null : c.country)}
+                  >
+                    <span className="font-medium text-sm">
+                      {isOpen ? "▾" : "▸"} {c.country} — {num(Number(c.total_prisoners))} prisoners
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      QoL {(c.camp_qol * 100).toFixed(0)}% · health {(c.average_health * 100).toFixed(0)}%
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="px-4 pb-3 pt-1 text-xs space-y-1 border-t border-border">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div><span className="text-muted-foreground">Prisoners:</span> {num(Number(c.total_prisoners))} ({c.prisoner_groups} groups)</div>
+                        <div><span className="text-muted-foreground">Forced labour:</span> {num(Number(c.forced_labor_assigned))}</div>
+                        <div><span className="text-muted-foreground">Interned:</span> {num(Number(c.interned))}</div>
+                        <div><span className="text-muted-foreground">New captures:</span> {num(Number(c.captured_this_turn))}</div>
+                        <div><span className="text-muted-foreground">Escapes:</span> {num(Number(c.escaped))}</div>
+                        <div><span className="text-muted-foreground">Repatriated:</span> {num(Number(c.repatriated))} · Deceased {num(Number(c.deceased))}</div>
+                      </div>
+                      {c.prisoners_by_origin.length > 0 && (
+                        <div>
+                          <span className="text-muted-foreground">By origin:</span>{" "}
+                          {c.prisoners_by_origin.map(([o, n]) => `${o} ${num(Number(n))}`).join(", ")}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </CardContent>
     </Card>
@@ -216,8 +396,15 @@ function DevastationHeatmapPanel({ devastation }: { devastation: MilitaryDashboa
   );
 }
 
-function ArmyCompositionPanel({ armies }: { armies: MilitaryDashboardResponse["army_compositions"] }) {
+function ArmyCompositionPanel({
+  armies,
+  regionNameById,
+}: {
+  armies: MilitaryDashboardResponse["army_compositions"];
+  regionNameById: Map<string, string>;
+}) {
   const [open, setOpen] = useState<string | null>(null);
+  const regionName = (id: string) => regionNameById.get(id) ?? id;
   return (
     <Card>
       <CardHeader>
@@ -254,14 +441,76 @@ function ArmyCompositionPanel({ armies }: { armies: MilitaryDashboardResponse["a
                     <TableCell>{a.regiment_count}</TableCell>
                     <TableCell>{a.unit_count}</TableCell>
                   </TableRow>
-                  {open === a.country && a.region_breakdown.map((r) => (
-                    <TableRow key={`${a.country}-${r.region_id}`} className="bg-accent/20">
-                      <TableCell className="pl-8 text-muted-foreground">{r.region_id}</TableCell>
-                      <TableCell>{num(Number(r.manpower))}</TableCell>
-                      <TableCell colSpan={3} className="text-muted-foreground">—</TableCell>
-                      <TableCell>{r.unit_count}</TableCell>
+                  {open === a.country && (
+                    <TableRow key={`${a.country}-detail`} className="bg-accent/20">
+                      <TableCell colSpan={6} className="pl-8 py-3">
+                        <div className="space-y-3 text-xs">
+                          <div className="flex flex-wrap gap-x-6 gap-y-1">
+                            <span><span className="text-muted-foreground">Conscription Law:</span> {a.conscription_law}</span>
+                            <span><span className="text-muted-foreground">Mobilized:</span> {num(Number(a.mobilized_manpower))}</span>
+                            <span><span className="text-muted-foreground">Reserve Pool:</span> {num(Number(a.reserve_manpower))}</span>
+                          </div>
+                          {a.region_breakdown.length > 0 && (
+                            <div>
+                              <div className="text-muted-foreground uppercase mb-1">Stationed Forces by Region</div>
+                              {a.region_breakdown.map((r) => (
+                                <div key={r.region_id} className="flex justify-between">
+                                  <span>{r.region_name || regionName(r.region_id)}</span>
+                                  <span className="text-muted-foreground">
+                                    {r.unit_count} units · {num(Number(r.manpower))} troops
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {a.armies.length > 0 && (
+                            <div>
+                              <div className="text-muted-foreground uppercase mb-1">Field Armies</div>
+                              {a.armies.map((army) => (
+                                <div key={army.id} className="border border-border/60 rounded p-2 mb-1">
+                                  <div className="flex justify-between font-medium">
+                                    <span>{army.name}</span>
+                                    <span className="text-muted-foreground">
+                                      {army.division_count} divisions · {num(Number(army.manpower))} troops
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-muted-foreground">
+                                    <span>Garrison: {regionName(army.garrison_name)}</span>
+                                    <span>Readiness {(army.avg_equipment_quality * 100).toFixed(0)}%</span>
+                                    <span>Training {(army.avg_experience * 100).toFixed(0)}%</span>
+                                    <span>
+                                      Branch Split:{" "}
+                                      {(["Land", "Navy", "Air"] as const)
+                                        .map((b) => {
+                                          const found = army.branch_manpower.find(([k]) => k === b);
+                                          return `${b} ${num(Number(found?.[1] ?? 0))}`;
+                                        })
+                                        .join(" · ")}
+                                    </span>
+                                  </div>
+                                  {army.commanders.length > 0 && (
+                                    <div className="mt-1">
+                                      <span className="text-muted-foreground">Commanding Generals:</span>{" "}
+                                      {army.commanders.map((c, i) => (
+                                        <span key={c.vip_id}>
+                                          {i > 0 && ", "}
+                                          <VipHoverCard vipId={c.vip_id}>
+                                            <span className="underline decoration-dotted cursor-pointer text-foreground">
+                                              {c.rank} {c.name}
+                                            </span>
+                                          </VipHoverCard>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </>
               ))}
             </TableBody>
@@ -371,46 +620,6 @@ function RegionMoraleBlock({ regionId, classes }: { regionId: string; classes: M
   );
 }
 
-function PowCampPanel({ powCamps }: { powCamps: MilitaryDashboardResponse["pow_camps"] }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>POW Camps</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {powCamps.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No POW camps active.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Captor</TableHead>
-                <TableHead>Total POWs</TableHead>
-                <TableHead>Groups</TableHead>
-                <TableHead>Forced Labor</TableHead>
-                <TableHead>By Origin</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {powCamps.map((p) => (
-                <TableRow key={p.country}>
-                  <TableCell className="font-medium">{p.country}</TableCell>
-                  <TableCell className="font-bold">{Number(p.total_prisoners)}</TableCell>
-                  <TableCell>{p.prisoner_groups}</TableCell>
-                  <TableCell>{Number(p.forced_labor_assigned)}</TableCell>
-                  <TableCell className="text-xs">
-                    {p.prisoners_by_origin.map(([origin, count]) => `${origin}: ${Number(count)}`).join(", ")}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
 function DisastersPanel({ disasters }: { disasters: MilitaryDashboardResponse["disasters"] }) {
   return (
     <Card>
@@ -461,6 +670,17 @@ export function MilitaryPage() {
     queryFn: () => invoke<MilitaryDashboardResponse>("get_military_dashboard"),
     refetchInterval: 5000,
   });
+
+  // v4.26.0 TASK-003: resolve engine region ids (Region1..N) in the OOB to
+  // real display names via the world-map DTO.
+  const { data: worldMap } = useQuery({
+    queryKey: ["world-map"],
+    queryFn: getWorldMap,
+  });
+  const regionNameById = new Map<string, string>();
+  for (const c of worldMap?.countries ?? []) {
+    for (const r of c.regions) regionNameById.set(r.id, r.name);
+  }
 
   if (isLoading) return <div className="p-6 text-muted-foreground">Loading military dashboard...</div>;
   if (!dashboard) return <div className="p-6 text-muted-foreground">No data available.</div>;
@@ -521,11 +741,12 @@ export function MilitaryPage() {
 
       {/* Main panels */}
       <WarsPanel wars={dashboard.wars} />
+      <HistoricalWarsPanel endedWars={dashboard.ended_wars} />
       <RecentBattlesPanel battles={dashboard.recent_battles} />
       <DevastationHeatmapPanel devastation={dashboard.devastation_map} />
-      <ArmyCompositionPanel armies={dashboard.army_compositions} />
+      <ArmyCompositionPanel armies={dashboard.army_compositions} regionNameById={regionNameById} />
       <WarMoralePanel morale={dashboard.war_morale} />
-      <PowCampPanel powCamps={dashboard.pow_camps} />
+      <PowCampsPanel camps={dashboard.pow_camps} />
       <DisastersPanel disasters={dashboard.disasters} />
     </div>
   );

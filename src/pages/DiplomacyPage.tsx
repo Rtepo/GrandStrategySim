@@ -159,6 +159,9 @@ export function DiplomacyPage() {
   const { selectedCountry } = useGameStore();
   const [treatySearch, setTreatySearch] = useState("");
   const [treatyStatusFilter, setTreatyStatusFilter] = useState("All");
+  // v4.26.0 TASK-004: treaties/resolutions expand → full clauses +
+  // negotiation log (initiator, progress, turns, capacity cost).
+  const [expandedTreaty, setExpandedTreaty] = useState<string | null>(null);
 
   const { data: diplomacy, isLoading: dipLoading } = useQuery({
     queryKey: ["diplomacy", selectedCountry],
@@ -362,20 +365,60 @@ export function DiplomacyPage() {
               </TableHeader>
               <TableBody>
                 {filteredTreaties.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell>
-                      <span className={
-                        t.status === "Active" ? "text-green-600" :
-                        t.status === "Abrogated" ? "text-red-600" :
-                        t.status === "Expired" ? "text-muted-foreground" :
-                        "text-yellow-600"
-                      }>{t.status}</span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{t.participants.join(", ")}</TableCell>
-                    <TableCell className="text-muted-foreground">{t.clauses.join(", ")}</TableCell>
-                    <TableCell>{(t.negotiation_progress * 100).toFixed(0)}%</TableCell>
-                  </TableRow>
+                  <>
+                    <TableRow key={t.id}
+                      className="cursor-pointer hover:bg-accent/50"
+                      onClick={() => setExpandedTreaty(expandedTreaty === t.id ? null : t.id)}>
+                      <TableCell className="font-medium">
+                        {expandedTreaty === t.id ? "▾" : "▸"} {t.name}
+                      </TableCell>
+                      <TableCell>
+                        <span className={
+                          t.status === "Active" ? "text-green-600" :
+                          t.status === "Abrogated" ? "text-red-600" :
+                          t.status === "Expired" ? "text-muted-foreground" :
+                          "text-yellow-600"
+                        }>{t.status}</span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{t.participants.join(", ")}</TableCell>
+                      <TableCell className="text-muted-foreground">{t.clauses.length} clauses</TableCell>
+                      <TableCell>{(t.negotiation_progress * 100).toFixed(0)}%</TableCell>
+                    </TableRow>
+                    {expandedTreaty === t.id && (
+                      <TableRow key={`${t.id}-detail`} className="bg-accent/20">
+                        <TableCell colSpan={5} className="pl-8 py-3">
+                          <div className="space-y-2 text-xs">
+                            <div>
+                              <div className="text-muted-foreground uppercase mb-1">Full Clauses</div>
+                              {t.clauses.length === 0 ? (
+                                <span className="text-muted-foreground">No clauses recorded.</span>
+                              ) : (
+                                <ul className="list-disc pl-4 space-y-0.5">
+                                  {t.clauses.map((c, i) => <li key={i}>{c}</li>)}
+                                </ul>
+                              )}
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground uppercase mb-1">Negotiation Log</div>
+                              <div className="space-y-0.5">
+                                <div>T{t.initiated_turn} — proposed by {t.initiator}</div>
+                                <div>
+                                  Negotiation progress {(t.negotiation_progress * 100).toFixed(0)}%
+                                  · diplomatic capacity cost {t.diplomatic_capacity_cost}
+                                </div>
+                                {t.signed_turn != null && (
+                                  <div>T{t.signed_turn} — signed · duration {t.duration_turns} turns</div>
+                                )}
+                                <div>
+                                  Parties: {t.participants.join(", ")} · status {t.status}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 ))}
               </TableBody>
             </Table>

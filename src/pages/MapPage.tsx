@@ -22,6 +22,7 @@ import { fmt, num } from "../lib/format";
 import {
   WorldMapSvg,
   countryColor,
+  megaregionColor,
   type MapMode,
 } from "../components/map/WorldMapSvg";
 import type { CountryMapDto, MapRegionDto } from "../types/api";
@@ -33,6 +34,7 @@ const MODES: { value: MapMode; label: string }[] = [
   { value: "military", label: "Military Fronts" },
   { value: "gdp", label: "GDP per Capita" },
   { value: "population", label: "Population / Urbanization" },
+  { value: "megaregions", label: "Megaregions" },
 ];
 
 const ZOOM_STEPS = [1, 1.5, 2.2, 3.2, 4.5];
@@ -94,8 +96,32 @@ export function MapPage() {
           { color: "#9876be", label: "Mixed" },
           { color: "#3e2270", label: "Dense / urban" },
         ];
+      case "megaregions": {
+        // One legend entry per distinct megaregion, keyed by its color index.
+        const seen = new Map<number, string>();
+        for (const c of snapshot?.countries ?? []) {
+          for (const r of c.regions) {
+            const idx = Number(r.megaregion_index);
+            if (idx >= 0 && r.megaregion_name) seen.set(idx, r.megaregion_name);
+          }
+        }
+        return [...seen.entries()].map(([idx, name]) => ({
+          color: megaregionColor(idx),
+          label: name,
+        }));
+      }
     }
   }, [mode, snapshot]);
+
+  // Region id → display name across every country, so `ADJACENT REGIONS`
+  // resolves engine ids (`Anatolia-Region4`) to human-readable names.
+  const regionNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of snapshot?.countries ?? []) {
+      for (const r of c.regions) m.set(r.id, r.name);
+    }
+    return m;
+  }, [snapshot]);
 
   if (isLoading) {
     return <div className="p-6 text-muted-foreground">Loading world map...</div>;
@@ -184,6 +210,7 @@ export function MapPage() {
             <RegionCard
               region={selected.region}
               country={selected.country}
+              regionNameById={regionNameById}
               onOpenRegions={() => openRegionInRegionsPage(selected.region, selected.country)}
               onOpenMilitary={() => navigate("/military")}
               onClose={() => setSelected(null)}
@@ -217,12 +244,14 @@ function Field({ label, value }: { label: string; value: string }) {
 function RegionCard({
   region,
   country,
+  regionNameById,
   onOpenRegions,
   onOpenMilitary,
   onClose,
 }: {
   region: MapRegionDto;
   country: CountryMapDto;
+  regionNameById: Map<string, string>;
   onOpenRegions: () => void;
   onOpenMilitary: () => void;
   onClose: () => void;
@@ -282,7 +311,9 @@ function RegionCard({
           <div>
             <div className="text-xs text-muted-foreground uppercase mb-1">Adjacent Regions</div>
             <div className="text-xs text-foreground/80 leading-relaxed">
-              {region.neighbors.join(", ")}
+              {region.neighbors
+                .map((id) => regionNameById.get(id) ?? id)
+                .join(", ")}
             </div>
           </div>
         )}

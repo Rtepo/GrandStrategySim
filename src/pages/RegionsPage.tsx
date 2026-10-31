@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import * as echarts from "echarts";
 import { useGameStore } from "../store/gameStore";
-import { getRegions, getRegionDetail, getMegaregionDetail, getGdpComposition } from "../hooks/useTauriCommand";
+import { getRegions, getRegionDetail, getMegaregionDetail, getGdpComposition, getRegionParcelMap } from "../hooks/useTauriCommand";
 import { GdpDonutChart } from "../components/charts/GdpDonutChart";
 import { Hemicycle, type HemicycleEntry } from "../components/Hemicycle";
 import { partyColor, spectrumOf } from "../lib/partyVisuals";
@@ -12,7 +12,7 @@ import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { MiniMap } from "../components/map/MiniMap";
 import { fmt, num, humanize } from "../lib/format";
-import type { CouncilResolutionRow, CouncilRollCallRow } from "../types/api";
+import type { CouncilResolutionRow, CouncilRollCallRow, MapParcelDto, RegionParcelMapDto } from "../types/api";
 import type {
   CouncilorRow,
   MandateSummaryExtended,
@@ -88,6 +88,15 @@ export function RegionsPage() {
     select: (d) => d as MegaregionDetailExtended,
   });
 
+  // v4.26.0 TASK-002: cadastral parcel grid — fetched only while a region
+  // is selected; the top canvas toggles from country mini-map to parcels.
+  const { data: parcelMap } = useQuery({
+    queryKey: ["region-parcel-map", selectedCountry, selectedRegionId],
+    queryFn: () => getRegionParcelMap(selectedCountry!, selectedRegionId!),
+    enabled: !!selectedCountry && !!selectedRegionId,
+  });
+  const [selectedParcel, setSelectedParcel] = useState<MapParcelDto | null>(null);
+
   if (!selectedCountry) return <div className="p-6 text-muted-foreground">Select a country from the sidebar.</div>;
 
   // Build a lookup from megaregion name to megaregion id for clickable headers.
@@ -106,10 +115,23 @@ export function RegionsPage() {
     <div className="p-6 space-y-4">
       <h2 className="text-xl font-bold text-foreground">Regions — {selectedCountry}</h2>
 
-      {/* v4.24.0 WS5: compact mini-map of this country — click opens the Map tab. */}
+      {/* v4.26.0 TASK-002: top canvas toggles — country mini-map by
+          default, cadastral parcel grid while a region is selected. */}
       <Card>
         <CardContent className="p-3">
-          <MiniMap onlyCountry={selectedCountry} mode="governance" heightClass="h-64" />
+          {selectedRegionId && parcelMap ? (
+            <RegionParcelGrid
+              parcelMap={parcelMap}
+              selectedParcel={selectedParcel}
+              onSelectParcel={setSelectedParcel}
+              onBackToCountry={() => {
+                setSelectedRegionId(null);
+                setSelectedParcel(null);
+              }}
+            />
+          ) : (
+            <MiniMap onlyCountry={selectedCountry} mode="governance" heightClass="h-64" />
+          )}
         </CardContent>
       </Card>
 
@@ -910,5 +932,129 @@ function MegaregionDetailPanel({ detail }: { detail: MegaregionDetailExtended })
         />
       </CardContent>
     </Card>
+  );
+}
+
+// ============================================================================
+// v4.26.0 TASK-002: Regional Cadastral Parcel Grid
+// ============================================================================
+
+/** Zoning / land-use palette — high contrast, one hue per `use_class`. */
+const PARCEL_USE_COLORS: Record<string, string> = {
+  agricultural: "#4d9e3f",
+  industrial: "#8a5a2b",
+  residential: "#2e7fd4",
+  commercial: "#d4a02e",
+  mixed: "#9a6ec4",
+  protected_natural: "#1e7d64",
+  strategic_military: "#5a5f6e",
+  resource_mines: "#6e4a8f",
+  devastated: "#8f1d1d",
+  unplanned: "#3d4757",
+};
+
+const PARCEL_USE_LABELS: Record<string, string> = {
+  agricultural: "Agricultural",
+  industrial: "Industrial",
+  residential: "Residential",
+  commercial: "Commercial",
+  mixed: "Mixed Use",
+  protected_natural: "Protected Natural",
+  strategic_military: "Strategic Military",
+  resource_mines: "Resource Mines",
+  devastated: "Damaged",
+  unplanned: "Unplanned",
+};
+
+function parcelColor(p: MapParcelDto): string {
+  return PARCEL_USE_COLORS[p.use_class] ?? PARCEL_USE_COLORS.unplanned;
+}
+
+function RegionParcelGrid({
+  parcelMap,
+  selectedParcel,
+  onSelectParcel,
+  onBackToCountry,
+}: {
+  parcelMap: RegionParcelMapDto;
+  selectedParcel: MapParcelDto | null;
+  onSelectParcel: (p: MapParcelDto | null) => void;
+  onBackToCountry: () => void;
+}) {
+  const [minX, minY, maxX, maxY] = parcelMap.bounds;
+  const w = Math.max(1e-6, maxX - minX);
+  const h = Math.max(1e-6, maxY - minY);
+  const toX = (x: number) => ((x - minX) / w) * 1000;
+  const toY = (y: number) => ((y - minY) / h) * 560;
+
+  // Legend entries = the zoning classes actually present.
+  const present = new Map<string, string>();
+  for (const p of parcelMap.parcels) {
+    if (!present.has(p.use_class)) {
+      present.set(p.use_class, PARCEL_USE_LABELS[p.use_class] ?? p.use_class);
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-semibold text-foreground">
+          Cadastral Parcels — {parcelMap.region_name}
+          <span className="ml-2 text-xs text-muted-foreground">
+            {parcelMap.parcels.length} parcels
+          </span>
+        </div>
+        <Button variant="outline" size="sm" onClick={onBackToCountry}>
+          ← Back to Country Map
+        </Button>
+      </div>
+      <svg
+        viewBox={`0 0 1000 560`}
+        className="w-full h-64 rounded bg-[#0f1d2b] border border-border"
+      >
+        {parcelMap.parcels.map((p) => {
+          const pts = p.polygon.map((v) => `${toX(v.x)},${toY(v.y)}`).join(" ");
+          const selected = selectedParcel?.id === p.id;
+          return (
+            <polygon
+              key={p.id}
+              points={pts}
+              fill={parcelColor(p)}
+              fillOpacity={selected ? 1 : 0.8}
+              stroke={selected ? "#ffffff" : "#0a1622"}
+              strokeWidth={selected ? 2 : 0.5}
+              className="cursor-pointer hover:opacity-90"
+              onClick={() => onSelectParcel(selected ? null : p)}
+            >
+              <title>{`${PARCEL_USE_LABELS[p.use_class] ?? p.zoning} — ${fmt(p.size_hectares)} ha — ${p.owner_type}`}</title>
+            </polygon>
+          );
+        })}
+      </svg>
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {[...present.entries()].map(([cls, label]) => (
+          <span key={cls} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span
+              className="inline-block w-3 h-3 rounded-sm border border-border"
+              style={{ backgroundColor: PARCEL_USE_COLORS[cls] }}
+            />
+            {label}
+          </span>
+        ))}
+      </div>
+      {selectedParcel && (
+        <div className="grid grid-cols-4 gap-2 text-xs border border-border rounded p-2">
+          <div><span className="text-muted-foreground">Parcel:</span> {selectedParcel.id}</div>
+          <div><span className="text-muted-foreground">Zoning:</span> {PARCEL_USE_LABELS[selectedParcel.use_class] ?? selectedParcel.zoning}</div>
+          <div><span className="text-muted-foreground">Owner:</span> {selectedParcel.owner_type}</div>
+          <div><span className="text-muted-foreground">Area:</span> {fmt(selectedParcel.size_hectares)} ha</div>
+          <div><span className="text-muted-foreground">Devastation:</span> {(selectedParcel.devastation * 100).toFixed(0)}%</div>
+          <div><span className="text-muted-foreground">Survey:</span> {(selectedParcel.legal_certainty * 100).toFixed(0)}%</div>
+          <div><span className="text-muted-foreground">Infra access:</span> {(selectedParcel.infrastructure_access * 100).toFixed(0)}%</div>
+          {selectedParcel.is_frozen && <Badge variant="destructive">Frozen</Badge>}
+          {selectedParcel.is_border_zone && <Badge variant="outline">Border Zone</Badge>}
+        </div>
+      )}
+    </div>
   );
 }

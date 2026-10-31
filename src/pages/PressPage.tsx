@@ -25,6 +25,18 @@ const STATUS_BADGE: Record<string, string> = {
 const BUSINESS_KIND_ORDER = ["stock_mover", "earnings", "dividend", "investment"];
 
 /// v4.25 WS4: embedded SVG mini-chart for economic/financial lead articles.
+/// v4.26.0 TASK-004: belt-and-braces KRS cleanup — backend sanitizes,
+/// but saves serialized before v4.25 WS4 can still carry raw
+/// `KRS-ANA-0890` registry ids inside headline/body text. Strip them at
+/// render so the no-`KRS-` contract holds for every save vintage.
+function stripKrs(text: string): string {
+  return text
+    .replace(/\bKRS-[A-Za-z0-9-]+/g, "")
+    .replace(/\(\s*\)|\[\s*\]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 /// Renders the real series shipped on `PressArticleDto.sparkline`; color
 /// follows the last-vs-first trend. Returns null when there is no series.
 function Sparkline({ data }: { data?: number[] }) {
@@ -133,11 +145,11 @@ function FrontPage({ paper, year }: { paper: PressPaperDto; year: number }) {
         <article className="px-4 py-3 border-b border-border cursor-pointer hover:bg-accent/40"
           onClick={() => setExpanded(expanded === lead.id ? null : lead.id)}>
           <div className="flex items-start justify-between gap-3">
-            <h4 className="font-serif text-lg font-bold leading-snug">{lead.headline}</h4>
+            <h4 className="font-serif text-lg font-bold leading-snug">{stripKrs(lead.headline)}</h4>
             <Sparkline data={lead.sparkline} />
           </div>
           <ArticleBody
-            body={lead.body}
+            body={stripKrs(lead.body)}
             className="mt-1 text-xs text-muted-foreground"
             clampClass={expanded === lead.id ? undefined : "line-clamp-4"}
           />
@@ -152,11 +164,11 @@ function FrontPage({ paper, year }: { paper: PressPaperDto; year: number }) {
             className={`px-4 py-3 cursor-pointer hover:bg-accent/40 ${i % 2 === 0 ? "border-r border-border" : ""} border-b border-border`}
             onClick={() => setExpanded(expanded === a.id ? null : a.id)}>
             <div className="flex items-start justify-between gap-2">
-              <h5 className="font-serif text-sm font-semibold leading-snug">{a.headline}</h5>
+              <h5 className="font-serif text-sm font-semibold leading-snug">{stripKrs(a.headline)}</h5>
               <Sparkline data={a.sparkline} />
             </div>
             <ArticleBody
-              body={a.body}
+              body={stripKrs(a.body)}
               className="mt-1 text-[11px] text-muted-foreground"
               clampClass={expanded === a.id ? undefined : "line-clamp-3"}
             />
@@ -200,11 +212,11 @@ function BusinessPress({ articles, year }: { articles: PressArticleDto[]; year: 
               {list.map((a) => (
                 <article key={a.id} className="cursor-pointer" onClick={() => setExpanded(expanded === a.id ? null : a.id)}>
                   <div className="flex items-start justify-between gap-2">
-                    <h5 className="font-serif text-sm font-semibold leading-snug">{a.headline}</h5>
+                    <h5 className="font-serif text-sm font-semibold leading-snug">{stripKrs(a.headline)}</h5>
                     <Sparkline data={a.sparkline} />
                   </div>
                   <ArticleBody
-                    body={a.body}
+                    body={stripKrs(a.body)}
                     className="mt-0.5 text-[11px] text-muted-foreground"
                     clampClass={expanded === a.id ? undefined : "line-clamp-3"}
                   />

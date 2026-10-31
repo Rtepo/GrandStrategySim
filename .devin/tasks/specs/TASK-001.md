@@ -1,33 +1,34 @@
-# TASK-001 — Voronoi polygon map, canonical edge noise, real region names
+# TASK-001 — Voronoi topology, canonical half-edge borders, real names, Megaregions + legend
 
 ## Defect
-World/Regions maps render radial "pizza-slice" wedges meeting at a single
-interior point. Per-region noise is applied independently to each polygon's
-copy of a shared border, so neighbouring regions diverge → black fissures
-between every internal region. Raw region ids (`Anatolia-Region4`) leak into
-labels. Backend already emits parcel data; UI parity is missing.
+World/Regions maps render radial "pizza-slice" wedges meeting at one interior
+point. Per-region noise displaces each polygon's copy of a shared edge
+independently → black fissures between neighbours. Raw ids
+(`Anatolia-Region4`) leak into `ADJACENT REGIONS` labels.
 
 ## Required behaviour
-1. Voronoi / Lloyd-relaxed region layout: region seeds → Voronoi cells clipped
-   to country extent → 1–2 Lloyd relaxation passes for organic shapes.
-   Continental and coastal regions must both receive cells (sea-adjacent
-   borders stay wet, not pinched).
-2. Canonical half-edge noise: build a shared-edge map keyed by sorted region
-   pair `(A,B)`; generate ONE noise displacement per edge vertex and apply the
-   SAME displacement to both polygons. Zero cracks by construction.
-3. Name resolution: labels resolve region ids to display names
-   (`display_name`/localized) before render; raw `*-RegionN` strings must never
-   reach the SVG.
+1. **Multi-ring / Lloyd-relaxed Voronoi layout**: country layouts produce
+   true interior (landlocked) AND coastal regions — cell partition from
+   region centroids, 1–2 Lloyd relaxation passes; no central convergence
+   point, no wedge topology.
+2. **Canonical half-edge noise**: shared boundary A↔B is ONE polyline.
+   Displace it once (keyed by the unordered region pair) and emit the same
+   vertices in both polygons → zero gaps/fissures by construction. A Voronoi
+   clip already guarantees shared vertices; noise must perturb the shared
+   vertex, never per-polygon copies.
+3. **Name resolution**: `ADJACENT REGIONS` and labels resolve ids → display
+   names before render; `*-RegionN` never reaches the SVG.
+4. **Megaregions map-mode button** on MapPage + **high-contrast multi-stop
+   color scale with a legend bar**.
 
 ## Acceptance
-- `verify_task.sh TASK-001` green (diff + UI grep gate).
-- No two adjacent polygons may compute their shared edge independently —
-  prove with a unit test asserting vertex-identical shared edges, or a
-  deterministic-equality check on the emitted DTO.
-- Gate test `shared_land_borders_count` and `min_region_polygon_vertices`
-  in `v4250_release_gate_test.rs` must stay green.
+- `verify_task.sh TASK-001` green (diff + UI grep gate incl. Megaregions
+  button + legend).
+- Shared-edge invariant: adjacent cells share vertex-identical boundaries
+  (unit test or DTO-level equality check).
+- `v4250_release_gate` borders/polygon-vertex assertions stay green.
 
 ## Files
 - `state/src/society/geography.rs` — layout/Voronoi generation
 - `state/src/ui/snapshot_map.rs` — polygon emission, name resolution
-- `src/components/map/WorldMapSvg.tsx` — polygon render + labels
+- `src/components/map/WorldMapSvg.tsx`, `src/pages/MapPage.tsx`

@@ -9639,6 +9639,9 @@ pub struct RegionArmyRow {
     pub country: String,
     /// Region ID where the units are currently located.
     pub region_id: String,
+    /// v4.26.0 TASK-003: human-readable region name (`display_name`
+    /// fallback to id) so the OOB never renders raw `Region1..N` ids.
+    pub region_name: String,
     /// Number of units located in this region.
     pub unit_count: usize,
     /// Total manpower located in this region.
@@ -9985,11 +9988,12 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             entry.0 += 1;
             entry.1 += unit.manpower;
         }
-        let region_breakdown: Vec<RegionArmyRow> = region_units
+        let mut region_breakdown: Vec<RegionArmyRow> = region_units
             .into_iter()
             .map(|(region_id, (count, manpower))| RegionArmyRow {
                 country: country_name.clone(),
                 region_id,
+                region_name: String::new(),
                 unit_count: count,
                 manpower,
             })
@@ -10013,6 +10017,9 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 })
                 .unwrap_or_else(|| rid.to_string())
         };
+        for r in &mut region_breakdown {
+            r.region_name = region_name_of(&r.region_id);
+        }
         let vip_name = |vid: &Option<String>| -> Option<String> {
             vid.as_ref().and_then(|id| {
                 country
@@ -10023,16 +10030,6 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     .map(|v| v.full_name.clone())
                     .or_else(|| Some(id.clone()))
             })
-        };
-        let branch_of = |t: &crate::military::units::UnitType| -> &'static str {
-            match t {
-                crate::military::units::UnitType::Infantry
-                | crate::military::units::UnitType::Tanks
-                | crate::military::units::UnitType::Artillery
-                | crate::military::units::UnitType::PeasantBattalion => "Land",
-                crate::military::units::UnitType::Naval => "Navy",
-                crate::military::units::UnitType::AirForce => "Air",
-            }
         };
         let rank_of = |branches: &std::collections::BTreeMap<String, i64>| -> &'static str {
             let dominant = branches
@@ -10048,8 +10045,11 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         };
         let mut armies: Vec<ArmyRow> = Vec::new();
         for army in &oob.armies {
-            let mut branch_mp: std::collections::BTreeMap<String, i64> =
-                std::collections::BTreeMap::new();
+            let branch_mp: std::collections::BTreeMap<String, i64> = army
+                .branch_manpower()
+                .into_iter()
+                .map(|(b, m)| (b.to_string(), m))
+                .collect();
             let mut mp = 0i64;
             let mut n_units = 0usize;
             let mut eq_sum = 0.0;
@@ -10063,8 +10063,6 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                         mp += u.manpower;
                         eq_sum += u.equipment_quality;
                         xp_sum += u.experience;
-                        *branch_mp.entry(branch_of(&u.unit_type).to_string()).or_insert(0) +=
-                            u.manpower;
                     }
                 }
             }

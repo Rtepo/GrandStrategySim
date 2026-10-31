@@ -1,25 +1,25 @@
-# TASK-003 — Expandable deep Military view
+# TASK-003 — Deep expandable Military view
 
 ## Defect
-`MilitaryPage.tsx` renders wars/OOB as flat tables. Wars expose no War Score,
-Casus Belli, or nested battles; battles show no phases/units; OOB lacks a
-branch split (Land/Navy/Air), equipment/training detail, generals,
-KIA/WIA/POW/Deserted counters, and POW camps. Backend DTOs already carry
-`battles`, `ended_wars`, POWs, branch manpower — the UI drops them.
+`MilitaryPage.tsx` renders wars/OOB as flat tables; backend ships
+`battles`, `ended_wars`, POWs, branch manpower that the UI drops.
 
 ## Required behaviour
-1. Active Wars: clickable rows → expanded panel shows War Score, Casus Belli,
-   front state, nested battle list.
-2. Battles: expandable → phases, engaged units, casualties per side.
-3. Historical Wars sub-tab (`ended_wars` DTO — already shipped) with outcome
-   and peace terms.
-4. OOB section: branch split Land/Navy/Air with per-branch manpower and
-   equipment/training summary, generals listed.
-5. Casualty counters KIA/WIA/POW/Deserted; POW camps expandable per camp
-   (capacity, held, origin).
+1. **Active Wars & Fronts**: expandable rows → War Goal / Casus Belli,
+   War Score bar, per-side force & casualty totals, nested Battles list.
+2. **Battles**: expandable → commanders, unit composition, tactical
+   phases, KIA/WIA/POW/Deserted splits.
+3. **Historical Wars** sub-tab (concluded wars + peace terms, from
+   `ended_wars`).
+4. **Army Composition (OOB)**: real region names (no `Region1..N`, no
+   `—` placeholders), division/regiment counts, Branch Split
+   (Land/Navy/Air), Equipment Readiness %, Training/Experience,
+   Commanding Generals (clickable VIP links), Conscription Law,
+   Mobilized vs Reserve pools.
+5. **POW Camps**: expandable per camp — prisoners, living quality,
+   maintenance cost, new captures, escapes.
 
 ## Acceptance
-- `verify_task.sh TASK-003` green (8 grep checks incl. expandedWar,
-  war_score, battles, phases, historical, Navy, casualties, POW camps).
-- No new DTO fields unless a required datum is genuinely absent — check
-  `api.ts`/`snapshot.rs` first; the WS2 backend shipped these already.
+- `verify_task.sh TASK-003` green (12 grep checks).
+- Extend DTOs in `snapshot.rs`/api.ts only where a required datum is
+  genuinely absent — check `api.ts` first; WS2 backend mostly shipped.
