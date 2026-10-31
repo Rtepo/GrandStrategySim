@@ -56,7 +56,11 @@ Base: `main` @ `431a3e08` (post-v4.24.0)
 ## Merge/Release
 
 - [x] All 7 WS merged into integration branch
-- [x] Release gate green (120-turn) — final re-run in progress on post-fund-fix tree
+- [x] Release gate green (120-turn) — re-verified on final tree (125.9s)
 - [x] Iron CI/CD 4 gates green — build ✓ / test ✓ (full suite) / clippy ✓ -D warnings / npm ✓
+- [x] M0 conservation audit — `test_m0_conservation_single_turn` ✓
 - [x] Manifests + Cargo.lock → 4.25.0
-- [ ] merge_worker.sh → push main + tag v4.25.0
+- [x] merge_worker.sh → merged `76150366` (--no-ff, GREEN-SKIP tree-identical),
+      main pushed `431a3e08..76150366`, tag `v4.25.0` pushed
+
+**v4.25.0 RELEASED 2026-10-31** — 49 files, +5626/−452 vs v4.24.0 base.
