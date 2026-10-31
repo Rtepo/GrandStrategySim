@@ -214,6 +214,27 @@ impl Army {
         self.divisions.iter().map(|d| d.total_manpower()).sum()
     }
 
+    /// v4.26.0 TASK-003: manpower split by service branch (Land / Navy /
+    /// Air) across every division → regiment → unit, used by the OOB
+    /// snapshot's Branch Split display.
+    pub fn branch_manpower(&self) -> std::collections::BTreeMap<&'static str, i64> {
+        let mut out: std::collections::BTreeMap<&'static str, i64> =
+            std::collections::BTreeMap::new();
+        for div in &self.divisions {
+            for reg in &div.regiments {
+                for u in &reg.units {
+                    let branch = match u.unit_type {
+                        crate::military::units::UnitType::Naval => "Navy",
+                        crate::military::units::UnitType::AirForce => "Air",
+                        _ => "Land",
+                    };
+                    *out.entry(branch).or_insert(0) += u.manpower;
+                }
+            }
+        }
+        out
+    }
+
     /// All units in this army (flat iterator).
     pub fn all_units(&self) -> impl Iterator<Item = &MilitaryUnit> {
         self.divisions.iter().flat_map(|d| d.all_units())

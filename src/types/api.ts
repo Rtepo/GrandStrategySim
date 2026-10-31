@@ -3351,6 +3351,11 @@ country: string,
  */
 region_id: string, 
 /**
+ * v4.26.0 TASK-003: human-readable region name (`display_name`
+ * fallback to id) so the OOB never renders raw `Region1..N` ids.
+ */
+region_name: string, 
+/**
  * Number of units located in this region.
  */
 unit_count: number, 
