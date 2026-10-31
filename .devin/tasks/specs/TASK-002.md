@@ -1,22 +1,24 @@
-# TASK-002 — Regional cadastral parcel sub-map + Megaregions toggle
+# TASK-002 — Cadastral parcel grid map + sector/courts/gold invariants
 
 ## Defect
-Clicking a region shows data tables only; the cadastral parcel geometry the
-backend already emits (`snapshot_map.rs` parcel polygons per region) is never
-rendered. No Megaregions map mode exists.
+Clicking a region shows tables only; parcel polygons emitted by
+`snapshot_map.rs` are never rendered. No Megaregions map mode.
 
 ## Required behaviour
-1. In `RegionsPage.tsx`, selecting a region renders a parcel sub-map (SVG):
-   per-parcel polygons from the region-map DTO, coloured by zoning
-   (residential/industrial/agricultural/forest/devastated), with click/hover
-   selection showing parcel details (owner, zone, devastation index).
-2. Map-mode toggle on the regions map: Regions ↔ Megaregions — Megaregion
-   mode colours groups by `megaregion_id` membership with a legend.
-3. Reuse existing `WorldMapSvg` conventions (jittered lattice, MapPoint DTO);
-   do not invent a second geometry pipeline — consume the parcel polygons the
-   backend already ships.
+1. Selecting a region in `RegionsPage.tsx` swaps the top canvas to an
+   **interactive Regional Cadastral Parcel Grid Map**: per-parcel polygons
+   colored by zoning — Agricultural, Industrial, Residential, Commercial,
+   Protected Natural, Resource Mines, Damaged — with click/hover parcel
+   detail (owner, zone, devastation).
+2. **"← Back to Country Map"** button returns to the region map.
+3. Megaregions map-mode toggle (Regions ↔ Megaregions coloring + legend).
+4. **Invariants to hold** (backend, already green — do not regress):
+   LocalServices wage share < 0.45; Construction > 25k FTE;
+   WasteManagement > 5k FTE; ArmamentsIndustry/PublicServices/
+   ExportServices/Religion non-trivial workforces; arbitration exposure
+   < 20% GDP; positive CB gold reserves.
 
 ## Acceptance
 - `verify_task.sh TASK-002` green.
-- Parcel polygons are individually selectable; empty-parcel regions degrade
-  gracefully (message, not blank canvas).
+- Empty-parcel regions degrade gracefully (message, not blank canvas).
+- `v4250_release_gate` sector/arbitration/gold assertions stay green.

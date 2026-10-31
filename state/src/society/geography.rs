@@ -4891,17 +4891,33 @@ pub fn migrate_region_coordinates(regions: &mut [Region]) {
         return;
     }
 
+    // Generation order puts the capital (`Region1`) first — the circular
+    // `LandBorder` adjacency was built over that order.
     let mut sorted_ids: Vec<String> = regions.iter().map(|r| r.id.clone()).collect();
-    sorted_ids.sort();
+    sorted_ids.sort_by_key(|id| map_region_sort_key(id));
 
+    // Capital-centred hex-ring lattice instead of a single circle: a pure
+    // ring of sites makes every Voronoi cell converge on one centre point
+    // (radial "pizza slices", zero landlocked regions). Rings of 6, 12,
+    // 18, … slots give interior cells before the spring pass relaxes
+    // positions toward engine-graph edge distances.
     let n = regions.len();
-    let radius = (n as f64) * 50.0;
+    let ring_spacing = (n as f64).sqrt().max(1.0) * 90.0;
+    let ring_plan = map_ring_layout(n.saturating_sub(1));
     for (i, id) in sorted_ids.iter().enumerate() {
         if let Some(region) = regions.iter_mut().find(|r| &r.id == id) {
             if region.coord_x == 0.0 && region.coord_y == 0.0 {
-                let angle = (i as f64) / (n as f64) * 2.0 * std::f64::consts::PI;
-                region.coord_x = radius * angle.cos();
-                region.coord_y = radius * angle.sin();
+                let (x, y) = if i == 0 {
+                    (0.0, 0.0)
+                } else {
+                    let (ring, pos, cap) = ring_plan[i - 1];
+                    let angle = (pos as f64) / (cap as f64) * 2.0 * std::f64::consts::PI
+                        + (ring as f64) * 0.5;
+                    let rr = ring_spacing * ring as f64;
+                    (rr * angle.cos(), rr * angle.sin())
+                };
+                region.coord_x = x;
+                region.coord_y = y;
             }
         }
     }

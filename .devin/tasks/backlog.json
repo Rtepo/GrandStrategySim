@@ -1,24 +1,25 @@
 {
   "version": 2,
   "schema": "daemon-v2-backlog",
-  "release": "v4.25.1-ui-polish",
-  "base_ref": "origin/main",
-  "updated_at": "2026-10-31T11:00:00Z",
+  "release": "v4.26.0-ui-complete",
+  "base_ref": "feat/agent-5-v4260-ui-complete",
+  "updated_at": "2026-10-31T16:00:00Z",
   "tasks": [
     {
       "id": "TASK-001",
-      "title": "Voronoi/Lloyd-relaxed polygon map: canonical shared-edge noise, real region names",
+      "title": "World map topology: Voronoi cells, canonical half-edge borders, real names, Megaregions mode + legend",
       "status": "PENDING",
       "priority": 10,
-      "assigned_daemon": null,
+      "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-001.md",
-      "base_ref": "origin/main",
+      "base_ref": "feat/agent-5-v4260-ui-complete",
       "required_rust_files": [
         "state/src/society/geography.rs",
         "state/src/ui/snapshot_map.rs"
       ],
       "required_ui_files": [
-        "src/components/map/WorldMapSvg.tsx"
+        "src/components/map/WorldMapSvg.tsx",
+        "src/pages/MapPage.tsx"
       ],
       "ui_ast_grep_checks": [
         {
@@ -30,20 +31,30 @@
           "file": "src/components/map/WorldMapSvg.tsx",
           "pattern": "displayName|display_name|region\\.name|label",
           "desc": "Region labels resolve to display names (no raw Anatolia-Region4 ids)"
+        },
+        {
+          "file": "src/pages/MapPage.tsx",
+          "pattern": "[Mm]egaregion|mega_region",
+          "desc": "Megaregions map mode button exists"
+        },
+        {
+          "file": "src/pages/MapPage.tsx",
+          "pattern": "[Ll]egend|colorScale|color_?scale",
+          "desc": "High-contrast color scale with legend bar"
         }
       ],
       "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T11:00:00Z",
+      "updated_at": "2026-10-31T16:00:00Z",
       "verify_history": []
     },
     {
       "id": "TASK-002",
-      "title": "Interactive regional cadastral parcel sub-map + Megaregions map-mode toggle",
+      "title": "Interactive cadastral parcel grid map (zoning colors, back nav) + sector/courts/gold invariants held",
       "status": "PENDING",
       "priority": 9,
-      "assigned_daemon": null,
+      "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-002.md",
-      "base_ref": "origin/main",
+      "base_ref": "feat/agent-5-v4260-ui-complete",
       "required_rust_files": [
         "state/src/ui/snapshot_map.rs"
       ],
@@ -58,27 +69,37 @@
         },
         {
           "file": "src/pages/RegionsPage.tsx",
+          "pattern": "zoning|zone_type|Agricultural|Industrial|Residential",
+          "desc": "Parcels colored by zoning classification"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "Back to|backTo|←",
+          "desc": "'← Back to Country Map' navigation control exists"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
           "pattern": "megaregion|Megaregion|mega_region",
           "desc": "Megaregions map-mode toggle exists"
         },
         {
           "file": "src/pages/RegionsPage.tsx",
-          "pattern": "onClick.*parcel|selectedParcel|parcelHover|parcelPolygon",
+          "pattern": "selectedParcel|onClick.*parcel|parcelHover|setSelected.*[Pp]arcel",
           "desc": "Parcel polygons are individually interactive (click/hover selection)"
         }
       ],
       "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T11:00:00Z",
+      "updated_at": "2026-10-31T16:00:00Z",
       "verify_history": []
     },
     {
       "id": "TASK-003",
-      "title": "Expandable MilitaryView: war detail, battle phases, OOB branches, POW camps",
+      "title": "Deep expandable Military view: war detail, battle phases, OOB branches, generals, POW camps",
       "status": "PENDING",
       "priority": 9,
-      "assigned_daemon": null,
+      "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-003.md",
-      "base_ref": "origin/main",
+      "base_ref": "feat/agent-5-v4260-ui-complete",
       "required_rust_files": [
         "state/src/ui/snapshot.rs",
         "state/src/military/oob.rs"
@@ -94,8 +115,13 @@
         },
         {
           "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "war_score|warScore|war-score|casus|Casus",
-          "desc": "Expanded war shows War Score / Casus Belli"
+          "pattern": "war_?score|warScore|war-score",
+          "desc": "Expanded war shows War Score bar"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "casus|war_?goal|warGoal|cb_",
+          "desc": "War Goal / Casus Belli rendered"
         },
         {
           "file": "src/pages/MilitaryPage.tsx",
@@ -105,7 +131,7 @@
         {
           "file": "src/pages/MilitaryPage.tsx",
           "pattern": "phase|Phase",
-          "desc": "Battle rows expand to show phases/units"
+          "desc": "Battle rows expand to show tactical phases/units"
         },
         {
           "file": "src/pages/MilitaryPage.tsx",
@@ -119,44 +145,71 @@
         },
         {
           "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "KIA|killed|casualt|WIA|wounded",
-          "desc": "Casualty counters (KIA/WIA/POW/Deserted) render"
+          "pattern": "[Gg]eneral|commander|Commander",
+          "desc": "Commanding generals listed (clickable VIP links)"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "KIA|killed|casualt|WIA|wounded|desert",
+          "desc": "KIA/WIA/POW/Deserted casualty splits render"
         },
         {
           "file": "src/pages/MilitaryPage.tsx",
           "pattern": "POW|pow_?camp|prisoner",
-          "desc": "POW camp section/expandables exist"
+          "desc": "Expandable POW camps (prisoners, quality, cost, escapes)"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "[Cc]onscription|[Mm]obiliz|reserve",
+          "desc": "Conscription law + mobilized vs reserve pools"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "[Rr]eadiness|equipment|[Tt]raining",
+          "desc": "Equipment readiness % / training-experience display"
         }
       ],
       "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T11:00:00Z",
+      "updated_at": "2026-10-31T16:00:00Z",
       "verify_history": []
     },
     {
       "id": "TASK-004",
-      "title": "Statutes human-prose, Intelligence & Espionage sub-tab, expandable treaties, deeper press",
+      "title": "Statutes prose + 24-turn support window, Espionage sub-tab, expandable treaties/resolutions, analytical press",
       "status": "PENDING",
       "priority": 8,
-      "assigned_daemon": null,
+      "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-004.md",
-      "base_ref": "origin/main",
+      "base_ref": "feat/agent-5-v4260-ui-complete",
       "required_rust_files": [
-        "state/src/ui/snapshot.rs"
+        "state/src/ui/snapshot.rs",
+        "state/src/ui/snapshot_press.rs"
       ],
       "required_ui_files": [
         "src/pages/DiplomacyPage.tsx",
-        "src/pages/ParliamentPage.tsx"
+        "src/pages/ParliamentPage.tsx",
+        "src/pages/PressPage.tsx"
       ],
       "ui_ast_grep_checks": [
         {
           "file": "src/pages/DiplomacyPage.tsx",
           "pattern": "[Ii]ntelligence|[Ee]spionage|covert|CovertOperation",
-          "desc": "Intelligence & Espionage sub-tab exists in Diplomacy view"
+          "desc": "Intelligence & Espionage sub-tab exists"
         },
         {
           "file": "src/pages/DiplomacyPage.tsx",
-          "pattern": "expandedTreaty|expanded_treaty|openTreaty|negotiation",
-          "desc": "Treaties are expandable with negotiation logs"
+          "pattern": "counter.?intel|intel_?budget|spy|Spy",
+          "desc": "Budget / counter-intelligence / active spies surface"
+        },
+        {
+          "file": "src/pages/DiplomacyPage.tsx",
+          "pattern": "expandedTreaty|expanded_treaty|openTreaty|expandedResolution|openResolution",
+          "desc": "Treaties and Resolutions are expandable"
+        },
+        {
+          "file": "src/pages/DiplomacyPage.tsx",
+          "pattern": "negotiation|Negotiation",
+          "desc": "Negotiation log renders inside expanded treaties"
         },
         {
           "file": "src/pages/ParliamentPage.tsx",
@@ -164,13 +217,23 @@
           "desc": "Statutes section present"
         },
         {
+          "file": "src/pages/ParliamentPage.tsx",
+          "pattern": "[Tt]rend|party_?support|24",
+          "desc": "Rolling 24-turn party support trend window"
+        },
+        {
           "file": "src/pages/PressPage.tsx",
           "pattern": "articleBody|article_body|paragraphs|fullText|expandedArticle|openArticle",
-          "desc": "Newspaper articles render multi-paragraph expandable bodies"
+          "desc": "Multi-paragraph expandable article bodies"
+        },
+        {
+          "file": "src/pages/PressPage.tsx",
+          "pattern": "[Cc]hart|Sparkline|sparkline|mini.?chart",
+          "desc": "Embedded mini-charts in economic/financial stories"
         }
       ],
       "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T11:00:00Z",
+      "updated_at": "2026-10-31T16:00:00Z",
       "verify_history": []
     }
   ]

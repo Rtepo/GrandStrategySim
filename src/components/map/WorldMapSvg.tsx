@@ -37,7 +37,24 @@ export function countryColor(index: number): string {
   return COUNTRY_PALETTE[index % COUNTRY_PALETTE.length];
 }
 
-export type MapMode = "political" | "governance" | "military" | "gdp" | "population";
+export type MapMode =
+  | "political"
+  | "governance"
+  | "military"
+  | "gdp"
+  | "population"
+  | "megaregions";
+
+/** Categorical palette for the Megaregions mode — high-contrast, distinct
+ * from the country palette so administrative blocs read at a glance. */
+const MEGAREGION_PALETTE = [
+  "#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
+  "#f032e6", "#bcf60c", "#008080", "#9a6324", "#800000", "#000075",
+];
+
+export function megaregionColor(index: number): string {
+  return MEGAREGION_PALETTE[Math.abs(index) % MEGAREGION_PALETTE.length];
+}
 
 /** Sequential heat ramp (light → saturated) for [0,1] inputs. */
 function heatColor(t: number, stops: [number, number, number][]): string {
@@ -93,6 +110,11 @@ export function regionFill(
         0.5 * logNorm(Number(r.population), maxPop) + 0.5 * r.urbanization,
         URBAN_RAMP,
       );
+    case "megaregions":
+      // Regions outside any megaregion keep a dimmed country tint.
+      return Number(r.megaregion_index) < 0
+        ? countryColor(c.color_index)
+        : megaregionColor(Number(r.megaregion_index));
   }
 }
 
