@@ -480,7 +480,12 @@ function ArmyCompositionPanel({
                                     <span>Training {(army.avg_experience * 100).toFixed(0)}%</span>
                                     <span>
                                       Branch Split:{" "}
-                                      {army.branch_manpower.map(([b, m]) => `${b} ${num(Number(m))}`).join(" · ") || "Land only"}
+                                      {(["Land", "Navy", "Air"] as const)
+                                        .map((b) => {
+                                          const found = army.branch_manpower.find(([k]) => k === b);
+                                          return `${b} ${num(Number(found?.[1] ?? 0))}`;
+                                        })
+                                        .join(" · ")}
                                     </span>
                                   </div>
                                   {army.commanders.length > 0 && (
