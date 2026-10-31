@@ -231,6 +231,24 @@ impl CompanyLifecycle {
                 if company.sector == Sector::Energy && !company.is_in_receivership {
                     continue;
                 }
+                // v4.25.0 WS5: a contractor carrying court-enforceable
+                // contract receivables holds funded claims (escrowed
+                // public/private works tranches) — the 50% haircut in
+                // `compute_company_capital` understates them against
+                // full-book liabilities. Such a firm restructures, it
+                // doesn't fire-sale; executing it strands every live
+                // project it crews (observed: Lechia's last contractor
+                // liquidated holding escrowed receivables → national
+                // construction sector extinct while 65 state projects
+                // stalled with no bidder to take them).
+                let contract_book = company
+                    .extra
+                    .get("contract_receivables")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                if contract_book > 0.0 {
+                    continue;
+                }
                 // Banking entities never reach the Syndic: an insolvent bank
                 // is resolved by the supervisor (execute_bank_resolution at
                 // Step 10 of process_banking_turn), which preserves the loan
@@ -286,7 +304,17 @@ impl CompanyLifecycle {
             let fully_inactive = company.fulfilled_fte == 0
                 && company.prev_fulfilled_fte == 0
                 && company.furloughed_workers_count <= 0.0;
+            // v4.25.0 WS5: a firm holding escrowed contract receivables is
+            // stalled, not dead — war attrition can zero its crew while the
+            // funded contract book still stands. Executing it orphans the
+            // very public works the receivable secures.
+            let contract_book = company
+                .extra
+                .get("contract_receivables")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0);
             let consecutive_losses = fully_inactive
+                && contract_book <= 0.0
                 && company.consecutive_loss_turns
                     >= crate::state::macro_data::TURNS_PER_YEAR as u32;
 
@@ -498,6 +526,23 @@ impl CompanyLifecycle {
         promising_sectors
             .sort_by_key(|s| crate::engine::generator::corporate::sector_json_name(*s));
 
+        // v4.25.0 WS5: sector regeneration — when the country's
+        // construction sector is extinct but public/private works sit
+        // stalled (active projects with no contractor to crew them),
+        // market re-entry must happen regardless of PMI. Construction
+        // demand is contract-driven — escrowed tranches and awarded BOM —
+        // not output-price-driven, so the PMI>50 screen never sees it.
+        // (Observed: Lechia `ncos=0` while 65 state projects stalled.)
+        let construction_extinct = !companies
+            .iter()
+            .any(|c| c.sector == Sector::Construction)
+            && buildings.iter().any(|b| b.active_project.is_some());
+        if construction_extinct && !promising_sectors.contains(&Sector::Construction) {
+            promising_sectors.push(Sector::Construction);
+            promising_sectors
+                .sort_by_key(|s| crate::engine::generator::corporate::sector_json_name(*s));
+        }
+
         if promising_sectors.is_empty() {
             return;
         }
@@ -554,7 +599,13 @@ impl CompanyLifecycle {
             let avg_wage = country.macro_indicators.average_wage.max(1.0);
             let min_capital =
                 crate::corporate::capital_intensity::minimum_capital_for_sector(&sector, avg_wage);
-            if capital_per_company < min_capital {
+            // v4.25.0 WS5: a re-founding contractor in an extinct sector
+            // legitimately bootstraps below the standard capital barrier —
+            // its bonding line (`bonding_capacity_fte`) already constrains
+            // how much work it can hold while it builds retained earnings.
+            if capital_per_company < min_capital
+                && !(sector == Sector::Construction && construction_extinct)
+            {
                 continue;
             }
 

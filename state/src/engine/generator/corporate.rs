@@ -257,11 +257,15 @@ fn consolidate_region_companies(
 
         // Reserve critical sector slots: ensure at least 1 company from each
         // critical sector survives, even if it's small.
+        // v4.25.0 WS5: Construction joins the reserved set — merge-down
+        // left some regions with zero contractors, collapsing the national
+        // tender pipeline to a single firm's bonding capacity.
         let critical_sectors = [
             Sector::Mining,
             Sector::Agriculture,
             Sector::HeavyIndustry,
             Sector::LocalServices,
+            Sector::Construction,
         ];
 
         let mut survivors: BTreeSet<usize> = BTreeSet::new();
@@ -736,10 +740,10 @@ pub fn generate_corporate_entities(
             year_built: start_year.saturating_sub(rng.gen_range(1..10)),
             sector: Sector::WasteManagement,
             // v4.25.0 WS5: a regional sanitation utility crews collection,
-            // sorting, and landfill ops — 500 seats/region is realistic for
+            // sorting, and landfill ops — 700 seats/region is realistic for
             // a ~0.5–1M-population region and yields >5k national waste FTE.
-            worker_capacity: 500,
-            current_employment: 400,
+            worker_capacity: 700,
+            current_employment: 560,
             reserve: 0.0,
             active_method: ActiveProductionMethod {
                 year: start_year.saturating_sub(50),
@@ -762,7 +766,7 @@ pub fn generate_corporate_entities(
             accidents_last_year: 0,
             strike: false,
             scale_factor: 1,
-            building_capacity: 500,
+            building_capacity: 700,
             region_id: region.id.clone(),
             cluster_info: ClusterInfo {
                 region_id: region.id.clone(),
@@ -1827,6 +1831,11 @@ fn issue_working_capital_loans(
             Sector::ExportServices => 0.012,
             // 100 bps — public services, stable but regulated
             Sector::PublicServices => 0.01,
+            // 80 bps — construction, milestone-financed but payroll-heavy
+            // v4.25.0 WS5: contractors need working-capital runway between
+            // tranche releases; without it they sit at ~zero cash and the
+            // whole sector's labor demand collapses to skeleton crews.
+            Sector::Construction => 0.008,
             // 100 bps — medical services, stable demand
             Sector::MedicalServices => 0.01,
             // 100 bps — educational services, stable demand

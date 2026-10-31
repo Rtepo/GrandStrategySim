@@ -3828,7 +3828,7 @@ mod tests {
             status: ArbitrationStatus::InCourt,
             ..Default::default()
         };
-        let outcome = resolve_arbitration_case(&mut case, &config, &mut rng);
+        let outcome = resolve_arbitration_case(&mut case, &config, &mut rng, f64::MAX);
         assert_eq!(
             outcome,
             ArbitrationStatus::RuledForPlaintiff,
@@ -3851,7 +3851,7 @@ mod tests {
             status: ArbitrationStatus::InCourt,
             ..Default::default()
         };
-        let outcome = resolve_arbitration_case(&mut case, &config, &mut rng);
+        let outcome = resolve_arbitration_case(&mut case, &config, &mut rng, f64::MAX);
         assert!(
             outcome == ArbitrationStatus::Dismissed || outcome == ArbitrationStatus::Settled,
             "Strong state should dismiss or settle"
@@ -3871,7 +3871,7 @@ mod tests {
         court.total_compensation_owed = 500_000.0;
 
         let mut treasury = 300_000.0;
-        let paid = pay_arbitration_compensation(&mut court, &mut treasury);
+        let paid = pay_arbitration_compensation(&mut court, &mut treasury, f64::MAX);
         assert!(
             (paid - 300_000.0).abs() < 0.01,
             "Should pay available amount"

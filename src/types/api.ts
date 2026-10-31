@@ -1311,6 +1311,50 @@ export type CourtIntrigueRow = { vip_id: string, name: string,
 kind: string, description: string, severity: number, };
 
 /**
+ * v4.25.0 WS7: one foreign covert operation in the Intelligence &
+ * Espionage sub-tab — spy ring per target country with progress and
+ * outcome.
+ */
+export type CovertOperationRow = { 
+/**
+ * Operation ID (`OP-000042`).
+ */
+id: string, 
+/**
+ * Host country the ring operates against.
+ */
+target_country: string, 
+/**
+ * Mission label ("Military Recon" | "Industrial Espionage" |
+ * "Political Subversion").
+ */
+mission_type: string, 
+/**
+ * Operatives currently assigned (live posted spies on the target).
+ */
+ring_size: number, 
+/**
+ * Mission progress (0.0–1.0).
+ */
+progress: number, 
+/**
+ * Lifecycle status label.
+ */
+status: string, 
+/**
+ * Latest outcome note (empty while running cleanly).
+ */
+outcome: string, 
+/**
+ * Turn the operation was launched.
+ */
+launched_turn: number, 
+/**
+ * Turn the operation resolved (None while active).
+ */
+resolved_turn: number | null, };
+
+/**
  * Building defect summary.
  */
 export type DefectRow = { building_id: string, region_id: string, condition: number, structural_defect: number, };
@@ -2088,6 +2132,53 @@ tradition: number, };
 export type InfrastructureRow = { link_id: string, condition: number, capacity: number, };
 
 /**
+ * v4.25.0 WS7: per-country intelligence agency panel — budget allocation,
+ * operatives, counter-intelligence record, and foreign covert operations.
+ */
+export type IntelligenceAgencyRow = { 
+/**
+ * Total active field operatives (posted `DiplomaticPostType::Spy`
+ * VIPs, live and not expelled).
+ */
+active_spies: number, 
+/**
+ * Non-spy diplomatic staff posted abroad.
+ */
+diplomats_posted: number, 
+/**
+ * Intelligence budget pool remaining this turn.
+ */
+budget_allocated: number, 
+/**
+ * Fiat actually spent sustaining operations this turn.
+ */
+budget_spent_this_turn: number, 
+/**
+ * Agency efficiency (0.0–1.0): funding adequacy + HQ capacity.
+ */
+efficiency: number, 
+/**
+ * Domestic counter-intelligence posture (0.0–1.0).
+ */
+security_level: number, 
+/**
+ * Foreign spies captured on home soil (cumulative).
+ */
+spies_captured: number, 
+/**
+ * Hostile covert operations foiled on home soil (cumulative).
+ */
+plots_foiled: number, 
+/**
+ * Foreign covert operations (active + resolved history).
+ */
+operations: Array<CovertOperationRow>, 
+/**
+ * Bounded recent agency event log (captures, compromises, successes).
+ */
+recent_events: Array<string>, };
+
+/**
  * Phase 81: Interconnector flow information.
  */
 export type InterconnectorFlowInfo = { 
@@ -2308,6 +2399,69 @@ export type MapEdgeDto = { from_region: string, to_region: string,
 edge_type: string, };
 
 /**
+ * A decorative map feature (inland lake or mountain range) — pure
+ * presentation geometry derived from the same deterministic layout.
+ */
+export type MapFeatureDto = { 
+/**
+ * `lake` | `mountain`.
+ */
+kind: string, 
+/**
+ * `lake`: closed polygon vertices. `mountain`: ridge polyline points.
+ */
+points: Array<MapPoint>, };
+
+/**
+ * One parcel cell on a region's cadastral map.
+ */
+export type MapParcelDto = { 
+/**
+ * Slotmap key of the `ParcelChunk` (unique within the country).
+ */
+id: string, 
+/**
+ * Ordered quad vertices (cadastral-map units, y-down for SVG).
+ */
+polygon: Array<MapPoint>, 
+/**
+ * `unplanned` | `agricultural` | `industrial` | `residential` |
+ * `commercial` | `mixed` | `protected_natural` | `strategic_military`.
+ */
+zoning: string, 
+/**
+ * Render class — zoning overlaid with land-use signals:
+ * `devastated` (devastation ≥ 0.3), `resource_mines` (industrial zoning
+ * in an extraction region), or the zoning key itself.
+ */
+use_class: string, 
+/**
+ * `state` | `private` | `corporate` | `municipal` | `cooperative` |
+ * `religious` | `foreign_fund`.
+ */
+owner_type: string, 
+/**
+ * Raw owner entity id (`TREASURY`, `JST:<region>`, company/VIP id).
+ */
+owner_id: string, size_hectares: number, 
+/**
+ * Cadastre devastation index, 0.0 pristine – 1.0 total ruin.
+ */
+devastation: number, 
+/**
+ * Legal certainty (0 = unsurveyed, 1 = fully surveyed).
+ */
+legal_certainty: number, 
+/**
+ * Infrastructure access score (0 = no road/utilities, 1 = full).
+ */
+infrastructure_access: number, is_frozen: boolean, is_border_zone: boolean, 
+/**
+ * Phase 61.4 endowment tag (`forest_district`, `PrivateEstate`, …).
+ */
+land_use_tag: string, };
+
+/**
  * A single 2D point in world-map space (procedural units, not lat/lon).
  */
 export type MapPoint = { x: number, y: number, };
@@ -2386,9 +2540,19 @@ active_battle: boolean,
  */
 on_front: boolean, 
 /**
- * Land-border neighbour region ids (engine edge graph).
+ * Land-border neighbour region ids (engine edge graph + synthesized
+ * geometric cross-country borders).
  */
-neighbors: Array<string>, };
+neighbors: Array<string>, 
+/**
+ * v4.25.0 WS1: Index into the country's `megaregions` list (-1 when the
+ * region belongs to no megaregion). Drives the Megaregions map mode.
+ */
+megaregion_index: bigint, 
+/**
+ * v4.25.0 WS1: Megaregion display name (empty when unassigned).
+ */
+megaregion_name: string, };
 
 /**
  * Phase 56: Market index snapshot for the stock exchange UI.
@@ -2488,7 +2652,17 @@ internal_conflicts: Array<CoupPlotRow>,
  * v4.24.0 WS4.3: resolved plots across all countries ("Coup Crushed",
  * "Monarch Abdicated", "Junta Installed", ...).
  */
-coup_resolutions: Array<CoupResolutionRow>, };
+coup_resolutions: Array<CoupResolutionRow>, 
+/**
+ * v4.25.0 WS2: at least one country's OOB reports a Land/Navy/Air
+ * branch manpower split (expandable branch breakdown present).
+ */
+oob_has_branch_breakdown: boolean, 
+/**
+ * v4.25.0 WS2: at least one region row in the OOB carries real
+ * division/unit counts (per-region force disposition present).
+ */
+oob_regions_have_divisions: boolean, };
 
 /**
  * A minister row for the Government tab.
@@ -3324,6 +3498,19 @@ grid_condition: number, };
  * Phase 54: A region option for the Companies tab region filter dropdown.
  */
 export type RegionOption = { value: string, label: string, };
+
+/**
+ * A region's cadastral parcel layout for the Regions-page drill-down map.
+ */
+export type RegionParcelMapDto = { country: string, region_id: string, 
+/**
+ * Display name (`display_name` with `id` fallback).
+ */
+region_name: string, 
+/**
+ * `[min_x, min_y, max_x, max_y]` of the parcel grid.
+ */
+bounds: Array<number>, parcels: Array<MapParcelDto>, };
 
 /**
  * Phase 34: A region row for the Regions tab.
@@ -4386,7 +4573,22 @@ bounds: Array<number>, countries: Array<CountryMapDto>,
 /**
  * Land-border adjacency edges across the whole world.
  */
-edges: Array<MapEdgeDto>, };
+edges: Array<MapEdgeDto>, 
+/**
+ * v4.25.0 WS1: Decorative features (inland lakes, mountain ranges).
+ */
+features: Array<MapFeatureDto>, 
+/**
+ * v4.25.0 WS1 release gate: number of deduplicated `land_border` edges
+ * whose endpoints belong to DIFFERENT countries — the shared
+ * international borders migration/freight routing can cross.
+ */
+shared_land_borders_count: number, 
+/**
+ * v4.25.0 WS1 release gate: smallest region-polygon vertex count in the
+ * snapshot (fractal subdivision guarantees ≥16).
+ */
+min_region_polygon_vertices: number, };
 
 /**
  * Phase 60: Zoning plan row (public data).

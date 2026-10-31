@@ -320,6 +320,39 @@ mod tests {
             let ls_share = if total_wages > 0.0 { ls_wages / total_wages } else { 0.0 };
             let construction = per.get(&Sector::Construction).map(|a| a.fte).unwrap_or(0);
             let waste = per.get(&Sector::WasteManagement).map(|a| a.fte).unwrap_or(0);
+            // Diagnostic decomposition: which constraint binds construction
+            // employment — project-driven demand, payroll pacing, or seats.
+            {
+                let ents = &ctx.entities[cname];
+                let (mut dem, mut cap, mut cash) = (0u64, 0u64, 0.0f64);
+                let (mut committed, mut recv, mut credit, mut ncos) =
+                    (0.0f64, 0.0f64, 0.0f64, 0usize);
+                let mut projects = 0usize;
+                for c in &ents.companies {
+                    if c.sector != Sector::Construction { continue; }
+                    ncos += 1;
+                    dem += c.target_fte_demand as u64;
+                    cap += c.worker_capacity as u64;
+                    cash += c.available_cash.max(0.0);
+                    credit += c.procurement_credit.max(0.0);
+                    committed += c
+                        .extra
+                        .get("committed_demand_fte")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0);
+                    recv += c
+                        .extra
+                        .get("contract_receivables")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0);
+                }
+                for b in &ents.buildings {
+                    if b.active_project.is_some() { projects += 1; }
+                }
+                eprintln!(
+                    "SECTOR_DBG[{cname}]: constr_fte={construction} demand={dem} committed={committed:.0} recv={recv:.0} credit={credit:.0} seats={cap} co_cash={cash:.0} ncos={ncos} active_projects={projects} waste_fte={waste}"
+                );
+            }
             assert!(
                 ls_share < 0.45,
                 "{cname}: LocalServices wage share {ls_share:.2} >= 0.45"
@@ -359,6 +392,33 @@ mod tests {
             .max_by_key(|(_, m)| m.values().map(|a| a.fte).sum::<u32>())
             .map(|(cname, _)| cname.clone())
             .expect("no countries");
+        {
+            let c = &state.countries[&major];
+            let mut spy_n = 0u32;
+            if let Some(reg) = &c.politics.vip_registry {
+                for v in reg.vips.values() {
+                    if v.is_dead {
+                        continue;
+                    }
+                    if let Some(p) = &v.diplomatic_post {
+                        if p.post_type
+                            == sim_engine::politics::vip_registry::DiplomaticPostType::Spy
+                        {
+                            spy_n += 1;
+                        }
+                    }
+                }
+            }
+            eprintln!(
+                "INTEL_DBG[{major}]: gdp={:.0} reserves={:.0} intel_budget={:.0} spy_vips={} pending={} ops={}",
+                c.budget.gdp,
+                c.budget.liquid_reserves,
+                c.intelligence_budget.current_budget,
+                spy_n,
+                state.pending_diplomatic_actions.len(),
+                state.intelligence_agencies.get(&major).map(|a| a.operations.len()).unwrap_or(0)
+            );
+        }
         let diplo = sim_engine::ui::snapshot::build_diplomacy_snapshot(
             &state,
             &major,

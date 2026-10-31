@@ -174,14 +174,20 @@ pub const MOBILIZATION_ESCROW_RATIO: f64 = 0.30;
 /// builds, so a crew's wages must be covered ~4 turns at a time, not one
 /// turn. Shared by the bid payroll reserve, the labor-demand capacity cap,
 /// and the bonding gate so all three agree on what "affordable" means.
-pub const MILESTONE_SPACING_TURNS: f64 = 4.0;
+// v4.25.0 WS5: milestone certification cycle shortened 4.0→2.5 turns —
+// tighter progress-payment cadence is what scales the funded construction
+// workforce toward investment-share employment levels.
+pub const MILESTONE_SPACING_TURNS: f64 = 2.5;
 
 /// v4.17 FS-7: bonding headroom beyond payroll capacity, in FTE. Surety
 /// practice lets a contractor carry backlog beyond liquid working capital
 /// — each project's mobilization advance partly funds its own crew — so a
 /// company is not shut out of its next contract just because its current
 /// backlog is at payroll capacity. Sized at ~1.5 small sites.
-pub const MOBILIZATION_HEADROOM_FTE: f64 = 300.0;
+// v4.25.0 WS5: headroom raised 300→5000 — a contractor chartered for a
+// national works program mobilizes before its crew exists; at 300 a
+// thin-market sector (1–2 firms) could never bond a single real project.
+pub const MOBILIZATION_HEADROOM_FTE: f64 = 5000.0;
 
 /// v4.17 FS-7: surety backlog cap relative to the crew the contractor has
 /// actually fielded. The cash-based term alone is circular — every award
@@ -194,7 +200,10 @@ pub const MOBILIZATION_HEADROOM_FTE: f64 = 300.0;
 /// crew by hiring several multiples of its entire workforce inside one
 /// build schedule. Furloughed workers count — they are a recallable bench,
 /// not capacity the firm never had.
-pub const BACKLOG_CREW_MULTIPLE: f64 = 3.0;
+// v4.25.0 WS5: surety cap raised 3→5 — a multi-year public-works market
+// lets established contractors crew up through staggered awards; at 3× the
+// national construction sector stalled below its investment share.
+pub const BACKLOG_CREW_MULTIPLE: f64 = 5.0;
 
 /// v4.17 FS-7: payroll-funded bonding capacity (FTE) for a contractor —
 /// cash on hand plus half the contract receivables (the 50% haircut the

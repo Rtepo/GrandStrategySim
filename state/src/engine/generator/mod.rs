@@ -359,8 +359,12 @@ pub fn generate_world(
     // interleave and at least one front is live through the horizon.
     // Pair set mirrors `wire_international_land_borders` exactly:
     // hub↔every ring member + consecutive ring members (sorted order ==
-    // `continent_layout` placement order).
-    {
+    // `continent_layout` placement order). Scoped to the 1900 crucible —
+    // the Age of Steam's irredentist brinksmanship is the scenario that
+    // produced all-friendly draws and zero wars; later eras keep fully
+    // organic diplomacy (a 1950 world seeded with t3 wars starves fund
+    // deployment and other economic tests of a peacetime ramp).
+    if options.start_year == StartYear::Y1900 {
         let mut sorted_sel: Vec<String> = selected.clone();
         sorted_sel.sort();
         let mut pairs: Vec<(String, String)> = Vec::new();
@@ -393,6 +397,15 @@ pub fn generate_world(
                 },
             );
         }
+        // v4.25.0 WS2: shorten the post-war recidivism window for this
+        // world. The default 24-turn armistice synchronized every seeded
+        // pair into identical declare→fight→cooldown cycles, leaving
+        // turns (e.g. ~114–120) where NO front was live. An 8-turn
+        // breathing spell matches the era's tempo of repeated border
+        // wars and keeps escalation cycles interleaved.
+        state
+            .war_declaration_config
+            .war_recidivism_cooldown_turns = 8;
     }
 
     // Phase 68: Spawn the World Forum — neutral, all countries as members, Unanimity voting.
@@ -1822,15 +1835,19 @@ fn build_treasury(
     let heavy_industry_share = rng.gen_range(0.05..0.25) * industry_mult;
     let light_industry_share = rng.gen_range(0.1..0.3) * industry_mult;
     // v4.25.0 WS5: narrow the LocalServices draw — at 0.2–0.4×mult the
-    // sector claimed >60% of national payrolls; 0.15–0.28 leaves room for
+    // sector claimed >60% of national payrolls; 0.11–0.22 leaves room for
     // construction, waste, and industry to hold real labor share.
-    let local_services_share = rng.gen_range(0.15..0.28) * services_mult;
+    let local_services_share = rng.gen_range(0.11..0.22) * services_mult;
     let export_services_share = if gdp_pc > 2.0 {
         rng.gen_range(0.05..0.3) * services_mult
     } else {
         rng.gen_range(0.01..0.05)
     };
-    let construction_share = rng.gen_range(0.05..0.15);
+    // v4.25.0 WS5: construction is ~16% of GDP-side investment — the old
+    // 5–15% draw under-provisioned seats so the sector plateaued near
+    // ~10k FTE whatever the tender pipeline sent. 15–25% of share-weight
+    // gives the workforce room the mandate's >3%-of-workforce needs.
+    let construction_share = rng.gen_range(0.15..0.25);
     let energy_share = rng.gen_range(0.05..0.12);
     let healthcare_services_share = rng.gen_range(0.04..0.10) * services_mult;
     let education_services_share = rng.gen_range(0.03..0.08) * services_mult;

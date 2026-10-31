@@ -45,13 +45,13 @@ impl Default for StateTenderConfig {
             // tenders capped construction at ~2k FTE. Scale the pipeline
             // with the contractor base so crews grow toward the mandate's
             // >3%-of-workforce employment share.
-            max_tenders_per_construction_company: 2.0,
-            max_concurrent_tenders_absolute: 40,
+            max_tenders_per_construction_company: 8.0,
+            max_concurrent_tenders_absolute: 220,
             // v4.25.0 WS5: larger state works (120-seat facilities, not
             // 50-seat sheds) — BOM value, not headcount, drives crew size,
             // and bigger projects sustain >25k construction FTE over their
             // multi-turn schedules.
-            target_capacity_increase: 120,
+            target_capacity_increase: 200,
             bidding_window_turns: 2,
         }
     }
@@ -793,9 +793,15 @@ pub fn publish_state_tenders(
     // the caller counts live `Sector::Construction` companies (the old
     // probe read `phase22_tenders`, which the turn loop mem::take's before
     // this runs, so it always saw 0 and capped the state at one tender).
-    let max_tenders = (tender_config.max_tenders_per_construction_company
+    // v4.25.0 WS5: a thin company base must not throttle a whole nation's
+    // capital program — the public-works pipeline scales with the
+    // country's administrative footprint (6 live works per region), with
+    // the per-company term as a floor for company-rich markets.
+    let scale_floor = (country.regions.len() * 10).max(20);
+    let max_tenders = ((tender_config.max_tenders_per_construction_company
         * construction_company_count as f64)
-        .round() as usize;
+        .round() as usize)
+        .max(scale_floor);
     let max_tenders = max_tenders
         .min(tender_config.max_concurrent_tenders_absolute)
         .max(1);
@@ -868,7 +874,11 @@ pub fn publish_state_tenders(
             continue;
         }
         let per_cap_cost = mat_at_ref / tender_config.target_capacity_increase.max(1) as f64;
-        let budget_capacity = ministry.ministry_cash / 0.3;
+        // v4.25.0 WS5: scope each work to ~9 periods of the ministry's
+        // allocation (was ~7) — real capital programs run multi-period
+        // commitments, and larger BOMs sustain the national construction
+        // workforce the sector rebalance requires.
+        let budget_capacity = ministry.ministry_cash / 0.11;
         let capacity_eff = (budget_capacity / (per_cap_cost * 1.35))
             .min(tender_config.target_capacity_increase as f64)
             .floor() as u32;

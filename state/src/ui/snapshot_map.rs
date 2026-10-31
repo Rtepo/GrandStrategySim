@@ -1225,15 +1225,15 @@ pub fn build_region_parcel_map(
 
     // Jittered lattice shared between neighbouring cells — no gaps/overlaps.
     let mut lattice = vec![vec![(0.0_f64, 0.0_f64); cols + 1]; rows + 1];
-    for r in 0..=rows {
-        for c in 0..=cols {
+    for (r, row) in lattice.iter_mut().enumerate() {
+        for (c, cell) in row.iter_mut().enumerate() {
             let on_rim = r == 0 || c == 0 || r == rows || c == cols;
             let amp = if on_rim { 0.08 } else { 0.30 } * cell_w.min(cell_h);
             let jx =
                 (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 3) - 0.5) * 2.0 * amp;
             let jy =
                 (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 4) - 0.5) * 2.0 * amp;
-            lattice[r][c] = (c as f64 * cell_w + jx, r as f64 * cell_h + jy);
+            *cell = (c as f64 * cell_w + jx, r as f64 * cell_h + jy);
         }
     }
 

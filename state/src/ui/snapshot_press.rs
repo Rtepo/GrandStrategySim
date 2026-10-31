@@ -961,7 +961,7 @@ fn strip_krs_tokens(s: &str) -> String {
     }
     for pat in ["( )", "[ ]", " .", " ,", " ;"] {
         while out.contains(pat) {
-            out = out.replace(pat, if pat.starts_with(' ') { &pat[1..] } else { "" });
+            out = out.replace(pat, pat.strip_prefix(' ').unwrap_or(""));
         }
     }
     while out.contains("  ") {

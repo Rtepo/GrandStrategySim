@@ -4479,7 +4479,7 @@ pub fn wire_international_land_borders(regions: &mut HashMap<String, Region>) {
             .push(region.id.clone());
     }
     for ids in land_by_country.values_mut() {
-        ids.sort_by(|a, b| map_region_sort_key(a).cmp(&map_region_sort_key(b)));
+        ids.sort_by_key(|a| map_region_sort_key(a));
     }
 
     let countries: Vec<(String, usize)> = land_by_country
