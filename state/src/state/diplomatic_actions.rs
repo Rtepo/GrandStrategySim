@@ -263,13 +263,24 @@ pub fn drain_diplomatic_actions(
                     continue; // Cap reached — cannot post another diplomat of this type
                 }
 
-                // Check sufficient funds for diplomat assignment cost
+                // Check sufficient funds for diplomat assignment cost.
+                // v4.25.0 WS7: covert postings are funded from the
+                // intelligence budget first (the agency pays its own
+                // operatives), falling back to treasury reserves — a
+                // war-drained treasury must not zero out the spy service
+                // while the intelligence purse still holds appropriations.
                 let home = state.countries.get_mut(&home_country);
                 if let Some(home) = home {
-                    if home.budget.liquid_reserves < diplomatic_config.diplomat_assignment_cost {
+                    let cost = diplomatic_config.diplomat_assignment_cost;
+                    if post_type == DiplomaticPostType::Spy
+                        && home.intelligence_budget.current_budget >= cost
+                    {
+                        home.intelligence_budget.current_budget -= cost;
+                    } else if home.budget.liquid_reserves >= cost {
+                        home.budget.liquid_reserves -= cost;
+                    } else {
                         continue; // Insufficient funds — cannot post diplomat
                     }
-                    home.budget.liquid_reserves -= diplomatic_config.diplomat_assignment_cost;
 
                     // Assign the diplomatic post to the VIP
                     if let Some(registry) = &mut home.politics.vip_registry {

@@ -408,6 +408,10 @@ pub fn resolve_multi_domain_battle(
             captured_by_attacker: 0,
             captured_by_defender: 0,
             phases: Vec::new(),
+            attacker_forces: Vec::new(),
+            defender_forces: Vec::new(),
+            attacker_commanders: Vec::new(),
+            defender_commanders: Vec::new(),
         }
     } else {
         // No land units on either side — stalemate
@@ -435,6 +439,10 @@ pub fn resolve_multi_domain_battle(
             captured_by_attacker: 0,
             captured_by_defender: 0,
             phases: Vec::new(),
+            attacker_forces: Vec::new(),
+            defender_forces: Vec::new(),
+            attacker_commanders: Vec::new(),
+            defender_commanders: Vec::new(),
         }
     };
 

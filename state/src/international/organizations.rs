@@ -206,6 +206,20 @@ pub struct Directive {
     /// to Enacted (all pre-existing directives were live).
     #[serde(default = "default_directive_status")]
     pub status: String,
+    /// v4.25.0 WS7: per-member compliance record — each member starts
+    /// "Pending" inside the compliance window; `enforce_directives` marks
+    /// holdouts "Fined — non-compliance" and For-voters "Compliant —
+    /// ratified" (the roll call is the ratification record).
+    #[serde(default)]
+    pub member_compliance: std::collections::BTreeMap<String, String>,
+    /// v4.25.0 WS7: assembly debate log — tabling, roll-call summary, and
+    /// the outcome with its statutory terms.
+    #[serde(default)]
+    pub debate_log: Vec<String>,
+    /// v4.25.0 WS7: turn enforcement ran (fines issued / compliance
+    /// confirmed). None while still inside the compliance window.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enforcement_turn: Option<u32>,
 }
 
 fn default_directive_status() -> String {
@@ -501,12 +515,51 @@ impl OrganizationRegistry {
             }
             let total = votes.len() as u32;
             let passed = org.vote_passes(yes, total);
+            // v4.25.0 WS7: the tabling member is the largest delegation
+            // (seat count); ties break by sorted member order — the same
+            // canonical order the ballots were drawn in.
+            let proposer = members
+                .iter()
+                .max_by_key(|m| {
+                    org.parliament.seats.get(*m).copied().unwrap_or(0)
+                })
+                .cloned()
+                .unwrap_or_else(|| members[0].clone());
+            let deadline = current_turn + config.default_compliance_deadline_turns;
+            let against = votes.values().filter(|v| v.as_str() == "Against").count();
+            let abstain = votes.values().filter(|v| v.as_str() == "Abstain").count();
+            let mechanism = org.voting_mechanism.as_str();
+            let mut debate_log = vec![
+                format!(
+                    "T{current_turn}: '{theme}' tabled by {proposer}; {total} members voting under {mechanism}"
+                ),
+                format!(
+                    "Roll call — {yes} For · {against} Against · {abstain} Abstain"
+                ),
+            ];
+            let mut member_compliance = std::collections::BTreeMap::new();
+            if passed {
+                debate_log.push(format!(
+                    "Enacted — compliance deadline T{deadline}; non-compliance fine {:.0}",
+                    config.default_noncompliance_fine
+                ));
+                for m in &members {
+                    member_compliance
+                        .insert(m.clone(), "Pending — within compliance window".to_string());
+                }
+            } else {
+                debate_log.push(format!(
+                    "Rejected — motion failed under {mechanism} voting"
+                ));
+                for m in &members {
+                    member_compliance.insert(m.clone(), "Not enacted".to_string());
+                }
+            }
             org.directives.push(Directive {
                 id: format!("RES-{}-{:04}", org.id, org.directives.len() + 1),
                 title: theme.to_string(),
                 mandate_type: MandateType::UnfundedMandate,
-                compliance_deadline: current_turn
-                    + config.default_compliance_deadline_turns,
+                compliance_deadline: deadline,
                 fine_for_noncompliance: config.default_noncompliance_fine,
                 target_law: None,
                 enacted_turn: current_turn,
@@ -516,22 +569,49 @@ impl OrganizationRegistry {
                 } else {
                     "Rejected".to_string()
                 },
+                member_compliance,
+                debate_log,
+                enforcement_turn: None,
             });
         }
     }
 
     /// Enforces directives — checks compliance and applies fines.
     /// Fines are returned as (country, amount) pairs for sequential double-entry processing.
-    pub fn enforce_directives(&self, current_turn: u32) -> Vec<(String, f64, String)> {
+    ///
+    /// v4.25.0 WS7: per-member compliance is now recorded on the
+    /// directive (`member_compliance`, `enforcement_turn`). Members that
+    /// voted For are deemed compliant — the roll call doubles as the
+    /// ratification record; holdouts (Against/Abstain, and legacy
+    /// directives with no recorded vote) are fined. Enforcement runs once
+    /// per directive, the first turn past the compliance deadline.
+    pub fn enforce_directives(&mut self, current_turn: u32) -> Vec<(String, f64, String)> {
         let mut fines = Vec::new();
-        for org in &self.organizations {
-            for directive in &org.directives {
-                if directive.status != "Rejected"
-                    && current_turn > directive.compliance_deadline
+        for org in &mut self.organizations {
+            for directive in &mut org.directives {
+                if directive.status == "Rejected"
+                    || current_turn <= directive.compliance_deadline
+                    || directive.enforcement_turn.is_some()
                 {
-                    // Non-compliant — fine each member that hasn't complied
-                    // (Simplified: all members are checked; in full impl, we'd check law enactment)
-                    for member in &org.member_states {
+                    continue;
+                }
+                directive.enforcement_turn = Some(current_turn);
+                for member in &org.member_states {
+                    let ratified = directive
+                        .votes
+                        .get(member)
+                        .map(|v| v == "For")
+                        .unwrap_or(false);
+                    if ratified {
+                        directive.member_compliance.insert(
+                            member.clone(),
+                            "Compliant — ratified".to_string(),
+                        );
+                    } else {
+                        directive.member_compliance.insert(
+                            member.clone(),
+                            format!("Fined T{current_turn} — non-compliance"),
+                        );
                         fines.push((
                             member.clone(),
                             directive.fine_for_noncompliance,
@@ -748,6 +828,9 @@ mod tests {
             enacted_turn: 1,
             votes: std::collections::BTreeMap::new(),
             status: "Passed".to_string(),
+            member_compliance: std::collections::BTreeMap::new(),
+            debate_log: Vec::new(),
+            enforcement_turn: None,
         });
         registry.organizations.push(org);
 
@@ -777,6 +860,9 @@ mod tests {
             enacted_turn: 1,
             votes: std::collections::BTreeMap::new(),
             status: "Passed".to_string(),
+            member_compliance: std::collections::BTreeMap::new(),
+            debate_log: Vec::new(),
+            enforcement_turn: None,
         };
         let json = serde_json::to_string(&directive).unwrap();
         let deserialized: Directive = serde_json::from_str(&json).unwrap();

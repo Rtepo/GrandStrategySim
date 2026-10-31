@@ -1,6 +1,6 @@
 [package]
 name = "sim_engine"
-version = "4.24.0"
+version = "4.25.0"
 edition = "2021"
 description = "Rust migration of the Grand Strategy simulation engine (Target 0: static registries & core math)."
 license = "MIT"
@@ -105,6 +105,16 @@ required-features = ["epic-tests"]
 [[test]]
 name = "v4240_release_gate_test"
 path = "tests/epics/v4240_release_gate_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "v4250_release_gate_test"
+path = "tests/epics/v4250_release_gate_test.rs"
+required-features = ["epic-tests"]
+
+[[test]]
+name = "v4240_wealth_diag_test"
+path = "tests/epics/v4240_wealth_diag_test.rs"
 required-features = ["epic-tests"]
 
 [[test]]

@@ -1752,6 +1752,101 @@ pub fn submit_fund_orders(
         }
         let total_candidate_cap: f64 = ranked.iter().map(|c| c.market_cap).sum();
 
+        // ── v4.24 WS1: Primary subscription — market-clearing deployment ──
+        // Secondary bids can only fill against OFFERED float, and MBS /
+        // covered-bond asks are likewise supply-bound: unfilled bids expire,
+        // release their pledges, and the same cash is re-bid next turn —
+        // the ~90% idle-cash deadlock the release gate measures.
+        //
+        // The mandate's non-cash floor (`aum · (1 - cash_buffer)`) is
+        // therefore met by subscribing NEWLY-ISSUED shares at the mark —
+        // the IPO queue's own closed loop: real fund cash → issuer
+        // `liquid_capital`, real shares → the fund's brokerage book, real
+        // dilution on the issuer's cap table. No synthetic money: the
+        // issuer gains genuine investable capital and the subscriber takes
+        // genuine equity risk at the prevailing mark. Equity may exceed
+        // `target_equity` here — that is the mandate's fixed-income sleeve
+        // falling back to listed equity when fixed-income supply is absent;
+        // the rebalance floor (sleeve_floor) does not churn it back.
+        //
+        // v4.25.0: the sleeve runs BEFORE secondary bids pledge cash.
+        // Previously it read `acct.cash` after the bid loop had frozen the
+        // whole deployable budget into `frozen_cash` pledges — a fund whose
+        // bids couldn't fill cycled freeze→expire→refreeze and could never
+        // reach this channel (observed: ~half of all funds parked 60–90% of
+        // AUM in cash while bids churned unfilled). Institutional
+        // subscribers fill guaranteed primary allocations first, then sweep
+        // the secondary book with what remains.
+        let mut primary_deployed = 0.0;
+        {
+            let cash_floor =
+                aum * cash_buffer.max(modifiers.cash_reserve_preference.min(1.0));
+            let free_cash = fund
+                .brokerage_account
+                .as_ref()
+                .map(|b| b.cash)
+                .unwrap_or(0.0);
+            let mut deployable = free_cash - cash_floor;
+            if deployable > 0.0 {
+                for cand in &ranked {
+                    if deployable <= 0.0 {
+                        break;
+                    }
+                    if cand.id == fund_id || !fund_ids.contains(&cand.id) {
+                        continue;
+                    }
+                    let mark = cand.share_price;
+                    if mark <= 0.0 {
+                        continue;
+                    }
+                    // The mandate's single-name concentration cap binds the
+                    // primary sleeve exactly as it binds secondary buys.
+                    let position_cap_value =
+                        aum * position_cap_pct.min(modifiers.max_position_pct);
+                    let held_qty: u64 = fund
+                        .brokerage_account
+                        .as_ref()
+                        .map(|a| a.get_quantity(&cand.instrument_id))
+                        .unwrap_or(0);
+                    let name_room = (position_cap_value - held_qty as f64 * mark).max(0.0);
+                    if name_room <= 0.0 {
+                        continue;
+                    }
+                    // Issuer-level turn cap: at most
+                    // PRIMARY_ISSUE_MAX_SHARE_PCT of outstanding shares may
+                    // be newly minted per turn across all subscribers.
+                    let issuer_turn_cap = ((cand.shares_count as f64
+                        * PRIMARY_ISSUE_MAX_SHARE_PCT)
+                        as u64)
+                        .max(1);
+                    let issued_so_far =
+                        primary_issued_shares.get(&cand.id).copied().unwrap_or(0);
+                    let issuer_room = issuer_turn_cap.saturating_sub(issued_so_far);
+                    if issuer_room == 0 {
+                        continue;
+                    }
+                    let qty = ((deployable.min(name_room) / mark) as u64).min(issuer_room);
+                    if qty == 0 {
+                        continue;
+                    }
+                    let cost = qty as f64 * mark;
+                    if let Some(ref mut acct) = fund.brokerage_account {
+                        if acct.cash >= cost {
+                            acct.cash -= cost;
+                            acct.add_lot(&cand.instrument_id, qty, mark, current_turn);
+                            deployable -= cost;
+                            primary_deployed += cost;
+                            primary_issued_shares.insert(cand.id.clone(), issued_so_far + qty);
+                            primary_subs.push((cand.id.clone(), qty, mark));
+                        }
+                    }
+                }
+            }
+        }
+        // Primary fills are equity too — the secondary deficit shrinks by
+        // whatever the sleeve already absorbed this turn.
+        remaining_budget = (remaining_budget - primary_deployed).max(0.0);
+
         let total_buy_budget = remaining_budget;
         let mut _bids_placed = 0u32;
         for cand in &ranked {
@@ -2176,86 +2271,6 @@ pub fn submit_fund_orders(
             }
         }
 
-        // ── v4.24 WS1: Primary subscription — market-clearing deployment ──
-        // Secondary bids can only fill against OFFERED float, and MBS /
-        // covered-bond asks are likewise supply-bound: unfilled bids expire,
-        // release their pledges, and the same cash is re-bid next turn —
-        // the ~90% idle-cash deadlock the release gate measures.
-        //
-        // The mandate's non-cash floor (`aum · (1 - cash_buffer)`) is
-        // therefore met by subscribing NEWLY-ISSUED shares at the mark —
-        // the IPO queue's own closed loop: real fund cash → issuer
-        // `liquid_capital`, real shares → the fund's brokerage book, real
-        // dilution on the issuer's cap table. No synthetic money: the
-        // issuer gains genuine investable capital and the subscriber takes
-        // genuine equity risk at the prevailing mark. Equity may exceed
-        // `target_equity` here — that is the mandate's fixed-income sleeve
-        // falling back to listed equity when fixed-income supply is absent;
-        // the rebalance floor (sleeve_floor) does not churn it back.
-        {
-            let cash_floor =
-                aum * cash_buffer.max(modifiers.cash_reserve_preference.min(1.0));
-            let free_cash = fund
-                .brokerage_account
-                .as_ref()
-                .map(|b| b.cash)
-                .unwrap_or(0.0);
-            let mut deployable = free_cash - cash_floor;
-            if deployable > 0.0 {
-                for cand in &ranked {
-                    if deployable <= 0.0 {
-                        break;
-                    }
-                    if cand.id == fund_id || !fund_ids.contains(&cand.id) {
-                        continue;
-                    }
-                    let mark = cand.share_price;
-                    if mark <= 0.0 {
-                        continue;
-                    }
-                    // The mandate's single-name concentration cap binds the
-                    // primary sleeve exactly as it binds secondary buys.
-                    let position_cap_value =
-                        aum * position_cap_pct.min(modifiers.max_position_pct);
-                    let held_qty: u64 = fund
-                        .brokerage_account
-                        .as_ref()
-                        .map(|a| a.get_quantity(&cand.instrument_id))
-                        .unwrap_or(0);
-                    let name_room = (position_cap_value - held_qty as f64 * mark).max(0.0);
-                    if name_room <= 0.0 {
-                        continue;
-                    }
-                    // Issuer-level turn cap: at most
-                    // PRIMARY_ISSUE_MAX_SHARE_PCT of outstanding shares may
-                    // be newly minted per turn across all subscribers.
-                    let issuer_turn_cap = ((cand.shares_count as f64
-                        * PRIMARY_ISSUE_MAX_SHARE_PCT)
-                        as u64)
-                        .max(1);
-                    let issued_so_far =
-                        primary_issued_shares.get(&cand.id).copied().unwrap_or(0);
-                    let issuer_room = issuer_turn_cap.saturating_sub(issued_so_far);
-                    if issuer_room == 0 {
-                        continue;
-                    }
-                    let qty = ((deployable.min(name_room) / mark) as u64).min(issuer_room);
-                    if qty == 0 {
-                        continue;
-                    }
-                    let cost = qty as f64 * mark;
-                    if let Some(ref mut acct) = fund.brokerage_account {
-                        if acct.cash >= cost {
-                            acct.cash -= cost;
-                            acct.add_lot(&cand.instrument_id, qty, mark, current_turn);
-                            deployable -= cost;
-                            primary_issued_shares.insert(cand.id.clone(), issued_so_far + qty);
-                            primary_subs.push((cand.id.clone(), qty, mark));
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // Apply the issuer side of this turn's primary subscriptions: real

@@ -407,7 +407,7 @@ fn test_premature_abrogation_crashes_reputation() {
     registry.treaties.push(treaty);
 
     // Abrogate at turn 10 (well before expiration at 105)
-    let abrogated = registry.abrogate_treaty("TREATY-000001");
+    let abrogated = registry.abrogate_treaty("TREATY-000001", "A", 10);
     assert!(abrogated.is_some(), "Treaty should be abrogated");
     assert_eq!(registry.treaties[0].status, TreatyStatus::Abrogated);
 
@@ -826,7 +826,7 @@ fn test_treaty_abrogate_transition() {
     ));
     registry.sign_treaty("TREATY-000001", 5, &config);
 
-    let abrogated = registry.abrogate_treaty("TREATY-000001");
+    let abrogated = registry.abrogate_treaty("TREATY-000001", "A", 6);
     assert!(abrogated.is_some());
     assert_eq!(registry.treaties[0].status, TreatyStatus::Abrogated);
 }

@@ -510,6 +510,7 @@ pub fn execute_agrarian_reform(
                 original_acquisition_value: parcel.acquisition_price,
                 compensation_claimed: compensation,
                 filed_turn: current_turn,
+                resolved_turn: 0,
                 status: ArbitrationStatus::Pending,
                 state_strength_assessment: 0.5, // Will be assessed during processing
             };
@@ -902,6 +903,7 @@ pub fn file_vindication_claim(
         original_acquisition_value: acquisition_price,
         compensation_claimed: acquisition_price,
         filed_turn: current_turn,
+        resolved_turn: 0,
         status: ArbitrationStatus::Pending,
         state_strength_assessment: 0.5,
     };
@@ -1033,6 +1035,7 @@ pub fn process_immissions(
                     original_acquisition_value: acquisition_price,
                     compensation_claimed: damage,
                     filed_turn: current_turn,
+                    resolved_turn: 0,
                     status: ArbitrationStatus::Pending,
                     state_strength_assessment: 0.5,
                 };

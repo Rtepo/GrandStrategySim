@@ -58,7 +58,8 @@ pub struct DiplomaticPostCap {
     pub ambassador: usize,
     /// Maximum consuls per host country (2 — consular representation).
     pub consul: usize,
-    /// Maximum spies per host country (3 — higher risk justifies more).
+    /// Maximum spies per host country (8 — a resident ring, not a lone
+    /// asset; major services run multi-operative networks per target).
     pub spy: usize,
     /// Maximum military attachés per host country (1 — single defense liaison).
     pub military_attache: usize,
@@ -69,7 +70,7 @@ impl Default for DiplomaticPostCap {
         Self {
             ambassador: 1,
             consul: 2,
-            spy: 3,
+            spy: 8,
             military_attache: 1,
         }
     }
@@ -418,6 +419,7 @@ pub fn staff_diplomatic_posts(
             post_counts,
             covered_hosts,
             affordable,
+            spy_affordable,
             cultural_group,
             used_names,
             population,
@@ -439,10 +441,15 @@ pub fn staff_diplomatic_posts(
                     }
                     if let Some(p) = &v.diplomatic_post {
                         *counts.entry(p.post_type.clone()).or_insert(0) += 1;
-                        covered
-                            .entry(p.post_type.clone())
-                            .or_default()
-                            .insert(p.host_country.clone());
+                        // v4.25.0 WS7: coverage must only suppress hosts
+                        // queued THIS turn — seeding it from live posts
+                        // meant a host with any existing spy could never
+                        // receive another, hard-capping every country's
+                        // operative count at the number of foreign hosts
+                        // (observed: exactly 3 spies per country in a
+                        // 4-country world). Per-host ring size stays
+                        // bounded by `DiplomaticPostCap` in
+                        // `pick_staffing_host`.
                     }
                 }
             }
@@ -458,6 +465,12 @@ pub fn staff_diplomatic_posts(
                 } else {
                     foreign_count * 4
                 },
+                if cost > 0.0 {
+                    (home.intelligence_budget.current_budget.max(0.0) / cost)
+                        .floor() as usize
+                } else {
+                    foreign_count * 4
+                },
                 home.macro_indicators.cultural_group.clone(),
                 names,
                 population,
@@ -469,22 +482,37 @@ pub fn staff_diplomatic_posts(
         // population decade past 1M (10M→1, 100M→2, 1B→3). gdp_tier: +1 post
         // per 250B GDP. Both targets clamp to the number of foreign hosts.
         let pop_tier = ((population.max(1) as f64).log10() - 6.0).max(0.0) as usize;
-        let gdp_tier = (gdp.max(0.0) / 250_000_000_000.0) as usize;
-        // v4.23 WS5b / v4.24.0 WS5: corps size by power tier —
-        //   * major powers (pop_tier + gdp_tier ≥ 4): full corps ~30
-        //     (21 envoys + 9 spies),
-        //   * medium powers (tier ≥ 2): regional corps ~12
-        //     (8 envoys + 4 spies),
+        // v4.25.0 WS7: GDP tier rescaled to the 1900 numéraire — national
+        // GDPs run ~$2–50B here, not $250B+, so the old divisor flattened
+        // every country to tier 0 and no "major power" classification (or
+        // its scaled intelligence service) could ever trigger. A ~$15B
+        // economy with a ~10M population is a major power at this scale.
+        let gdp_tier = (gdp.max(0.0) / 3_000_000_000.0) as usize;
+        // v4.23 WS5b / v4.24.0 WS5 / v4.25.0 WS7: corps size by power tier —
+        //   * major powers (pop_tier + gdp_tier ≥ 4): full corps with a
+        //     scaled intelligence service — 15–40 operatives distributed as
+        //     multi-agent rings across hosts (cap 8/ring),
+        //   * medium powers (tier ≥ 2): regional corps ~16
+        //     (8 envoys + 8 operatives),
         //   * minor powers: the lean bilateral corps from v4.22.
-        // The old binary floor left mediums at ~4 staff — well under the
-        // 12–30 band medium/major states warrant.
+        // The old binary floor left mediums at ~4 staff and majors at ~9
+        // total operatives — well under the 15–40 band a major power's
+        // intelligence service fields.
         let tier = pop_tier + gdp_tier;
         let is_major = tier >= 4;
         let is_medium = !is_major && tier >= 2;
         let (target_envoys, target_spies) = if is_major {
-            (21usize.min(foreign_count * 2), 9usize.min(foreign_count))
+            (
+                21usize.min(foreign_count * 2),
+                (15 + (tier - 4) * 3)
+                    .min(40)
+                    .min(foreign_count * 8),
+            )
         } else if is_medium {
-            (8usize.min(foreign_count * 2), 4usize.min(foreign_count))
+            (
+                8usize.min(foreign_count * 2),
+                8usize.min(foreign_count * 8),
+            )
         } else {
             (
                 (1 + tier).min(foreign_count),
@@ -544,10 +572,20 @@ pub fn staff_diplomatic_posts(
         let mut used_names = used_names;
         let mut covered_hosts = covered_hosts;
         let mut slots = affordable;
+        // v4.25.0 WS7: operative recruitment draws on the intelligence
+        // budget, not the diplomatic-corps purse — a war-drained treasury
+        // was leaving zero slots for spies after envoys recruited first
+        // (observed: major power with 3 active operatives).
+        let mut spy_slots = spy_affordable;
 
         for (post_type, have, target) in staffing_plan {
+            let is_spy = post_type == DiplomaticPostType::Spy;
             for _ in have..target {
-                if slots == 0 {
+                if is_spy {
+                    if spy_slots == 0 {
+                        break;
+                    }
+                } else if slots == 0 {
                     break;
                 }
                 // Per-type coverage: an ambassador on host X doesn't block a
@@ -621,7 +659,11 @@ pub fn staff_diplomatic_posts(
                 // Mark covered so the next slot spreads to a new host (for
                 // this post type), and reserve the funds the drain will move.
                 covered_for_type.insert(host_name);
-                slots = slots.saturating_sub(1);
+                if is_spy {
+                    spy_slots = spy_slots.saturating_sub(1);
+                } else {
+                    slots = slots.saturating_sub(1);
+                }
             }
         }
     }

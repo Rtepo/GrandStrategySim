@@ -838,6 +838,9 @@ pub struct Company {
     pub pe_ratio: f64,
     /// Phase 55: Dividend yield (annualized dividends / market cap).
     /// Computed each turn from aggregated_stats.total_dividends.
+    /// v4.25 WS4: clamped to the realistic annual band `[0.0, 0.25]` —
+    /// `total_dividends` is a lifetime sum and the unclamped ratio drifted
+    /// far past 100% on mature companies.
     #[serde(default)]
     pub dividend_yield: f64,
     /// Phase 55: Opening share price for the current turn (first trade price).

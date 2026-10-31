@@ -2434,7 +2434,13 @@ pub fn process_company(
         }
         let market_cap = company.share_price * company.shares_count as f64;
         if market_cap > 0.0 {
-            company.dividend_yield = company.aggregated_stats.total_dividends / market_cap;
+            // v4.25 WS4: `total_dividends` is a LIFETIME sum, so the raw
+            // ratio drifts far past 1.0 with age (printed as absurd
+            // ~1184% "yields" in the Financial Press). Clamp to a sane
+            // annual-yield band — fund screening only tests
+            // `> min_yield` (≈2%), so the cap is decision-neutral.
+            company.dividend_yield =
+                (company.aggregated_stats.total_dividends / market_cap).clamp(0.0, 0.25);
         } else {
             company.dividend_yield = 0.0;
         }

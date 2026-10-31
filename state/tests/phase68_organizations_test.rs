@@ -138,6 +138,9 @@ fn test_directive_enforcement_applies_fines() {
         enacted_turn: 1,
         votes: std::collections::BTreeMap::new(),
         status: "Passed".to_string(),
+        member_compliance: std::collections::BTreeMap::new(),
+        debate_log: Vec::new(),
+        enforcement_turn: None,
     });
     registry.organizations.push(org);
 
@@ -167,6 +170,9 @@ fn test_directive_fine_double_entry() {
         enacted_turn: 1,
         votes: std::collections::BTreeMap::new(),
         status: "Passed".to_string(),
+        member_compliance: std::collections::BTreeMap::new(),
+        debate_log: Vec::new(),
+        enforcement_turn: None,
     });
     state.international_organizations.organizations.push(org);
 
@@ -659,6 +665,9 @@ fn test_directive_serialization() {
         enacted_turn: 5,
         votes: std::collections::BTreeMap::new(),
         status: "Passed".to_string(),
+        member_compliance: std::collections::BTreeMap::new(),
+        debate_log: Vec::new(),
+        enforcement_turn: None,
     };
     let json = serde_json::to_string(&directive).unwrap();
     let deserialized: Directive = serde_json::from_str(&json).unwrap();

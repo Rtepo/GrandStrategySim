@@ -938,6 +938,47 @@ pub struct ArbitrationConfig {
     pub base_filing_probability: f64,
     /// Turn delay between case filing and first hearing
     pub hearing_delay_turns: u32,
+    /// Statutory cap on a single court award, as a share of national GDP.
+    /// Punitive damages are bounded by the sovereign's ability to pay —
+    /// uncapped awards on hedonic parcel valuations produced arbitration
+    /// exposure orders of magnitude larger than the entire economy.
+    #[serde(default = "default_award_gdp_share_cap")]
+    pub award_gdp_share_cap: f64,
+    /// Turns after which an unpaid plaintiff judgment starts to be written
+    /// down (sovereign-workout / negotiated settlement of stale judgments).
+    #[serde(default = "default_liability_limitation_turns")]
+    pub liability_limitation_turns: u32,
+    /// Per-turn write-down rate applied to stale unpaid judgments past the
+    /// limitation window. Bounds `total_compensation_owed` to serviceable
+    /// levels instead of accumulating unpayable claims forever.
+    #[serde(default = "default_stale_claim_writeoff_rate")]
+    pub stale_claim_writeoff_rate: f64,
+    /// Maximum share of liquid treasury reserves payable to arbitration
+    /// judgments in a single turn (installment discipline — judgments are
+    /// serviced, not allowed to zero the budget overnight).
+    #[serde(default = "default_max_treasury_payout_share")]
+    pub max_treasury_payout_share: f64,
+    /// Court-processing floor (case-steps per turn) for regions with no
+    /// governance/budget and for cases that cannot be mapped to a region.
+    /// Courts are chronically slow, never perfectly frozen.
+    #[serde(default = "default_fallback_court_capacity")]
+    pub fallback_court_capacity: f64,
+}
+
+fn default_award_gdp_share_cap() -> f64 {
+    0.02
+}
+fn default_liability_limitation_turns() -> u32 {
+    36
+}
+fn default_stale_claim_writeoff_rate() -> f64 {
+    0.1
+}
+fn default_max_treasury_payout_share() -> f64 {
+    0.15
+}
+fn default_fallback_court_capacity() -> f64 {
+    1.0
 }
 
 impl Default for ArbitrationConfig {
@@ -950,6 +991,11 @@ impl Default for ArbitrationConfig {
             strong_state_threshold: 0.7,
             base_filing_probability: 0.8,
             hearing_delay_turns: 6,
+            award_gdp_share_cap: default_award_gdp_share_cap(),
+            liability_limitation_turns: default_liability_limitation_turns(),
+            stale_claim_writeoff_rate: default_stale_claim_writeoff_rate(),
+            max_treasury_payout_share: default_max_treasury_payout_share(),
+            fallback_court_capacity: default_fallback_court_capacity(),
         }
     }
 }
@@ -2291,6 +2337,10 @@ pub struct ArbitrationCase {
     pub compensation_claimed: f64,
     /// Turn the case was filed
     pub filed_turn: u32,
+    /// Turn the case reached a terminal status (0 = still in flight).
+    /// Drives real average-clear-time reporting for regional courts.
+    #[serde(default)]
+    pub resolved_turn: u32,
     /// Case status
     pub status: ArbitrationStatus,
     /// Risk multiplier based on state institutional strength (0.0 = weak, 1.0 = strong)
@@ -2369,6 +2419,117 @@ impl ArbitrationCourt {
             .map(|c| c.compensation_claimed)
             .sum()
     }
+
+    /// Whether an in-flight case (Pending/InMediation/InCourt) already
+    /// exists for a parcel — used to deduplicate repeat lawsuits over the
+    /// same grievance (e.g., chronic immission pollution).
+    pub fn has_inflight_case_for_parcel(&self, parcel_idx: u32) -> bool {
+        self.cases.values().any(|c| {
+            c.expropriated_parcel_indices.contains(&parcel_idx)
+                && matches!(
+                    c.status,
+                    ArbitrationStatus::Pending
+                        | ArbitrationStatus::InMediation
+                        | ArbitrationStatus::InCourt
+                )
+        })
+    }
+
+    /// Number of in-flight cases whose disputed parcel sits in `region_id`.
+    ///
+    /// `parcel_regions` maps `parcel_id_to_index` → `region_id` and is
+    /// built once per query by [`parcel_region_index_map`].
+    pub fn inflight_count_for_region(
+        &self,
+        parcel_regions: &BTreeMap<u32, String>,
+        region_id: &str,
+    ) -> u32 {
+        self.cases
+            .values()
+            .filter(|c| {
+                matches!(
+                    c.status,
+                    ArbitrationStatus::Pending
+                        | ArbitrationStatus::InMediation
+                        | ArbitrationStatus::InCourt
+                ) && case_region(c, parcel_regions) == Some(region_id)
+            })
+            .count() as u32
+    }
+
+    /// Mean real clear time (`resolved_turn - filed_turn`) over cases
+    /// resolved in `region_id`. `None` when nothing has resolved there yet.
+    pub fn avg_resolution_turns_for_region(
+        &self,
+        parcel_regions: &BTreeMap<u32, String>,
+        region_id: &str,
+    ) -> Option<f64> {
+        let mut sum = 0.0;
+        let mut n = 0u32;
+        for c in self.cases.values() {
+            if c.resolved_turn == 0 || case_region(c, parcel_regions) != Some(region_id) {
+                continue;
+            }
+            sum += c.resolved_turn.saturating_sub(c.filed_turn) as f64;
+            n += 1;
+        }
+        if n > 0 {
+            Some(sum / n as f64)
+        } else {
+            None
+        }
+    }
+
+    /// Mean age of in-flight cases in `region_id` — a real measured queue
+    /// wait so far, used before any case has resolved.
+    pub fn avg_inflight_age_for_region(
+        &self,
+        parcel_regions: &BTreeMap<u32, String>,
+        region_id: &str,
+        current_turn: u32,
+    ) -> Option<f64> {
+        let mut sum = 0.0;
+        let mut n = 0u32;
+        for c in self.cases.values() {
+            if !matches!(
+                c.status,
+                ArbitrationStatus::Pending
+                    | ArbitrationStatus::InMediation
+                    | ArbitrationStatus::InCourt
+            ) || case_region(c, parcel_regions) != Some(region_id) {
+                continue;
+            }
+            sum += current_turn.saturating_sub(c.filed_turn) as f64;
+            n += 1;
+        }
+        if n > 0 {
+            Some(sum / n as f64)
+        } else {
+            None
+        }
+    }
+}
+
+/// Map a case to the region hosting its first disputed parcel.
+pub fn case_region<'a>(
+    case: &ArbitrationCase,
+    parcel_regions: &'a BTreeMap<u32, String>,
+) -> Option<&'a str> {
+    case.expropriated_parcel_indices
+        .first()
+        .and_then(|idx| parcel_regions.get(idx))
+        .map(|s| s.as_str())
+}
+
+/// Build `parcel index (slotmap ffi) → region_id` for a whole cadastre.
+/// `ArbitrationCase::expropriated_parcel_indices` stores the same indices
+/// produced by [`parcel_id_to_index`].
+pub fn parcel_region_index_map(cadastre: &Cadastre) -> BTreeMap<u32, String> {
+    cadastre
+        .parcels
+        .iter()
+        .map(|(id, p)| (parcel_id_to_index(id), p.region_id.clone()))
+        .collect()
 }
 
 /// Assess state institutional strength for arbitration outcomes.
@@ -2429,8 +2590,13 @@ pub fn resolve_arbitration_case(
     case: &mut ArbitrationCase,
     config: &ArbitrationConfig,
     rng: &mut impl Rng,
+    award_cap: f64,
 ) -> ArbitrationStatus {
     let strength = case.state_strength_assessment;
+    // Statutory damages cap — awards are bounded by the sovereign's
+    // ability to pay (a GDP share), so a single judgment cannot exceed
+    // what a real court would enforce against a state.
+    let cap = award_cap.max(0.0);
 
     let outcome = if strength < config.weak_state_threshold {
         // Weak state → plaintiff wins with punitive damages
@@ -2438,7 +2604,8 @@ pub fn resolve_arbitration_case(
         let multiplier = config.punitive_damages_multiplier_min
             + (config.punitive_damages_multiplier_max - config.punitive_damages_multiplier_min)
                 * lerp_factor;
-        case.compensation_claimed = case.original_acquisition_value * multiplier;
+        case.compensation_claimed =
+            (case.original_acquisition_value * multiplier).min(cap);
         ArbitrationStatus::RuledForPlaintiff
     } else if strength > config.strong_state_threshold {
         // Strong state → likely dismissed, or settled at discount
@@ -2447,7 +2614,7 @@ pub fn resolve_arbitration_case(
             ArbitrationStatus::Dismissed
         } else {
             case.compensation_claimed =
-                case.original_acquisition_value * config.settlement_discount_rate;
+                (case.original_acquisition_value * config.settlement_discount_rate).min(cap);
             ArbitrationStatus::Settled
         }
     } else {
@@ -2464,11 +2631,12 @@ pub fn resolve_arbitration_case(
             let lerp_factor = 1.0 - strength;
             let multiplier = config.punitive_damages_multiplier_min * lerp_factor
                 + config.settlement_discount_rate * (1.0 - lerp_factor);
-            case.compensation_claimed = case.original_acquisition_value * multiplier;
+            case.compensation_claimed =
+                (case.original_acquisition_value * multiplier).min(cap);
             ArbitrationStatus::RuledForPlaintiff
         } else if roll < plaintiff_win_prob + 0.2 {
             case.compensation_claimed =
-                case.original_acquisition_value * config.settlement_discount_rate;
+                (case.original_acquisition_value * config.settlement_discount_rate).min(cap);
             ArbitrationStatus::Settled
         } else {
             ArbitrationStatus::Dismissed
@@ -2481,41 +2649,137 @@ pub fn resolve_arbitration_case(
 
 /// Process all pending arbitration cases for a country.
 ///
-/// Advances cases through the pipeline and resolves those that have waited
-/// long enough for a hearing.
+/// Advances cases through the pipeline **bounded by regional court
+/// capacity**: each region's courts can advance at most
+/// `capacity_by_region[region]` case-steps per turn (the same staffing
+/// model that drives border-conflict resolution — regional budget,
+/// `JusticeLaw`, and court wait-time). Cases are grouped by the region of
+/// their disputed parcel and processed oldest-first, so underfunded
+/// regions accumulate visible backlogs while well-funded ones drain.
+///
+/// `state_strength` is the country's current institutional-strength
+/// assessment — it is applied to every case reaching a hearing (the
+/// `state_strength_assessment` recorded at filing is only a placeholder).
+///
+/// `award_cap` bounds a single judgment (caller passes GDP ×
+/// `config.award_gdp_share_cap`).
+///
+/// Cases that cannot be mapped to a region are processed with
+/// `config.fallback_court_capacity` so they can never freeze forever.
 pub fn process_arbitration_cases(
     court: &mut ArbitrationCourt,
+    cadastre: &Cadastre,
     config: &ArbitrationConfig,
     current_turn: u32,
+    capacity_by_region: &BTreeMap<String, f64>,
+    state_strength: f64,
+    award_cap: f64,
     rng: &mut impl Rng,
 ) {
-    let case_ids: Vec<String> = court.cases.keys().cloned().collect();
+    // Group in-flight case IDs by the region of their disputed parcel.
+    let parcel_regions = parcel_region_index_map(cadastre);
+    let mut region_cases: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut orphan_cases: Vec<String> = Vec::new();
+    for case in court.cases.values() {
+        if !matches!(
+            case.status,
+            ArbitrationStatus::Pending
+                | ArbitrationStatus::InMediation
+                | ArbitrationStatus::InCourt
+        ) {
+            continue;
+        }
+        match case_region(case, &parcel_regions) {
+            Some(rid) => region_cases
+                .entry(rid.to_string())
+                .or_default()
+                .push(case.case_id.clone()),
+            None => orphan_cases.push(case.case_id.clone()),
+        }
+    }
+    region_cases
+        .entry(String::new())
+        .or_default()
+        .extend(orphan_cases);
+    if !region_cases.contains_key("") {
+        region_cases.insert(String::new(), Vec::new());
+    }
 
-    for case_id in case_ids {
-        let case = court.cases.get_mut(&case_id).unwrap();
+    // Fallback capacity for unmapped cases: floor configured capacity.
+    let fallback_capacity = config.fallback_court_capacity.max(0.0);
 
-        match case.status {
-            ArbitrationStatus::Pending => {
-                // Advance to InMediation after hearing delay
-                let turns_since_filing = current_turn - case.filed_turn;
-                if turns_since_filing >= config.hearing_delay_turns {
-                    case.status = ArbitrationStatus::InMediation;
+    // Process each region's queue oldest-first within its staffing limit.
+    for (region_id, mut case_ids) in region_cases {
+        let mut remaining = if region_id.is_empty() {
+            fallback_capacity
+        } else {
+            capacity_by_region
+                .get(&region_id)
+                .copied()
+                .unwrap_or(fallback_capacity)
+                .max(0.0)
+        };
+        case_ids.sort_by(|a, b| {
+            let (fa, fb) = (
+                court.cases.get(a).map(|c| c.filed_turn).unwrap_or(0),
+                court.cases.get(b).map(|c| c.filed_turn).unwrap_or(0),
+            );
+            fa.cmp(&fb).then_with(|| a.cmp(b))
+        });
+
+        for case_id in case_ids {
+            if remaining <= 0.0 {
+                break;
+            }
+            let case = court.cases.get_mut(&case_id).unwrap();
+            match case.status {
+                ArbitrationStatus::Pending => {
+                    // Waiting for a hearing slot — consumes no court work
+                    // until the statutory delay elapses.
+                    let turns_since_filing = current_turn.saturating_sub(case.filed_turn);
+                    if turns_since_filing >= config.hearing_delay_turns {
+                        case.status = ArbitrationStatus::InMediation;
+                        remaining -= 1.0;
+                    }
                 }
-            }
-            ArbitrationStatus::InMediation => {
-                // After another delay, go to court
-                case.status = ArbitrationStatus::InCourt;
-            }
-            ArbitrationStatus::InCourt => {
-                // Resolve the case
-                let outcome = resolve_arbitration_case(case, config, rng);
-                if outcome == ArbitrationStatus::RuledForPlaintiff
-                    || outcome == ArbitrationStatus::Settled
-                {
-                    court.total_compensation_owed += case.compensation_claimed;
+                ArbitrationStatus::InMediation => {
+                    case.status = ArbitrationStatus::InCourt;
+                    remaining -= 1.0;
                 }
+                ArbitrationStatus::InCourt => {
+                    // Hearing: refresh the institutional-strength assessment
+                    // to the country's *current* state, then rule.
+                    case.state_strength_assessment = state_strength;
+                    let outcome = resolve_arbitration_case(case, config, rng, award_cap);
+                    case.resolved_turn = current_turn;
+                    remaining -= 1.0;
+                    if outcome == ArbitrationStatus::RuledForPlaintiff
+                        || outcome == ArbitrationStatus::Settled
+                    {
+                        court.total_compensation_owed += case.compensation_claimed;
+                    }
+                }
+                _ => {} // Already resolved
             }
-            _ => {} // Already resolved
+        }
+    }
+
+    // Sovereign workout: unpaid plaintiff judgments older than the
+    // limitation window are written down progressively — creditors settle
+    // at a discount rather than wait indefinitely. This keeps
+    // `total_compensation_owed`/`unresolved_liabilities` bounded by what
+    // the state can actually service.
+    for case in court.cases.values_mut() {
+        if case.status == ArbitrationStatus::RuledForPlaintiff
+            && case.resolved_turn > 0
+            && current_turn.saturating_sub(case.resolved_turn)
+                >= config.liability_limitation_turns
+            && case.compensation_claimed > 0.0
+        {
+            let writeoff = case.compensation_claimed * config.stale_claim_writeoff_rate;
+            case.compensation_claimed -= writeoff;
+            court.total_compensation_owed =
+                (court.total_compensation_owed - writeoff).max(0.0);
         }
     }
 }
@@ -2525,20 +2789,33 @@ pub fn process_arbitration_cases(
 /// This is a **delayed fiscal liability** — it accrues and must be paid
 /// when ruled. Multiple lost cases can trigger a sovereign fiscal crisis.
 ///
+/// `max_payout` caps the total paid this turn (installment discipline —
+/// judgments are serviced from a bounded share of liquid reserves rather
+/// than draining the budget to zero in one turn).
+///
 /// # Returns
 /// Total amount paid.
-pub fn pay_arbitration_compensation(court: &mut ArbitrationCourt, treasury: &mut f64) -> f64 {
+pub fn pay_arbitration_compensation(
+    court: &mut ArbitrationCourt,
+    treasury: &mut f64,
+    max_payout: f64,
+) -> f64 {
     let mut total_paid = 0.0;
+    let mut remaining_budget = max_payout.max(0.0).min(*treasury);
     let case_ids: Vec<String> = court.cases.keys().cloned().collect();
 
     for case_id in case_ids {
+        if remaining_budget <= 0.0 {
+            break;
+        }
         let case = court.cases.get_mut(&case_id).unwrap();
         if (case.status == ArbitrationStatus::RuledForPlaintiff
             || case.status == ArbitrationStatus::Settled)
             && case.compensation_claimed > 0.0
         {
-            let payment = case.compensation_claimed.min(*treasury);
+            let payment = case.compensation_claimed.min(remaining_budget);
             *treasury -= payment;
+            remaining_budget -= payment;
             case.compensation_claimed -= payment;
             total_paid += payment;
             court.total_compensation_paid += payment;
@@ -3551,7 +3828,7 @@ mod tests {
             status: ArbitrationStatus::InCourt,
             ..Default::default()
         };
-        let outcome = resolve_arbitration_case(&mut case, &config, &mut rng);
+        let outcome = resolve_arbitration_case(&mut case, &config, &mut rng, f64::MAX);
         assert_eq!(
             outcome,
             ArbitrationStatus::RuledForPlaintiff,
@@ -3574,7 +3851,7 @@ mod tests {
             status: ArbitrationStatus::InCourt,
             ..Default::default()
         };
-        let outcome = resolve_arbitration_case(&mut case, &config, &mut rng);
+        let outcome = resolve_arbitration_case(&mut case, &config, &mut rng, f64::MAX);
         assert!(
             outcome == ArbitrationStatus::Dismissed || outcome == ArbitrationStatus::Settled,
             "Strong state should dismiss or settle"
@@ -3594,7 +3871,7 @@ mod tests {
         court.total_compensation_owed = 500_000.0;
 
         let mut treasury = 300_000.0;
-        let paid = pay_arbitration_compensation(&mut court, &mut treasury);
+        let paid = pay_arbitration_compensation(&mut court, &mut treasury, f64::MAX);
         assert!(
             (paid - 300_000.0).abs() < 0.01,
             "Should pay available amount"

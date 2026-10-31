@@ -183,6 +183,13 @@ pub fn generate_world(
     let mut rng = crate::engine::seeded_rng::thread_rng();
     let mut state = GameState::new();
 
+    // v4.25.0 WS3: the gold market must exist from turn 0 — seed the
+    // canonical 1900 spot price and a mild inflation drift so
+    // `update_gold_price` has a real anchor (was left at default 0.0,
+    // which made every gold valuation read 0.00 forever).
+    state.gold_exchange.gold_price_in_ieu = crate::state::gold::GOLD_PRICE_IEU_1900;
+    state.gold_exchange.global_inflation_rate = 0.005;
+
     // World Generation & Climate Audit (v0.5.3): Populate the climate-season
     // matrix with biologically sensible multipliers for all 7 climate profiles
     // × 4 seasons. Without this, the matrix is empty and agricultural yields
@@ -262,6 +269,17 @@ pub fn generate_world(
             .unwrap_or_else(|| "Banking".to_string());
         let _ = company_store.save_sector(name, &banking_sector_name, None, &bank_companies);
 
+        // v4.25.0 WS3: mirror the seeded bullion into the global vault
+        // registry (execute_cb_trade treats vaults as the physical truth
+        // and syncs physical_gold_reserves back from them), and stock the
+        // GOLD_POOL with ~2x the world's CB holdings as tradable supply.
+        {
+            let cb_id = country.central_bank.id.clone();
+            let cb_gold = country.central_bank.physical_gold_reserves;
+            state.vaults.insert(cb_id, cb_gold);
+            *state.vaults.entry("GOLD_POOL".to_string()).or_insert(0.0) += cb_gold * 2.0;
+        }
+
         state.countries.insert(name.clone(), country);
         state.currencies.insert(currency.prefix.clone(), currency);
         regions.extend(country_regions);
@@ -329,7 +347,66 @@ pub fn generate_world(
             });
     }
 
-    let diplomacy = generate_diplomacy(&selected);
+    let mut diplomacy = generate_diplomacy(&selected);
+
+    // v4.25.0 WS2: irredentist border disputes. Countries now share a
+    // continent (WS1 wiring) — a frictionless world where every pair drew
+    // friendly relations never produces the wars the military depth gate
+    // requires. Every border-adjacent pair inherits a standing territorial
+    // dispute: relations pinned hostile (frozen — armistice-line
+    // semantics, so drift cannot thaw the rivalry between wars), and a
+    // tension head-start staggered by pair index so escalation cycles
+    // interleave and at least one front is live through the horizon.
+    // Pair set mirrors `wire_international_land_borders` exactly:
+    // hub↔every ring member + consecutive ring members (sorted order ==
+    // `continent_layout` placement order). Scoped to the 1900 crucible —
+    // the Age of Steam's irredentist brinksmanship is the scenario that
+    // produced all-friendly draws and zero wars; later eras keep fully
+    // organic diplomacy (a 1950 world seeded with t3 wars starves fund
+    // deployment and other economic tests of a peacetime ramp).
+    if options.start_year == StartYear::Y1900 {
+        let mut sorted_sel: Vec<String> = selected.clone();
+        sorted_sel.sort();
+        let mut pairs: Vec<(String, String)> = Vec::new();
+        for k in 1..sorted_sel.len() {
+            pairs.push((sorted_sel[0].clone(), sorted_sel[k].clone()));
+        }
+        for i in 1..sorted_sel.len().saturating_sub(1) {
+            pairs.push((sorted_sel[i].clone(), sorted_sel[i + 1].clone()));
+        }
+        for (idx, (a, b)) in pairs.iter().enumerate() {
+            if let Some(m) = diplomacy.get_mut(a) {
+                if let Some(rel) = m.get_mut(b) {
+                    rel.relations = -95;
+                    rel.frozen_turns = 240;
+                }
+            }
+            if let Some(m) = diplomacy.get_mut(b) {
+                if let Some(rel) = m.get_mut(a) {
+                    rel.relations = -95;
+                    rel.frozen_turns = 240;
+                }
+            }
+            let head_start = 20.0 + (idx as f64 % 3.0) * 15.0;
+            state.bilateral_tensions.insert(
+                crate::military::war_declarations::tension_key(a, b),
+                crate::military::war_declarations::BilateralTension {
+                    level: head_start,
+                    total_ever_accumulated: head_start,
+                    provocation_count: 1,
+                },
+            );
+        }
+        // v4.25.0 WS2: shorten the post-war recidivism window for this
+        // world. The default 24-turn armistice synchronized every seeded
+        // pair into identical declare→fight→cooldown cycles, leaving
+        // turns (e.g. ~114–120) where NO front was live. An 8-turn
+        // breathing spell matches the era's tempo of repeated border
+        // wars and keeps escalation cycles interleaved.
+        state
+            .war_declaration_config
+            .war_recidivism_cooldown_turns = 8;
+    }
 
     // Phase 68: Spawn the World Forum — neutral, all countries as members, Unanimity voting.
     let world_forum =
@@ -479,6 +556,123 @@ pub fn generate_world(
             options.start_year as u32,
             &mut rng,
         );
+    }
+
+    // v4.25.0 WS1: Wire international LandBorder edges between neighbouring
+    // countries on the shared continents (deterministic `continent_layout`
+    // anchors — the map snapshot builds its Voronoi country cells from the
+    // same anchors, so engine edges and rendered borders always agree).
+    // Hash-driven, no RNG draws — downstream generation is unaffected.
+    crate::society::geography::wire_international_land_borders(&mut regions);
+
+    // v4.25.0 WS1b: maritime wiring — each country's outermost rim regions
+    // that face open water (no international LandBorder edge) become
+    // coastal: a shared SeaNode + OceanNode are generated per country and
+    // reciprocal Coastline edges are added on the LAND side so
+    // `geographic_traits.has_coastline` (derived from a region's own
+    // edges) is true and freight/navies can route region→sea→region.
+    {
+        use crate::society::geography::{EdgeType, NodeType};
+        // Owner lookup for border detection — needed before mutation.
+        let owner_of: HashMap<String, String> = regions
+            .iter()
+            .map(|(id, r)| (id.clone(), r.owner_country.clone()))
+            .collect();
+        let mut land_by_country: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for region in regions.values() {
+            if region.node_type != NodeType::LandRegion
+                || region.owner_country.is_empty()
+            {
+                continue;
+            }
+            land_by_country
+                .entry(region.owner_country.clone())
+                .or_default()
+                .push(region.id.clone());
+        }
+        for ids in land_by_country.values_mut() {
+            ids.sort();
+        }
+        let mut maritime_to_add: Vec<(String, crate::society::geography::Region)> =
+            Vec::new();
+        for (cname, ids) in &land_by_country {
+            // Outermost rim regions without an international land border
+            // are the coast; a fully landlocked hub still gets one bay.
+            let mut coastal: Vec<String> = ids
+                .iter()
+                .rev()
+                .filter(|rid| {
+                    regions
+                        .get(*rid)
+                        .map(|r| {
+                            !r.edges.iter().any(|e| {
+                                e.edge_type == EdgeType::LandBorder
+                                    && owner_of
+                                        .get(&e.target_node)
+                                        .map(|o| o != cname)
+                                        .unwrap_or(false)
+                            })
+                        })
+                        .unwrap_or(false)
+                })
+                .take(2)
+                .cloned()
+                .collect();
+            if coastal.is_empty() {
+                if let Some(outer) = ids.last() {
+                    coastal.push(outer.clone());
+                }
+            }
+            if coastal.is_empty() {
+                continue;
+            }
+            let sea_id = format!("{cname}-Morze1");
+            let nodes = crate::society::geography::generate_maritime_nodes(
+                cname, &coastal,
+            );
+            for rid in &coastal {
+                if let Some(r) = regions.get_mut(rid) {
+                    if !r.edges.iter().any(|e| {
+                        e.target_node == sea_id && e.edge_type == EdgeType::Coastline
+                    }) {
+                        r.edges.push(crate::society::geography::Edge {
+                            target_node: sea_id.clone(),
+                            edge_type: EdgeType::Coastline,
+                            distance: 50.0,
+                            is_navigable: true,
+                            territorial_owner: Some(cname.clone()),
+                        });
+                    }
+                    r.geographic_traits.has_coastline = true;
+                }
+            }
+            maritime_to_add.extend(nodes);
+        }
+        regions.extend(maritime_to_add);
+    }
+
+    // v4.25.0 WS2: standing OOBs are generated AFTER maritime wiring so
+    // `geographic_traits.has_coastline` is true on coastal regions and
+    // `has_coast` admits naval branches (Phase 70 logic, deferred). Only
+    // LandRegion nodes feed the OOB — sea/ocean nodes would otherwise
+    // displace real home regions in the sorted `home_regions` pick.
+    for name in &selected {
+        let country_regions: HashMap<String, Region> = regions
+            .iter()
+            .filter(|(_, r)| {
+                r.owner_country == *name
+                    && r.node_type == crate::society::geography::NodeType::LandRegion
+            })
+            .map(|(id, r)| (id.clone(), r.clone()))
+            .collect();
+        if let Some(country) = state.countries.get_mut(name) {
+            country.order_of_battle = spawn_standing_oob(
+                country,
+                &country_regions,
+                options.start_year.as_year(),
+                &mut rng,
+            );
+        }
     }
 
     save_game_state(data_dir, &state)?;
@@ -1022,9 +1216,11 @@ fn generate_country(
         }
     }
 
-    // Phase 70: Generate the Order of Battle natively (no flat list, no shim).
-    country.order_of_battle =
-        spawn_standing_oob(&country, &country_regions, start_year.as_year(), rng);
+    // Phase 70: OOB generation is DEFERRED to the post-assembly maritime
+    // pass (v4.25.0 WS2) — coastline flags are only known once maritime
+    // nodes are wired, and `has_coast` gates naval branch creation. The
+    // standing OOB is attached there with identical draw order.
+    country.order_of_battle = crate::military::oob::OrderOfBattle::default();
     #[cfg(feature = "diagnostic")]
     eprintln!(
         "CS: {} oob draws={}",
@@ -1638,13 +1834,20 @@ fn build_treasury(
     };
     let heavy_industry_share = rng.gen_range(0.05..0.25) * industry_mult;
     let light_industry_share = rng.gen_range(0.1..0.3) * industry_mult;
-    let local_services_share = rng.gen_range(0.2..0.4) * services_mult;
+    // v4.25.0 WS5: narrow the LocalServices draw — at 0.2–0.4×mult the
+    // sector claimed >60% of national payrolls; 0.11–0.22 leaves room for
+    // construction, waste, and industry to hold real labor share.
+    let local_services_share = rng.gen_range(0.11..0.22) * services_mult;
     let export_services_share = if gdp_pc > 2.0 {
         rng.gen_range(0.05..0.3) * services_mult
     } else {
         rng.gen_range(0.01..0.05)
     };
-    let construction_share = rng.gen_range(0.05..0.15);
+    // v4.25.0 WS5: construction is ~16% of GDP-side investment — the old
+    // 5–15% draw under-provisioned seats so the sector plateaued near
+    // ~10k FTE whatever the tender pipeline sent. 15–25% of share-weight
+    // gives the workforce room the mandate's >3%-of-workforce needs.
+    let construction_share = rng.gen_range(0.15..0.25);
     let energy_share = rng.gen_range(0.05..0.12);
     let healthcare_services_share = rng.gen_range(0.04..0.10) * services_mult;
     let education_services_share = rng.gen_range(0.03..0.08) * services_mult;
@@ -2313,7 +2516,12 @@ fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> cr
         }),
         reserve_requirement_ratio: 0.10,
         fx_reserves,
-        physical_gold_reserves: 0.0,
+        // v4.25.0 WS3: the 1900 world starts on a metallic standard —
+        // ~30% of the country's fx-reserve value held as physical bullion
+        // in the central bank vault (credited to state.vaults where the
+        // GameState is assembled).
+        physical_gold_reserves: fx_reserve_value * 0.30
+            / crate::state::gold::GOLD_PRICE_IEU_1900,
         liquidity_injected: 0.0,
         domestic_currency_repatriated: 0.0,
         omo_bond_holdings: 0.0,

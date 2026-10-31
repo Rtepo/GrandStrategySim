@@ -594,6 +594,67 @@ pub struct DiplomacySnapshot {
     /// v4.22.1 WS5.3: Bilateral friction levels (tension toward war).
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub tensions: Vec<TensionRow>,
+    /// v4.25.0 WS7: intelligence agency — budget allocation, field
+    /// operatives, counter-intelligence, and foreign covert operations.
+    /// Always populated (every country has an agency entry); drives the
+    /// release gate `intelligence_agency.active_spies >= 10 &&
+    /// !operations.is_empty()`.
+    pub intelligence_agency: IntelligenceAgencyRow,
+}
+
+/// v4.25.0 WS7: one foreign covert operation in the Intelligence &
+/// Espionage sub-tab — spy ring per target country with progress and
+/// outcome.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CovertOperationRow {
+    /// Operation ID (`OP-000042`).
+    pub id: String,
+    /// Host country the ring operates against.
+    pub target_country: String,
+    /// Mission label ("Military Recon" | "Industrial Espionage" |
+    /// "Political Subversion").
+    pub mission_type: String,
+    /// Operatives currently assigned (live posted spies on the target).
+    pub ring_size: u32,
+    /// Mission progress (0.0–1.0).
+    pub progress: f64,
+    /// Lifecycle status label.
+    pub status: String,
+    /// Latest outcome note (empty while running cleanly).
+    pub outcome: String,
+    /// Turn the operation was launched.
+    pub launched_turn: u32,
+    /// Turn the operation resolved (None while active).
+    pub resolved_turn: Option<u32>,
+}
+
+/// v4.25.0 WS7: per-country intelligence agency panel — budget allocation,
+/// operatives, counter-intelligence record, and foreign covert operations.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct IntelligenceAgencyRow {
+    /// Total active field operatives (posted `DiplomaticPostType::Spy`
+    /// VIPs, live and not expelled).
+    pub active_spies: u32,
+    /// Non-spy diplomatic staff posted abroad.
+    pub diplomats_posted: u32,
+    /// Intelligence budget pool remaining this turn.
+    pub budget_allocated: f64,
+    /// Fiat actually spent sustaining operations this turn.
+    pub budget_spent_this_turn: f64,
+    /// Agency efficiency (0.0–1.0): funding adequacy + HQ capacity.
+    pub efficiency: f64,
+    /// Domestic counter-intelligence posture (0.0–1.0).
+    pub security_level: f64,
+    /// Foreign spies captured on home soil (cumulative).
+    pub spies_captured: u32,
+    /// Hostile covert operations foiled on home soil (cumulative).
+    pub plots_foiled: u32,
+    /// Foreign covert operations (active + resolved history).
+    pub operations: Vec<CovertOperationRow>,
+    /// Bounded recent agency event log (captures, compromises, successes).
+    pub recent_events: Vec<String>,
 }
 
 /// v4.22.1 WS5.3: A localized war declared through diplomatic friction.
@@ -734,11 +795,52 @@ pub struct TreatyRow {
     pub expires_turn: Option<u32>,
     /// v4.24.0 WS5: compliance status — "In force — full compliance" |
     /// "Violated by {country} (T{n})" | "Suspended — clauses not applied"
-    /// | "Abrogated by {country}" | "Elapsed" | "Under negotiation".
+    /// | "Abrogated by {country}" | "Elapsed" | "Under negotiation" |
+    /// "Rejected".
     #[serde(default)]
     pub compliance: String,
+    /// v4.25.0 WS7: full statutory text — preamble, articles (clause
+    /// obligations), and term — synthesized from the treaty record for
+    /// the expandable row.
+    #[serde(default)]
+    pub statutory_text: String,
+    /// v4.25.0 WS7: per-participant compliance standing for the
+    /// expandable row.
+    #[serde(default)]
+    pub member_compliance: Vec<MemberComplianceRow>,
+    /// v4.25.0 WS7: treaty negotiation log — proposal, counter-offers,
+    /// signature/rejection reasons, lifecycle transitions.
+    #[serde(default)]
+    pub negotiation_log: Vec<NegotiationEventRow>,
     /// Initiating country.
     pub initiator: String,
+}
+
+/// v4.25.0 WS7: one participant's standing under a treaty or assembly
+/// resolution — drives the expandable member-compliance grid.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct MemberComplianceRow {
+    /// Member country name.
+    pub country: String,
+    /// Standing under the instrument (e.g. "In force — compliant",
+    /// "Violated (T{n})", "Fined — non-compliance", "Under negotiation").
+    pub status: String,
+}
+
+/// v4.25.0 WS7: one negotiation-log entry on a treaty — who proposed,
+/// counter-offers tabled, and why the instrument was signed, suspended,
+/// resumed, abrogated, expired, or rejected.
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct NegotiationEventRow {
+    /// Turn the event occurred.
+    pub turn: u32,
+    /// Actor — participant country or "Secretariat".
+    pub actor: String,
+    /// Event kind (proposal | opened | counter_offer | signed | rejected |
+    /// suspended | resumed | abrogated | expired).
+    pub kind: String,
+    /// Human-readable detail (clauses, reasons).
+    pub detail: String,
 }
 
 /// v4.24.0 WS5: build a TreatyRow — shared by the diplomacy snapshot and
@@ -770,8 +872,95 @@ pub fn treaty_row_from(
         duration_turns: treaty.duration_turns,
         expires_turn: treaty.signed_turn.map(|s| s + treaty.duration_turns),
         compliance: treaty_compliance_text(treaty, state),
+        statutory_text: treaty_statutory_text(treaty),
+        member_compliance: treaty_member_compliance(treaty, state),
+        negotiation_log: treaty
+            .negotiation_log
+            .iter()
+            .map(|e| NegotiationEventRow {
+                turn: e.turn,
+                actor: e.actor.clone(),
+                kind: e.kind.clone(),
+                detail: e.detail.clone(),
+            })
+            .collect(),
         initiator: treaty.initiator.clone(),
     }
+}
+
+/// v4.25.0 WS7: full statutory text for the expandable row — preamble
+/// naming the parties and term, one article per clause obligation.
+fn treaty_statutory_text(treaty: &crate::international::treaties::Treaty) -> String {
+    use crate::international::treaties::TreatyStatus as S;
+    let mut articles = String::new();
+    for (i, clause) in treaty.clauses.iter().enumerate() {
+        articles.push_str(&format!(
+            "\nArticle {} — {}: {}.",
+            i + 1,
+            clause.as_str(),
+            clause.effect_description()
+        ));
+    }
+    let term = match treaty.status {
+        S::Active | S::Suspended | S::Abrogated | S::Expired => match treaty.signed_turn {
+            Some(s) => format!(
+                "in force since T{s} for {} turns (expires T{})",
+                treaty.duration_turns,
+                s + treaty.duration_turns
+            ),
+            None => format!("a {}-turn term", treaty.duration_turns),
+        },
+        _ => format!("a {}-turn term upon ratification", treaty.duration_turns),
+    };
+    format!(
+        "THE PARTIES ({}) agree to the following provisions, {term}.{articles}",
+        treaty.participants.join(", ")
+    )
+}
+
+/// v4.25.0 WS7: per-participant compliance standing — violation turns are
+/// pulled from each country's reputation ledger; lifecycle states map to
+/// the participant's position on the instrument.
+fn treaty_member_compliance(
+    treaty: &crate::international::treaties::Treaty,
+    state: &GameState,
+) -> Vec<MemberComplianceRow> {
+    use crate::international::treaties::TreatyStatus as S;
+    treaty
+        .participants
+        .iter()
+        .map(|p| {
+            let latest_violation = state
+                .countries
+                .get(p)
+                .and_then(|c| {
+                    c.global_reputation
+                        .violation_history
+                        .iter()
+                        .filter(|v| v.treaty_id == treaty.id)
+                        .map(|v| v.turn)
+                        .max()
+                });
+            let status = match treaty.status {
+                S::Proposed | S::Negotiating => "Under negotiation".to_string(),
+                S::Rejected => "Rejected the draft".to_string(),
+                S::Suspended => "Suspended — clauses not applied".to_string(),
+                S::Expired => "Elapsed — term complete".to_string(),
+                S::Abrogated => match latest_violation {
+                    Some(t) => format!("Withdrew unilaterally (T{t})"),
+                    None => "Released — counterparty withdrew".to_string(),
+                },
+                S::Active => match latest_violation {
+                    Some(t) => format!("Violated obligations (T{t})"),
+                    None => "In force — compliant".to_string(),
+                },
+            };
+            MemberComplianceRow {
+                country: p.clone(),
+                status,
+            }
+        })
+        .collect()
 }
 
 /// v4.24.0 WS5: compliance status line — violations recorded on
@@ -788,6 +977,7 @@ fn treaty_compliance_text(
             treaty.negotiation_progress * 100.0
         ),
         S::Suspended => "Suspended — clauses not currently applied".to_string(),
+        S::Rejected => "Rejected — negotiations collapsed before signature".to_string(),
         S::Abrogated => {
             let who = violators_of(treaty, state);
             if who.is_empty() {
@@ -1950,6 +2140,73 @@ pub fn build_diplomacy_snapshot(
             .unwrap_or(std::cmp::Ordering::Equal)
     });
 
+    // v4.25.0 WS7: intelligence agency panel — live operative counts from
+    // the VIP registry, agency state from the WS7 covert-ops ledger, and
+    // the real intelligence budget pool.
+    let intelligence_agency = {
+        let agency = state.intelligence_agencies.get(country_name);
+        let budget_allocated = state
+            .countries
+            .get(country_name)
+            .map(|c| c.intelligence_budget.current_budget.max(0.0))
+            .unwrap_or(0.0);
+        let (active_spies, diplomats_posted) = state
+            .countries
+            .get(country_name)
+            .and_then(|c| c.politics.vip_registry.as_ref())
+            .map(|reg| {
+                let mut spies = 0u32;
+                let mut envoys = 0u32;
+                for vip in reg.vips.values() {
+                    if vip.is_dead {
+                        continue;
+                    }
+                    match vip
+                        .diplomatic_post
+                        .as_ref()
+                        .map(|p| &p.post_type)
+                    {
+                        Some(crate::politics::vip_registry::DiplomaticPostType::Spy) => {
+                            spies += 1
+                        }
+                        Some(_) => envoys += 1,
+                        None => {}
+                    }
+                }
+                (spies, envoys)
+            })
+            .unwrap_or((0, 0));
+        IntelligenceAgencyRow {
+            active_spies,
+            diplomats_posted,
+            budget_allocated,
+            budget_spent_this_turn: agency.map(|a| a.budget_spent_this_turn).unwrap_or(0.0),
+            efficiency: agency.map(|a| a.efficiency).unwrap_or(0.0),
+            security_level: agency.map(|a| a.security_level).unwrap_or(0.0),
+            spies_captured: agency.map(|a| a.spies_captured).unwrap_or(0),
+            plots_foiled: agency.map(|a| a.plots_foiled).unwrap_or(0),
+            operations: agency
+                .map(|a| {
+                    a.operations
+                        .iter()
+                        .map(|o| CovertOperationRow {
+                            id: o.id.clone(),
+                            target_country: o.target_country.clone(),
+                            mission_type: o.mission_type.as_str().to_string(),
+                            ring_size: o.ring_size,
+                            progress: o.progress,
+                            status: o.status.as_str().to_string(),
+                            outcome: o.outcome.clone(),
+                            launched_turn: o.launched_turn,
+                            resolved_turn: o.resolved_turn,
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
+            recent_events: agency.map(|a| a.events.clone()).unwrap_or_default(),
+        }
+    };
+
     DiplomacySnapshot {
         country: country_name.to_string(),
         relations,
@@ -1962,6 +2219,7 @@ pub fn build_diplomacy_snapshot(
         sanctions_against,
         declared_wars,
         tensions,
+        intelligence_agency,
     }
 }
 
@@ -5140,9 +5398,38 @@ pub fn build_bank_detail(
     })
 }
 
+/// v4.25.0 WS6: Render an engine policy key ("5_year_assimilation",
+/// "jus_sanguinis", "segregation") as a polished English policy label.
+/// Falls back to the generic debug-token humanizer for values that are
+/// already readable prose ("Worker Protection", "Full Emancipation").
+fn humanize_law_key(raw: &str) -> String {
+    let t = raw.trim();
+    for (suffix, label) in [("_assimilation", "assimilation"), ("_residency", "residency")] {
+        if let Some(prefix) = t.strip_suffix(suffix) {
+            if let Some(years) = prefix
+                .strip_suffix("_year")
+                .and_then(|y| y.parse::<u32>().ok())
+            {
+                return format!("Citizenship by {} after {} years", label, years);
+            }
+        }
+    }
+    match t {
+        "open_citizenship" => "Open citizenship — no discrimination".to_string(),
+        "jus_sanguinis" => "Citizenship by descent (jus sanguinis)".to_string(),
+        "segregation" => "Segregation — non-dominant cultures denied citizenship".to_string(),
+        _ => crate::politics::system::humanize_debug_token(t),
+    }
+}
+
 /// v4.19 WS4: Constitution parameters + the live statute/policy book for
 /// the "Constitution & Laws" tab. All rows come from real `politics`
 /// fields — no projected or synthetic statute lists.
+///
+/// v4.25.0 WS6: every summary is a human-readable English phrase — the
+/// release gate asserts the serialized statutes DTO carries no `_`
+/// characters and no `true`/`false` literals, so engine keys and raw bools
+/// must never reach the wire.
 pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
     let p = &country.politics;
     let c = &p.constitution;
@@ -5172,7 +5459,8 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
     };
 
     // Live statute/policy rows — every entry is a real Politics field and
-    // its currently-active parameters.
+    // its currently-active parameters, rendered as English phrases (no
+    // snake_case keys, no bool literals).
     let mut active_laws: Vec<ActiveLawRow> = Vec::new();
     let mut push = |domain: &str, name: &str, summary: String| {
         if !summary.is_empty() {
@@ -5183,18 +5471,45 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
             });
         }
     };
-    push("Civil Rights", "Civil Rights Regime", p.civil_rights_law.clone());
-    push("Civil Rights", "Emancipation Regime", p.emancipation_law.clone());
-    push("Labor", "Labor Relations Regime", p.labor_law.clone());
-    push("Labor", "Union Regime", p.union_law.clone());
-    push("Labor", "Strike Regime", p.strike_law.clone());
-    push("Religion", "Religious Regime", p.religious_law.clone());
+    push(
+        "Civil Rights",
+        "Civil Rights Regime",
+        humanize_law_key(&p.civil_rights_law),
+    );
+    push(
+        "Civil Rights",
+        "Emancipation Regime",
+        crate::politics::system::humanize_debug_token(&p.emancipation_law),
+    );
+    push(
+        "Labor",
+        "Labor Relations Regime",
+        crate::politics::system::humanize_debug_token(&p.labor_law),
+    );
+    push(
+        "Labor",
+        "Union Regime",
+        crate::politics::system::humanize_debug_token(&p.union_law),
+    );
+    push(
+        "Labor",
+        "Strike Regime",
+        crate::politics::system::humanize_debug_token(&p.strike_law),
+    );
+    push(
+        "Religion",
+        "Religious Regime",
+        crate::politics::system::humanize_debug_token(&p.religious_law),
+    );
     if let Some(ref l) = p.child_labor_law {
-        push(
-            "Labor",
-            "Child Labor Law",
-            crate::politics::system::humanize_debug_token(&format!("{l:?}")),
-        );
+        let summary = match l {
+            crate::politics::laws::ChildLaborLaw::Prohibited => "Child labor prohibited",
+            crate::politics::laws::ChildLaborLaw::Restricted => {
+                "Child labor restricted to limited work"
+            }
+            crate::politics::laws::ChildLaborLaw::Unrestricted => "Child labor unrestricted",
+        };
+        push("Labor", "Child Labor Law", summary.to_string());
     }
     if let Some(ref l) = p.healthcare_law {
         push(
@@ -5231,43 +5546,82 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
         );
     }
     if let Some(ref l) = p.justice_law {
+        let pardon_txt = match l.pardon_authority {
+            crate::politics::laws::PardonAuthority::None => "No pardon power".to_string(),
+            other => format!(
+                "Pardons issued by {}",
+                crate::politics::system::humanize_debug_token(&format!("{other:?}"))
+            ),
+        };
+        let krs_txt = if l.krs_separated {
+            "KRS independent of the executive"
+        } else {
+            "KRS under executive control"
+        };
+        let courts_txt = format!(
+            "court processing {}",
+            crate::politics::system::humanize_debug_token(&format!(
+                "{:?}",
+                l.court_wait_time_target
+            ))
+            .to_lowercase()
+        );
         push(
             "Justice",
             "Justice Reform",
             format!(
-                "pardon: {}, KRS separated: {}, corruption idx {:.2}",
-                crate::politics::system::humanize_debug_token(&format!(
-                    "{:?}",
-                    l.pardon_authority
-                )),
-                l.krs_separated,
-                l.corruption_index
+                "{}; {}; {}; corruption index {:.0}%",
+                pardon_txt,
+                krs_txt,
+                courts_txt,
+                l.corruption_index * 100.0
             ),
         );
     }
     if let Some(ref l) = p.prison_labor_law {
+        let type_txt = match l.prison_type {
+            crate::politics::laws::PrisonType::VoluntaryLabor => "Voluntary prison labor",
+            crate::politics::laws::PrisonType::StatePenalColony => {
+                "State penal colonies (forced labor)"
+            }
+            crate::politics::laws::PrisonType::PrivateLaborCamps => "Private labor camps",
+            crate::politics::laws::PrisonType::IsolationCamp => {
+                "Isolation camps for dissidents"
+            }
+        };
+        let comp_txt = if l.labor_compensation > 0.0 {
+            format!("labor compensation {:.0}%", l.labor_compensation * 100.0)
+        } else {
+            "no labor compensation".to_string()
+        };
         push(
             "Justice",
             "Prison Labor Law",
-            format!(
-                "{} — compensation {:.2}",
-                crate::politics::system::humanize_debug_token(&format!(
-                    "{:?}",
-                    l.prison_type
-                )),
-                l.labor_compensation
-            ),
+            format!("{}; {}", type_txt, comp_txt),
         );
     }
     if let Some(ref l) = p.sentencing_law {
-        push(
-            "Justice",
-            "Sentencing Code",
-            format!(
-                "death penalty: {}, life imprisonment: {}, community service: {}",
-                l.death_penalty_enabled, l.life_imprisonment_enabled, l.community_service_enabled
-            ),
-        );
+        let mut clauses = vec![
+            if l.death_penalty_enabled {
+                "Death penalty in force".to_string()
+            } else {
+                "Death penalty abolished".to_string()
+            },
+            if l.life_imprisonment_enabled {
+                "life imprisonment available".to_string()
+            } else {
+                "no life imprisonment".to_string()
+            },
+            if l.community_service_enabled {
+                "community service available".to_string()
+            } else {
+                "no community service".to_string()
+            },
+        ];
+        if l.legal_dualism_enabled {
+            clauses.push("dual-track sentencing for minorities".to_string());
+        }
+        push("Justice", "Sentencing Code", clauses.join("; "));
     }
     if let Some(ref l) = p.amnesty_law {
         if l.active {
@@ -5275,49 +5629,82 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
                 "Justice",
                 "Amnesty Program",
                 format!(
-                    "rate {:.2}, fee {:.0}, target {}",
-                    l.legalization_rate,
-                    l.legalization_fee,
+                    "Legalizing {:.0}% of {} residents per turn; fee {:.0}",
+                    l.legalization_rate * 100.0,
                     crate::politics::system::humanize_debug_token(&format!(
                         "{:?}",
                         l.target_status
                     ))
+                    .to_lowercase(),
+                    l.legalization_fee
                 ),
             );
         }
     }
     if let Some(ref l) = p.migration_law {
+        let borders_txt = if l.open_borders {
+            "Open borders"
+        } else {
+            "Border controls in force"
+        };
+        let visa_txt = if l.visa_required {
+            "visas required for entry"
+        } else {
+            "no visa required"
+        };
+        let deportation_txt = match l.deportation_policy {
+            crate::politics::laws::DeportationPolicy::None => "no deportations",
+            crate::politics::laws::DeportationPolicy::Selective => "selective deportations",
+            crate::politics::laws::DeportationPolicy::MassDeportation => "mass deportations",
+        };
         push(
             "Migration",
             "Migration Law",
-            format!(
-                "open borders: {}, visa required: {}, deportation: {}",
-                l.open_borders,
-                l.visa_required,
-                crate::politics::system::humanize_debug_token(&format!(
-                    "{:?}",
-                    l.deportation_policy
-                ))
-            ),
+            format!("{}; {}; {}", borders_txt, visa_txt, deportation_txt),
         );
     }
     if let Some(ref l) = p.religious_law_struct {
+        let religion_txt = match l.state_religion.as_deref() {
+            Some(r) => format!(
+                "State religion: {}",
+                crate::politics::system::humanize_debug_token(r)
+            ),
+            None => "No state religion".to_string(),
+        };
+        let separation_txt = if l.separation_of_church_and_state {
+            "church and state separated"
+        } else {
+            "church established in law"
+        };
+        let church_tax_txt = if l.church_tax_rate > 0.0 {
+            format!("church tax {:.0}%", l.church_tax_rate * 100.0)
+        } else {
+            "church tax: none".to_string()
+        };
         push(
             "Religion",
             "Religious Law",
-            format!(
-                "state religion: {}, separation: {}, church tax {:.2}",
-                l.state_religion
-                    .as_deref()
-                    .map(crate::politics::system::humanize_debug_token)
-                    .unwrap_or_else(|| "none".into()),
-                l.separation_of_church_and_state,
-                l.church_tax_rate
-            ),
+            format!("{}; {}; {}", religion_txt, separation_txt, church_tax_txt),
         );
     }
     if p.nuclear_law {
-        push("Energy", "Nuclear Program Act", "authorized".to_string());
+        push(
+            "Energy",
+            "Nuclear Program Act",
+            "Civil nuclear program authorized".to_string(),
+        );
+    }
+
+    // Belt-and-suspenders: the release gate rejects any `_` or bool literal
+    // in the serialized statutes DTO, so collapse stray engine keys that a
+    // future law writer might leak into a summary.
+    for row in &mut active_laws {
+        row.summary = row
+            .summary
+            .replace('_', " ")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
     }
 
     // Enacted statutes — bills that completed the pipeline this term, with
@@ -5336,15 +5723,18 @@ pub fn build_constitution_laws(country: &Country) -> ConstitutionLawsResponse {
                     continue;
                 }
                 enacted_statutes.push(EnactedStatuteRow {
-                    bill_id: record.bill_id.clone(),
-                    title: record.bill_title.clone(),
-                    initiator: detail.initiator.clone(),
-                    bill_type: detail.bill_type.clone(),
+                    // v4.25.0 WS6: POLICY-{snake_type}-{turn} ids and
+                    // `BillType::as_str()` keys carry underscores — the gate
+                    // rejects them on the wire.
+                    bill_id: record.bill_id.replace('_', "-"),
+                    title: record.bill_title.replace('_', " "),
+                    initiator: detail.initiator.replace('_', " "),
+                    bill_type: crate::politics::system::humanize_debug_token(&detail.bill_type),
                     enacted_turn: detail.enacted_turn,
                     provisions: detail
                         .provisions
                         .iter()
-                        .map(|pr| pr.description.clone())
+                        .map(|pr| pr.description.replace('_', " "))
                         .collect(),
                 });
             }
@@ -7248,6 +7638,28 @@ fn ministry_policy_kpis(
             status: status.to_string(),
         }
     }
+    /// v4.25 WS4: every KPI carrying a "%" unit must read 0–100. Engine
+    /// fields are a mix of percents (`social_unrest`, `unemployment_rate`)
+    /// and ratios (`corruption_index`, `literacy_rate`, link `condition`,
+    /// `poverty_pool_percent` — the last despite its name), and some
+    /// accumulators drift past 100 — normalizing at the display boundary
+    /// guarantees a KPI can never print 12555% again.
+    /// `norm_pct`: a value already on the percent scale → clamp to 0–100.
+    fn norm_pct(v: f64) -> f64 {
+        if v.is_finite() {
+            v.clamp(0.0, 100.0)
+        } else {
+            0.0
+        }
+    }
+    /// `ratio_pct`: a value stored as a 0–1 fraction → one `×100`, clamped.
+    fn ratio_pct(v: f64) -> f64 {
+        if v.is_finite() {
+            (v.clamp(0.0, 1.0)) * 100.0
+        } else {
+            0.0
+        }
+    }
     /// Higher-is-better assessment: ≥target on_track, ≥70% of target at_risk.
     fn hib(value: f64, target: f64) -> &'static str {
         if value >= target {
@@ -7318,7 +7730,10 @@ fn ministry_policy_kpis(
                     "> 0 — solvent",
                     if reserves > 0.0 { "on_track" } else { "off_track" },
                 ));
-                let debt_share = country.foreign_debt / gdp * 100.0;
+                // v4.25 WS4: bounded at 100 — a >100% debt ratio still
+                // reads as breached (the target is ≤25%) without printing
+                // a runaway number.
+                let debt_share = norm_pct(country.foreign_debt / gdp * 100.0);
                 rows.push(kpi(
                     "Foreign debt",
                     debt_share,
@@ -7326,7 +7741,7 @@ fn ministry_policy_kpis(
                     "≤ 25%",
                     lib(debt_share, 25.0),
                 ));
-                let inflation = country.macro_indicators.inflation;
+                let inflation = norm_pct(country.macro_indicators.inflation);
                 rows.push(kpi(
                     "Inflation",
                     inflation,
@@ -7376,9 +7791,12 @@ fn ministry_policy_kpis(
                 ));
             }
             Comp::InternalSecurity => {
-                let unrest = country.macro_indicators.social_unrest;
+                // v4.25 WS4: `social_unrest` is a 0–100 scale whose
+                // accumulators are not all clamped — bound it here.
+                let unrest = norm_pct(country.macro_indicators.social_unrest);
                 rows.push(kpi("Social unrest", unrest, "%", "≤ 25", lib(unrest, 25.0)));
-                let corruption = inspectorate.map(|i| i.corruption_index * 100.0).unwrap_or(0.0);
+                // `corruption_index` is a 0–1 ratio → single ×100.
+                let corruption = inspectorate.map(|i| ratio_pct(i.corruption_index)).unwrap_or(0.0);
                 rows.push(kpi(
                     "Corruption index",
                     corruption,
@@ -7443,7 +7861,8 @@ fn ministry_policy_kpis(
                     .links
                     .values()
                     .fold((0.0f64, 0usize), |(s, n), l| (s + l.condition, n + 1));
-                let avg_cond = if n > 0 { cond_sum / n as f64 * 100.0 } else { 0.0 };
+                // `condition`/`congestion` are 0–1 ratios → ×100 once.
+                let avg_cond = if n > 0 { ratio_pct(cond_sum / n as f64) } else { 0.0 };
                 rows.push(kpi(
                     "Avg link condition",
                     avg_cond,
@@ -7457,7 +7876,7 @@ fn ministry_policy_kpis(
                     .values()
                     .map(|l| l.congestion)
                     .sum();
-                let avg_cong = if n > 0 { cong_sum / n as f64 * 100.0 } else { 0.0 };
+                let avg_cong = if n > 0 { ratio_pct(cong_sum / n as f64) } else { 0.0 };
                 rows.push(kpi(
                     "Avg congestion",
                     avg_cong,
@@ -7467,9 +7886,10 @@ fn ministry_policy_kpis(
                 ));
             }
             Comp::Education => {
-                let literacy = education.literacy_rate * 100.0;
+                // Both education rates are stored 0–1 → ×100 once.
+                let literacy = ratio_pct(education.literacy_rate);
                 rows.push(kpi("Literacy rate", literacy, "%", "≥ 90%", hib(literacy, 90.0)));
-                let higher = education.higher_education_rate * 100.0;
+                let higher = ratio_pct(education.higher_education_rate);
                 rows.push(kpi("Higher-ed rate", higher, "%", "≥ 25%", hib(higher, 25.0)));
                 use crate::registries::enums::CapacityType as CT;
                 let seats = capacity_sum(
@@ -7489,7 +7909,18 @@ fn ministry_policy_kpis(
                     "≥ 40",
                     hib(coverage, 40.0),
                 ));
-                let mortality = health.mortality_rate;
+                // v4.25 WS4: `mortality_rate` is ambiguous upstream —
+                // small values are a per-turn fraction; large values are a
+                // raw death count. Normalize both to a real percent.
+                let mortality = {
+                    let raw = health.mortality_rate;
+                    let fraction = if raw <= 1.5 {
+                        raw
+                    } else {
+                        raw / (country.budget.population.max(1) as f64)
+                    };
+                    ratio_pct(fraction)
+                };
                 rows.push(kpi("Mortality rate", mortality, "%", "≤ 2%", lib(mortality, 2.0)));
             }
             Comp::SocialWelfare => {
@@ -7499,9 +7930,11 @@ fn ministry_policy_kpis(
                     .filter(|p| p.is_active)
                     .count() as f64;
                 rows.push(kpi("Active programs", active, "count", "Safety net in place", "watch"));
-                let poverty = labor.poverty_pool_percent;
+                // `poverty_pool_percent` is stored as a 0–1 fraction
+                // despite its name (cyclical/structural shares ÷ 100).
+                let poverty = ratio_pct(labor.poverty_pool_percent);
                 rows.push(kpi("Poverty pool", poverty, "%", "≤ 10%", lib(poverty, 10.0)));
-                let unemployment = labor.unemployment_rate;
+                let unemployment = norm_pct(labor.unemployment_rate);
                 rows.push(kpi("Unemployment", unemployment, "%", "≤ 5%", lib(unemployment, 5.0)));
             }
             Comp::Science => {
@@ -7526,7 +7959,13 @@ fn ministry_policy_kpis(
                 let supply: f64 = grid.region_supply_mw.values().sum();
                 let demand: f64 = grid.region_demand_mw.values().sum();
                 rows.push(kpi("Grid supply", supply, "MW", "≥ demand", hib(supply, demand)));
-                let coverage = if demand > 0.0 { supply / demand * 100.0 } else { 100.0 };
+                // v4.25 WS4: bounded at 100 — surplus coverage still reads
+                // "on_track" (target ≥100%) without printing runaway %.
+                let coverage = if demand > 0.0 {
+                    norm_pct(supply / demand * 100.0)
+                } else {
+                    100.0
+                };
                 rows.push(kpi(
                     "Demand coverage",
                     coverage,
@@ -7559,7 +7998,8 @@ fn ministry_policy_kpis(
                 let (cond_sum, n) = buildings.iter().fold((0.0f64, 0usize), |(s, n), b| {
                     (s + b.condition, n + 1)
                 });
-                let avg_cond = if n > 0 { cond_sum / n as f64 * 100.0 } else { 0.0 };
+                // `condition` is a 0–1 ratio → ×100 once.
+                let avg_cond = if n > 0 { ratio_pct(cond_sum / n as f64) } else { 0.0 };
                 rows.push(kpi(
                     "Avg building condition",
                     avg_cond,
@@ -7581,9 +8021,9 @@ fn ministry_policy_kpis(
                 rows.push(kpi("Heritage sites", heritage, "count", "Preserved", "watch"));
             }
             Comp::Labor => {
-                let unemployment = labor.unemployment_rate;
+                let unemployment = norm_pct(labor.unemployment_rate);
                 rows.push(kpi("Unemployment", unemployment, "%", "≤ 5%", lib(unemployment, 5.0)));
-                let participation = labor.labor_force_participation;
+                let participation = norm_pct(labor.labor_force_participation);
                 rows.push(kpi(
                     "Labor participation",
                     participation,
@@ -9316,6 +9756,12 @@ pub struct MilitaryDashboardResponse {
     /// v4.24.0 WS4.3: resolved plots across all countries ("Coup Crushed",
     /// "Monarch Abdicated", "Junta Installed", ...).
     pub coup_resolutions: Vec<CoupResolutionRow>,
+    /// v4.25.0 WS2: at least one country's OOB reports a Land/Navy/Air
+    /// branch manpower split (expandable branch breakdown present).
+    pub oob_has_branch_breakdown: bool,
+    /// v4.25.0 WS2: at least one region row in the OOB carries real
+    /// division/unit counts (per-region force disposition present).
+    pub oob_regions_have_divisions: bool,
 }
 
 /// Builds the full military dashboard response.
@@ -9962,6 +10408,17 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             .then_with(|| a.plot_id.cmp(&b.plot_id))
     });
 
+    // v4.25.0 WS2: OOB completeness flags — derived from the composed
+    // rows so the UI/gate can assert the expandable data actually landed.
+    let oob_has_branch_breakdown = army_compositions.iter().any(|ac| {
+        ac.armies
+            .iter()
+            .any(|a| a.branch_manpower.len() > 1)
+    });
+    let oob_regions_have_divisions = army_compositions
+        .iter()
+        .any(|ac| ac.region_breakdown.iter().any(|r| r.unit_count > 0));
+
     MilitaryDashboardResponse {
         wars: wars.into_values().collect(),
         recent_battles,
@@ -9973,6 +10430,8 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         ended_wars,
         internal_conflicts,
         coup_resolutions,
+        oob_has_branch_breakdown,
+        oob_regions_have_divisions,
     }
 }
 

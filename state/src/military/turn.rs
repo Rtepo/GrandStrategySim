@@ -642,6 +642,30 @@ fn resolve_front_battles(
         (defender_casualties.total() as f64 / 1000.0) * config.war_exhaustion_per_casualty,
     );
 
+    // v4.25.0: committed-vs-surviving force lines by branch — initial
+    // strength comes from the engaged clones, survivors from the real
+    // (post-casualty) unit pool.
+    let attacker_forces = crate::military::combat::battle_force_lines(
+        &attacker_units,
+        &|uid| {
+            attacker_indices
+                .iter()
+                .find(|&&i| units[i].id == uid)
+                .map(|&i| units[i].manpower)
+                .unwrap_or(0)
+        },
+    );
+    let defender_forces = crate::military::combat::battle_force_lines(
+        &defender_units,
+        &|uid| {
+            defender_indices
+                .iter()
+                .find(|&&i| units[i].id == uid)
+                .map(|&i| units[i].manpower)
+                .unwrap_or(0)
+        },
+    );
+
     // Construct and record the battle
     let battle = Battle {
         id: battle_id,
@@ -663,6 +687,10 @@ fn resolve_front_battles(
         captured_by_attacker: cap_by_attacker,
         captured_by_defender: cap_by_defender,
         phases: Vec::new(),
+        attacker_forces,
+        defender_forces,
+        attacker_commanders: Vec::new(),
+        defender_commanders: Vec::new(),
     };
     front.add_battle(battle);
 

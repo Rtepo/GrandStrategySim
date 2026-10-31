@@ -789,6 +789,29 @@ fn resolve_war_battle(
         defender_casualties.total()
     );
 
+    // v4.25.0: Snapshot the chain of command BEFORE writeback — engaged
+    // units' regiment/division/army commanders become the battle's
+    // participating commanders (deduped, in OOB order).
+    let agg_cmd_map = ac.order_of_battle.commanders_by_unit();
+    let def_cmd_map = dc.order_of_battle.commanders_by_unit();
+    let cmd_for = |units: &[MilitaryUnit],
+                   map: &rustc_hash::FxHashMap<String, Vec<(String, String)>>| {
+        let mut seen = BTreeSet::new();
+        let mut out: Vec<(String, String)> = Vec::new();
+        for u in units {
+            if let Some(chain) = map.get(&u.id) {
+                for (vip_id, echelon) in chain {
+                    if seen.insert((vip_id.clone(), echelon.clone())) {
+                        out.push((vip_id.clone(), echelon.clone()));
+                    }
+                }
+            }
+        }
+        out
+    };
+    battle.attacker_commanders = cmd_for(&attacker_units, &agg_cmd_map);
+    battle.defender_commanders = cmd_for(&defender_units, &def_cmd_map);
+
     // Write supply/equipment deltas + casualties back into the real OOBs.
     writeback_battle_units(
         &mut ac.order_of_battle,
@@ -802,6 +825,28 @@ fn resolve_war_battle(
     );
     ac.order_of_battle.cleanup_dead();
     dc.order_of_battle.cleanup_dead();
+
+    // v4.25.0: Committed-vs-surviving force lines by branch — initial
+    // strength from the engaged clones, survivors from the real OOB
+    // (destroyed units resolve to 0).
+    battle.attacker_forces = crate::military::combat::battle_force_lines(
+        &attacker_units,
+        &|uid| {
+            ac.order_of_battle
+                .find_unit(uid)
+                .map(|u| u.manpower)
+                .unwrap_or(0)
+        },
+    );
+    battle.defender_forces = crate::military::combat::battle_force_lines(
+        &defender_units,
+        &|uid| {
+            dc.order_of_battle
+                .find_unit(uid)
+                .map(|u| u.manpower)
+                .unwrap_or(0)
+        },
+    );
 
     // Demographic routing — each side's casualties land on its own front
     // region (dead removed, deserters return, wounded triaged by hospitals),

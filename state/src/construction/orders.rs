@@ -1586,9 +1586,13 @@ pub fn compute_construction_labor_demand(
 ) -> u32 {
     let avg_wage = average_wage.max(1.0);
     // Labor required per unit of material remaining.
-    // Derived from average_wage: a worker installs ~10 wage-equivalents of
+    // Derived from average_wage: a worker installs ~5 wage-equivalents of
     // materials per turn (physical productivity, not a magic number).
-    let labor_per_unit = 10.0 * avg_wage;
+    // v4.25.0 WS5: cut from 10 to 1.0 — 1900-era construction is labor-
+    // intensive (hand tools, no tower cranes); the higher throughput
+    // figure priced crews at a fraction of their historical size and
+    // capped the sector near ~10k FTE regardless of the tender pipeline.
+    let labor_per_unit = 1.0 * avg_wage;
 
     let mut total_demand: f64 = 0.0;
 
@@ -1652,8 +1656,11 @@ pub fn compute_construction_labor_demand(
                 .saturating_sub(project.turns_elapsed)
                 .max(1) as f64
         };
+        // v4.25.0 WS5: per-site crew cap raised 200→800 — a major
+        // infrastructure/rail project legitimately crews several hundred,
+        // and 160-seat public BOMs price above the old 400 ceiling.
         let project_demand = (remaining_value / (labor_per_unit * remaining_schedule))
-            .min(200.0)
+            .min(800.0)
             .max(1.0);
         total_demand += project_demand;
     }
@@ -1763,7 +1770,10 @@ pub fn update_construction_labor_demand(
             + company.furloughed_workers_count.max(0.0);
         let install_per_cycle =
             crew_fte * 10.0 * wage * crate::construction::tender_market::MILESTONE_SPACING_TURNS;
-        let imminent_capped = (imminent * 0.5).min(install_per_cycle);
+        // v4.25.0 WS5: escrowed tranches are contractually owed, not
+        // speculative — a 75% certainty factor (was 50%) better prices
+        // mobilization-stage receivables against cancellation risk.
+        let imminent_capped = (imminent * 0.75).min(install_per_cycle);
         // v4.20 WS3b: only the AP actually collectible THIS cycle
         // competes with payroll. Suppliers cannot extract cash the
         // company does not hold — the retirement pass already debits
