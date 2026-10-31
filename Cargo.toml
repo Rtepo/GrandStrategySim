@@ -14,3 +14,24 @@ if_same_then_else = "allow"
 module_inception = "allow"
 type_complexity = "allow"
 manual_range_contains = "allow"
+
+# ─── Daemon v2 Pillar 3: kill the 2-hour debug-test bottleneck ────────────
+# The 120s+ suite ran fully unoptimized (opt-level 0) with full debuginfo,
+# which (a) made the 27+ test binaries execute simulation crucibles ~5-10x
+# slower than necessary and (b) produced multi-GB PDB/LTO payloads that
+# spiked linker RAM and triggered OOM kills mid-suite.
+#
+# Dependencies: opt-level 1 + line-tables-only debuginfo. Keeps per-crate
+# debuggability (line tables preserved for stack traces) while cutting the
+# dominant linker RAM cost — dependency debuginfo is the bulk of every test
+# binary's debug payload.
+[profile.dev.package."*"]
+opt-level = 1
+debug = "line-tables-only"
+
+# Test binaries themselves: opt-level 1 (~5-10x faster sim crucibles) and
+# line-tables-only debuginfo. Incremental stays on for fast re-links.
+[profile.test]
+opt-level = 1
+debug = "line-tables-only"
+incremental = true

@@ -60,6 +60,11 @@ commit_v*.txt
 
 # v4: cargo-insta pending snapshot files (approved .snap files ARE committed)
 *.snap.new
+
+# Daemon v2 runtime artifacts (supervisor contexts/logs, verify reports, WIP snapshots)
+.devin/daemon/
+.devin/wip/
+.devin/tasks/results/
 state/tests/diagnostic_output/*.json
 state/tests/diagnostic_output/*.csv
 tests/diagnostic_output/
