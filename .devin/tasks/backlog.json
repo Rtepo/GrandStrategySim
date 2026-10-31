@@ -2,17 +2,17 @@
   "version": 2,
   "schema": "daemon-v2-backlog",
   "release": "v4.26.0-ui-complete",
-  "base_ref": "feat/agent-5-v4260-ui-complete",
-  "updated_at": "2026-10-31T16:00:00Z",
+  "base_ref": "origin/main",
+  "updated_at": "2026-10-31T15:43:20.268Z",
   "tasks": [
     {
       "id": "TASK-001",
       "title": "World map topology: Voronoi cells, canonical half-edge borders, real names, Megaregions mode + legend",
-      "status": "PENDING",
+      "status": "DONE",
       "priority": 10,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-001.md",
-      "base_ref": "feat/agent-5-v4260-ui-complete",
+      "base_ref": "origin/main",
       "required_rust_files": [
         "state/src/society/geography.rs",
         "state/src/ui/snapshot_map.rs"
@@ -44,7 +44,7 @@
         }
       ],
       "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T16:00:00Z",
+      "updated_at": "2026-10-31T15:43:20.268Z",
       "verify_history": []
     },
     {
@@ -54,7 +54,7 @@
       "priority": 9,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-002.md",
-      "base_ref": "feat/agent-5-v4260-ui-complete",
+      "base_ref": "origin/main",
       "required_rust_files": [
         "state/src/ui/snapshot_map.rs"
       ],
@@ -99,7 +99,7 @@
       "priority": 9,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-003.md",
-      "base_ref": "feat/agent-5-v4260-ui-complete",
+      "base_ref": "origin/main",
       "required_rust_files": [
         "state/src/ui/snapshot.rs",
         "state/src/military/oob.rs"
@@ -180,7 +180,7 @@
       "priority": 8,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-004.md",
-      "base_ref": "feat/agent-5-v4260-ui-complete",
+      "base_ref": "origin/main",
       "required_rust_files": [
         "state/src/ui/snapshot.rs",
         "state/src/ui/snapshot_press.rs"
