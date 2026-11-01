@@ -744,12 +744,12 @@ pub fn process_internal_migration(country: &mut Country) -> Vec<InternalMigratio
             .push((country.regions[*i].id.clone(), *cnt));
     }
     for (idx, mut list) in in_map {
-        list.sort_by(|a, b| b.1.cmp(&a.1));
+        list.sort_by_key(|b| std::cmp::Reverse(b.1));
         list.truncate(5);
         country.regions[idx].migration.top_sources = list;
     }
     for (idx, mut list) in out_map {
-        list.sort_by(|a, b| b.1.cmp(&a.1));
+        list.sort_by_key(|b| std::cmp::Reverse(b.1));
         list.truncate(5);
         country.regions[idx].migration.top_destinations = list;
     }

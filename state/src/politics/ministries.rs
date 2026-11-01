@@ -912,7 +912,7 @@ pub fn calculate_budget_needs(country: &mut Country) {
         ideology_w * (1.0 + demand)
     };
 
-    let total_weight: f64 = config.ministries.iter().map(|m| effective_weight(m)).sum();
+    let total_weight: f64 = config.ministries.iter().map(effective_weight).sum();
 
     if total_weight <= 0.0 {
         // Fallback: equal distribution

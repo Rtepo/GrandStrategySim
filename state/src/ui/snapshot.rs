@@ -4560,6 +4560,87 @@ pub struct MacroHistoryPoint {
     pub ppi: f64,
 }
 
+/// v4.27.0 (TASK-010): one foreign-currency reserve holding.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct FxReserveRow {
+    pub currency: String,
+    pub amount: f64,
+}
+
+/// v4.27.0 (TASK-010): one open-market / FX / gold operation log entry.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct OmoOperationRow {
+    pub turn: u32,
+    pub kind: String,
+    pub amount: f64,
+    pub note: String,
+}
+
+/// v4.27.0 (TASK-010): one MPC roll-call vote.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MpcVoteRow {
+    pub member_name: String,
+    pub vote: String,
+}
+
+/// v4.27.0 (TASK-010): one MPC rate decision — rates, bps change, macro
+/// rationale and the committee roll-call.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MpcDecisionRow {
+    pub turn: u32,
+    pub previous_rate: f64,
+    pub new_rate: f64,
+    pub bps_change: f64,
+    pub cpi: f64,
+    pub output_gap: f64,
+    pub rationale: String,
+    pub votes: Vec<MpcVoteRow>,
+}
+
+/// v4.27.0 (TASK-010): full Central Bank DTO for the Banking → Central
+/// Bank sub-tab (governor, independence, mandate, balance sheet, OMO log,
+/// MPC decision history).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CentralBankDto {
+    pub bank_name: String,
+    pub governor_vip_id: String,
+    pub governor_name: String,
+    pub governor_traits: Vec<String>,
+    pub governor_main_trait: String,
+    /// Governor's ideology field (monetary-policy leaning).
+    pub monetary_ideology: String,
+    /// Turn the governor's term ends (None = indefinite).
+    pub term_end_turn: Option<u32>,
+    /// 0–100 institutional independence index.
+    pub independence_index: f64,
+    /// "Federal" | "CentralIndependent" | "Dependent" (display label).
+    pub independence_model: String,
+    /// Mandate display label ("Price Stability" | "Dual Mandate" |
+    /// "State Credit Financing").
+    pub mandate: String,
+    pub reference_rate: f64,
+    pub lombard_rate: f64,
+    pub deposit_rate: f64,
+    pub rediscount_rate: f64,
+    pub discount_rate: f64,
+    /// Physical bullion reserves (tons) and their IEU value.
+    pub gold_reserves_tons: f64,
+    pub gold_reserves_value: f64,
+    pub fx_reserves: Vec<FxReserveRow>,
+    /// Government bonds held via OMO purchases.
+    pub omo_bond_holdings: f64,
+    /// Outstanding ELA/Lombard liquidity extended to banks.
+    pub ela_outstanding: f64,
+    pub reserve_requirement: f64,
+    pub omo_log: Vec<OmoOperationRow>,
+    pub mpc_decisions: Vec<MpcDecisionRow>,
+}
+
 /// Response for the get_banking_aggregates command.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
@@ -4574,6 +4655,92 @@ pub struct BankingAggregates {
     pub m3: f64,
     pub cb_fx_reserves_total: f64,
     pub cb_gold_reserves: f64,
+    /// v4.27.0 (TASK-010): Central Bank sub-tab payload.
+    pub central_bank: CentralBankDto,
+}
+
+/// v4.27.0 (TASK-010): build the Central Bank DTO from country state —
+/// resolves the governor VIP for name/traits and maps every ledger field
+/// the sub-tab renders.
+pub fn build_central_bank_dto(country: &crate::state::Country) -> CentralBankDto {
+    let cb = &country.central_bank;
+    let gov = country
+        .politics
+        .vip_registry
+        .as_ref()
+        .and_then(|r| r.get(&cb.governor_id));
+    let term_end = if cb.governor_term_length > 0 {
+        Some(cb.governor_appointment_turn + cb.governor_term_length)
+    } else {
+        None
+    };
+    CentralBankDto {
+        bank_name: cb.name.clone(),
+        governor_vip_id: cb.governor_id.clone(),
+        governor_name: gov.map(|v| v.full_name.clone()).unwrap_or_default(),
+        governor_traits: gov.map(|v| v.traits.clone()).unwrap_or_default(),
+        governor_main_trait: gov.map(|v| v.main_trait.clone()).unwrap_or_default(),
+        monetary_ideology: gov.map(|v| v.ideology.clone()).unwrap_or_default(),
+        term_end_turn: term_end,
+        independence_index: cb.independence_index(),
+        independence_model: format!("{:?}", cb.independence_model),
+        mandate: cb.mandate_label().to_string(),
+        reference_rate: cb.interest_rates.reference_rate,
+        lombard_rate: cb.interest_rates.lombard_rate,
+        deposit_rate: cb.interest_rates.deposit_rate,
+        rediscount_rate: cb.interest_rates.rediscount_rate,
+        discount_rate: cb.interest_rates.discount_rate,
+        gold_reserves_tons: cb.physical_gold_reserves,
+        gold_reserves_value: cb.physical_gold_reserves
+            * crate::state::gold::GOLD_PRICE_IEU_1900,
+        fx_reserves: cb
+            .fx_reserves
+            .iter()
+            .map(|(c, a)| FxReserveRow {
+                currency: c.clone(),
+                amount: *a,
+            })
+            .collect(),
+        omo_bond_holdings: cb.omo_bond_holdings,
+        ela_outstanding: cb.liquidity_injected,
+        reserve_requirement: cb.reserve_requirement_ratio,
+        omo_log: cb
+            .omo_log
+            .iter()
+            .map(|o| OmoOperationRow {
+                turn: o.turn,
+                kind: o.kind.clone(),
+                amount: o.amount,
+                note: o.note.clone(),
+            })
+            .collect(),
+        mpc_decisions: cb
+            .rpp
+            .as_ref()
+            .map(|r| {
+                r.mpc_decisions
+                    .iter()
+                    .map(|d| MpcDecisionRow {
+                        turn: d.turn,
+                        previous_rate: d.previous_rate,
+                        new_rate: d.new_rate,
+                        bps_change: d.bps_change,
+                        cpi: d.cpi,
+                        output_gap: d.output_gap,
+                        rationale: d.rationale.clone(),
+                        votes: d
+                            .votes
+                            .iter()
+                            .map(|v| MpcVoteRow {
+                                member_name: v.member_name.clone(),
+                                vote: v.vote.clone(),
+                            })
+                            .collect(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
+    }
 }
 
 /// Phase 54: Banking history response for sparkline tooltips.

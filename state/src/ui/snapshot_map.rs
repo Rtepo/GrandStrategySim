@@ -689,7 +689,7 @@ fn subdivide_polygon(poly: &[(f64, f64)]) -> Vec<(f64, f64)> {
         return poly.to_vec();
     }
     // Per-edge segment floor that guarantees ≥46 total vertices.
-    let floor = ((46usize + m - 1) / m).max(8);
+    let floor = 46usize.div_ceil(m).max(8);
     let mut out = Vec::with_capacity(m * 12);
     for i in 0..m {
         let a = poly[i];
@@ -1445,7 +1445,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             // interior cell (deterministic pick by area).
             if !is_island
                 && !is_coastal
-                && inland_sea_pick.get(&(color_index, idx)).is_some()
+                && inland_sea_pick.contains(&(color_index, idx))
             {
                 if let Some(sea) =
                     lake_feature(cell, &region.id, &layout.name, 0.33, "inland_sea")

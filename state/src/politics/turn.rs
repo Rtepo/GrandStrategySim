@@ -2692,6 +2692,81 @@ reign_end_turn: None,
     // ran inside `bootstrap_politics` before regions existed, so
     // `country.regions` was always empty and no mayors were ever named.
 
+    // v4.27.0 (TASK-010): Central Bank governance — a REAL VIP governor
+    // (traits + monetary ideology, linked from the Banking tab) and a
+    // seated MPC whose members cast roll-call votes on rate decisions.
+    // `governor_id` ships as a synthetic "GOV-XXX-001" stub from
+    // `build_central_bank`; replace it with the registered vip_id.
+    {
+        let mut rng_cb = crate::engine::seeded_rng::thread_rng();
+        let needs_governor = country.central_bank.governor_id.starts_with("GOV-")
+            || country.central_bank.governor_id.is_empty();
+        let needs_members = country
+            .central_bank
+            .rpp
+            .as_ref()
+            .map(|r| r.members.is_empty())
+            .unwrap_or(false);
+        if needs_governor || needs_members {
+            let registry2 = country.politics.vip_registry.as_mut().unwrap();
+            if needs_governor {
+                let gov_name =
+                    names::generate_key_vip(cultural_group, &mut rng_cb, &mut used_names);
+                let (gov_traits, gov_main) = assign_core_traits(&mut rng_cb);
+                let gov_vip_id = registry2.register_new(Vip {
+                    full_name: gov_name.full_name,
+                    gender: gov_name.gender,
+                    age: 45 + rng_cb.gen_range(0..20),
+                    health: crate::politics::vip_registry::VipHealth {
+                        physical_health: 1.0,
+                        mental_health: 1.0,
+                    },
+                    traits: gov_traits,
+                    main_trait: gov_main,
+                    ideology: "Ordoliberalism".to_string(),
+                    nationality: country.name.clone(),
+                    roles: vec![VipRoleExtended::CentralBankGovernor],
+                    base_influence: 40 + rng_cb.gen_range(0..20),
+                    ..Default::default()
+                });
+                country.central_bank.governor_id = gov_vip_id;
+            }
+            if needs_members {
+                let mut members: Vec<crate::state::MpcMember> = Vec::new();
+                for i in 0..5 {
+                    let m_name =
+                        names::generate_key_vip(cultural_group, &mut rng_cb, &mut used_names);
+                    let stance = match i % 3 {
+                        0 => "Hawk",
+                        1 => "Dove",
+                        _ => "Centrist",
+                    };
+                    registry2.register_new(Vip {
+                        full_name: m_name.full_name.clone(),
+                        gender: m_name.gender,
+                        age: 40 + rng_cb.gen_range(0..25),
+                        health: crate::politics::vip_registry::VipHealth {
+                            physical_health: 1.0,
+                            mental_health: 1.0,
+                        },
+                        ideology: "Ordoliberalism".to_string(),
+                        nationality: country.name.clone(),
+                        roles: vec![VipRoleExtended::MpcMember],
+                        base_influence: 20 + rng_cb.gen_range(0..20),
+                        ..Default::default()
+                    });
+                    members.push(crate::state::MpcMember {
+                        name: m_name.full_name,
+                        stance: stance.to_string(),
+                    });
+                }
+                if let Some(rpp) = country.central_bank.rpp.as_mut() {
+                    rpp.members = members;
+                }
+            }
+        }
+    }
+
     if !form.is_democratic() {
         // For non-democratic forms, install the strongest party as the regime.
         if let Some((name, _)) = country.politics.active_parties.iter().max_by(|a, b| {

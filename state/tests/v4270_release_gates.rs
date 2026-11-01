@@ -158,6 +158,33 @@ mod tests {
                 "World Forum and bloc resolutions cloned");
         }
 
+        // ── Central bank gates (TASK-010) ──────────────────────────
+        for (name, country) in &state.countries {
+            let cb = &country.central_bank;
+            let governor_name = country
+                .politics
+                .vip_registry
+                .as_ref()
+                .and_then(|r| r.get(&cb.governor_id))
+                .map(|v| v.full_name.clone())
+                .unwrap_or_default();
+            eprintln!(
+                "[GATE] {name}: CB governor={governor_name:?} mpc_decisions={} omo_log={} independence={:.0}%",
+                cb.rpp.as_ref().map(|r| r.mpc_decisions.len()).unwrap_or(0),
+                cb.omo_log.len(),
+                cb.independence_index()
+            );
+            assert_ne!(governor_name, "", "{name}: CB governor unnamed");
+            assert!(
+                cb.rpp.as_ref().map(|r| !r.mpc_decisions.is_empty()).unwrap_or(false),
+                "{name}: no MPC decisions after 5 turns"
+            );
+            assert!(
+                (0.0..=100.0).contains(&cb.independence_index()),
+                "{name}: independence index out of range"
+            );
+        }
+
         let _ = &mut state; // keep mutable binding honest
     }
 }

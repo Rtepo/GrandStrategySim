@@ -255,7 +255,11 @@ export type BankRow = { id: string, name: string, bank_type: string, reserves: n
 /**
  * Response for the get_banking_aggregates command.
  */
-export type BankingAggregates = { total_bank_reserves: number, total_bank_deposits: number, total_bank_loans: number, total_consumer_debt: number, dspw_bank_count: number, central_bank_rate: number, m0: number, m3: number, cb_fx_reserves_total: number, cb_gold_reserves: number, };
+export type BankingAggregates = { total_bank_reserves: number, total_bank_deposits: number, total_bank_loans: number, total_consumer_debt: number, dspw_bank_count: number, central_bank_rate: number, m0: number, m3: number, cb_fx_reserves_total: number, cb_gold_reserves: number, 
+/**
+ * v4.27.0 (TASK-010): Central Bank sub-tab payload.
+ */
+central_bank: CentralBankDto, };
 
 /**
  * Phase 54: Banking history response for sparkline tooltips.
@@ -508,6 +512,46 @@ captured: bigint,
  * Missing / deserted.
  */
 missing_deserted: bigint, };
+
+/**
+ * v4.27.0 (TASK-010): full Central Bank DTO for the Banking → Central
+ * Bank sub-tab (governor, independence, mandate, balance sheet, OMO log,
+ * MPC decision history).
+ */
+export type CentralBankDto = { bank_name: string, governor_vip_id: string, governor_name: string, governor_traits: Array<string>, governor_main_trait: string, 
+/**
+ * Governor's ideology field (monetary-policy leaning).
+ */
+monetary_ideology: string, 
+/**
+ * Turn the governor's term ends (None = indefinite).
+ */
+term_end_turn: number | null, 
+/**
+ * 0–100 institutional independence index.
+ */
+independence_index: number, 
+/**
+ * "Federal" | "CentralIndependent" | "Dependent" (display label).
+ */
+independence_model: string, 
+/**
+ * Mandate display label ("Price Stability" | "Dual Mandate" |
+ * "State Credit Financing").
+ */
+mandate: string, reference_rate: number, lombard_rate: number, deposit_rate: number, rediscount_rate: number, discount_rate: number, 
+/**
+ * Physical bullion reserves (tons) and their IEU value.
+ */
+gold_reserves_tons: number, gold_reserves_value: number, fx_reserves: Array<FxReserveRow>, 
+/**
+ * Government bonds held via OMO purchases.
+ */
+omo_bond_holdings: number, 
+/**
+ * Outstanding ELA/Lombard liquidity extended to banks.
+ */
+ela_outstanding: number, reserve_requirement: number, omo_log: Array<OmoOperationRow>, mpc_decisions: Array<MpcDecisionRow>, };
 
 /**
  * A chamber snapshot for the Parliament tab.
@@ -1938,6 +1982,11 @@ top_holdings: Array<[string, number]>, };
 export type FxBasketEntry = { currency: string, amount: number, exchange_rate: number, };
 
 /**
+ * v4.27.0 (TASK-010): one foreign-currency reserve holding.
+ */
+export type FxReserveRow = { currency: string, amount: number, };
+
+/**
  * Response for the get_game_status command.
  */
 export type GameStatus = { has_game: boolean, turn: number, year: number, 
@@ -2976,6 +3025,17 @@ unionized: boolean, };
 export type MovementDetailData = { movement_type: string, initiating_class: string, start_turn: number, expected_duration: number, intensity: number, participant_count: bigint, union_backed: boolean, backing_union_id: string | null, strike_fund_per_participant: number, target_company_ids: Array<string> | null, status: string, demands: Array<string>, };
 
 /**
+ * v4.27.0 (TASK-010): one MPC rate decision — rates, bps change, macro
+ * rationale and the committee roll-call.
+ */
+export type MpcDecisionRow = { turn: number, previous_rate: number, new_rate: number, bps_change: number, cpi: number, output_gap: number, rationale: string, votes: Array<MpcVoteRow>, };
+
+/**
+ * v4.27.0 (TASK-010): one MPC roll-call vote.
+ */
+export type MpcVoteRow = { member_name: string, vote: string, };
+
+/**
  * Phase 86.5B: Municipal AI snapshot for a country.
  */
 export type MunicipalAiSnapshot = { 
@@ -3028,6 +3088,11 @@ is_crisis: boolean, };
  * OHS / casualty summary.
  */
 export type OhsSummary = { total_deceased: bigint, total_disabled: bigint, total_unable_to_work_fte: number, ohs_accidents_on_projects: number, };
+
+/**
+ * v4.27.0 (TASK-010): one open-market / FX / gold operation log entry.
+ */
+export type OmoOperationRow = { turn: number, kind: string, amount: number, note: string, };
 
 /**
  * Phase 87+: Organization category for the consolidated Organizations page.

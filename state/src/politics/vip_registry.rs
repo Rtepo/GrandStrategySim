@@ -105,6 +105,10 @@ pub enum VipRoleExtended {
     DeputySpeaker,
     /// Party whip.
     Whip,
+    /// Central bank governor (monetary authority head).
+    CentralBankGovernor,
+    /// Monetary policy council member.
+    MpcMember,
     // ── Regional political ──
     /// Regional governor (megaregion level).
     RegionalGovernor,
@@ -198,6 +202,8 @@ impl VipRoleExtended {
             VipRoleExtended::Ambassador => "Ambassador",
             VipRoleExtended::Consul => "Consul",
             VipRoleExtended::Spy => "Spy",
+            VipRoleExtended::CentralBankGovernor => "Central Bank Governor",
+            VipRoleExtended::MpcMember => "MPC Member",
         }
     }
 
@@ -231,6 +237,8 @@ impl VipRoleExtended {
             VipRoleExtended::Ambassador => "Ambassador",
             VipRoleExtended::Consul => "Consul",
             VipRoleExtended::Spy => "Spy",
+            VipRoleExtended::CentralBankGovernor => "CentralBankGovernor",
+            VipRoleExtended::MpcMember => "MpcMember",
         }
     }
 

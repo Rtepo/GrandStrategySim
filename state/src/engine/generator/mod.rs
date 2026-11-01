@@ -1471,9 +1471,18 @@ fn spawn_standing_oob(
     use crate::military::oob::{generate_asymmetric_oob, Army, Division, OrderOfBattle, Regiment};
     use crate::military::units::{EquipmentReserve, MilitaryUnit, UnitType};
 
-    let total_pop: i64 = regions.values().map(|r| r.population).sum();
-    let total_gdp: f64 = regions.values().map(|r| r.gdp).sum();
-    let has_coast = regions.values().any(|r| r.geographic_traits.has_coastline);
+    // Deterministic summation order: HashMap iteration order is randomized
+    // per-process, and f64 addition is non-associative — an unordered sum
+    // leaks 1-ULP nondeterminism into gdp_per_capita (and every field derived
+    // from it, e.g. unit training). Sort by the canonical region key first.
+    let mut sorted_regions: Vec<&crate::society::geography::Region> =
+        regions.values().collect();
+    sorted_regions.sort_by_key(|r| map_region_sort_key(&r.id));
+    let total_pop: i64 = sorted_regions.iter().map(|r| r.population).sum();
+    let total_gdp: f64 = sorted_regions.iter().map(|r| r.gdp).sum();
+    let has_coast = sorted_regions
+        .iter()
+        .any(|r| r.geographic_traits.has_coastline);
 
     // Phase 76: Derive GDP per capita and average wage for OOB scaling.
     let gdp_per_capita = if total_pop > 0 {
@@ -2545,6 +2554,8 @@ fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> cr
             last_meeting_turn: 0,
             next_meeting_turn: 12, // Monthly meetings
             decision_log: Vec::new(),
+            members: Vec::new(),
+            mpc_decisions: Vec::new(),
             extra: Map::new(),
         }),
         reserve_requirement_ratio: 0.10,
@@ -2563,6 +2574,7 @@ fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> cr
         omo_last_operation_amount: 0.0,
         deposit_facility_interest_paid: 0.0,
         lombard_facility_interest_received: 0.0,
+        omo_log: Vec::new(),
         last_message: String::new(),
         // Phase 36: Configurable Taylor Rule targets
         target_inflation: 0.02, // 2% inflation target

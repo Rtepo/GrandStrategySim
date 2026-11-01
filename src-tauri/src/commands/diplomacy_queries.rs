@@ -448,6 +448,10 @@ pub async fn get_organizations(
                                 .iter()
                                 .map(|(m, v)| (m.clone(), v.clone()))
                                 .collect(),
+                            description: d.description.clone(),
+                            statutory_rules: d.statutory_rules.clone(),
+                            economic_effects: d.economic_effects.clone(),
+                            funding_source: d.funding_source.clone(),
                         })
                         .collect(),
                 }

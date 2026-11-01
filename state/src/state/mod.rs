@@ -36,7 +36,8 @@ pub use capital_gains_tax::{
     CapitalGainsTaxRegistry, EntityCgtSettlement, EntityGainsAccrual,
 };
 pub use central_bank::{
-    CentralBank, CentralBankIndependence, MonetaryMandate, MonetaryPolicyCouncil, RppInterestRates,
+    CentralBank, CentralBankIndependence, MonetaryMandate, MonetaryPolicyCouncil, MpcDecision,
+    MpcMember, MpcVote, OmoOperation, RppInterestRates,
 };
 pub use climate::{ClimateConfig, SeasonalModifiers};
 pub use currency::{Currency, CurrencyPolicy};

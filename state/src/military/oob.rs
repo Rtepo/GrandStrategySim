@@ -784,8 +784,8 @@ pub fn country_adjective(country_name: &str) -> String {
         format!("{}n", n)
     } else if n.ends_with('a') {
         format!("{}n", n)
-    } else if n.ends_with('y') {
-        format!("{}ian", &n[..n.len() - 1])
+    } else if let Some(stem) = n.strip_suffix('y') {
+        format!("{}ian", stem)
     } else if n.ends_with('s') || n.ends_with("es") {
         n.to_string()
     } else {
