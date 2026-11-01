@@ -233,6 +233,7 @@ mod tests {
             labor_unfilled_last_turn: 0.0,
             labor_allocated_last_turn: 0.0,
             labor_private_allocated_last_turn: 0.0,
+            migration: Default::default(),
         }
     }
 

@@ -1,7 +1,7 @@
 use crate::state::AppState;
 use sim_engine::ui::snapshot::{
-    build_bank_detail, build_country_snapshot, BankDetail, BankPageResponse, BankingAggregates,
-    BankingHistoryResponse, PageQuery, ViewQuery,
+    build_bank_detail, build_central_bank_dto, build_country_snapshot, BankDetail,
+    BankPageResponse, BankingAggregates, BankingHistoryResponse, PageQuery, ViewQuery,
 };
 
 /// v4.19 WS2: Full balance-sheet + income-statement detail for one bank
@@ -161,6 +161,8 @@ pub async fn get_banking_aggregates(
             m3: snap.money_supply.m3,
             cb_fx_reserves_total: finance.cb_fx_reserves_total,
             cb_gold_reserves: finance.cb_gold_reserves,
+            // v4.27.0 (TASK-010): Central Bank sub-tab payload.
+            central_bank: build_central_bank_dto(country_ref),
         })
     })
     .await

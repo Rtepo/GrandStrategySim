@@ -2209,6 +2209,7 @@ pub fn bootstrap_politics(
                 death_cause: None,
                 // Founding monarch's reign counts from the simulation start.
                 reign_start_turn: Some(0),
+reign_end_turn: None,
             });
 
         // Generate a royal consort (spouse for the monarch).
@@ -2268,6 +2269,7 @@ pub fn bootstrap_politics(
                 marriage_turn: Some(0),
                 death_turn: None,
                 death_cause: None,
+reign_end_turn: None,
                 reign_start_turn: None,
             });
 
@@ -2286,10 +2288,19 @@ pub fn bootstrap_politics(
             );
             let heir_full_name = royalize(&heir_vip_name, &mut used_names);
             let (heir_traits, heir_main_trait) = assign_core_traits(rng);
-            let heir_age = if monarch_age > 30 {
-                rng.gen_range(5..25)
-            } else {
-                rng.gen_range(1..10)
+            // v4.27.0 (TASK-009): parents must be older than their children —
+            // the previous `gen_range(5..25)` let a 31-year-old monarch (or
+            // an 18-year-old consort) parent a 25-year-old heir. Cap the
+            // heir's age at `youngest_parent - 16` so both parents were of
+            // childbearing age at the birth.
+            let consort_age = registry
+                .get(&consort_vip_id)
+                .map(|v| v.age)
+                .unwrap_or(18);
+            let youngest_parent = monarch_age.min(consort_age);
+            let heir_age = {
+                let max_heir = youngest_parent.saturating_sub(16).clamp(1, 25);
+                rng.gen_range(1..=max_heir)
             };
             let heir_vip_id = registry.register_new(Vip {
                 full_name: heir_full_name,
@@ -2334,6 +2345,7 @@ pub fn bootstrap_politics(
                     children_vip_ids: Vec::new(),
                     marriage_turn: None,
                     death_turn: None,
+reign_end_turn: None,
                     death_cause: None,
                     reign_start_turn: None,
                 });
@@ -2408,6 +2420,7 @@ pub fn bootstrap_politics(
                     spouse_vip_id: None,
                     children_vip_ids: Vec::new(),
                     marriage_turn: None,
+reign_end_turn: None,
                     death_turn: None,
                     death_cause: None,
                     reign_start_turn: None,
@@ -2467,6 +2480,7 @@ pub fn bootstrap_politics(
                     mother_vip_id: None,
                     spouse_vip_id: None,
                     children_vip_ids: Vec::new(),
+reign_end_turn: None,
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
@@ -2538,6 +2552,7 @@ pub fn bootstrap_politics(
                         None
                     },
                     spouse_vip_id: None,
+reign_end_turn: None,
                     children_vip_ids: Vec::new(),
                     marriage_turn: None,
                     death_turn: None,
@@ -2676,6 +2691,81 @@ pub fn bootstrap_politics(
     // `generate_regional_topology` produces the regions. Previously this code
     // ran inside `bootstrap_politics` before regions existed, so
     // `country.regions` was always empty and no mayors were ever named.
+
+    // v4.27.0 (TASK-010): Central Bank governance — a REAL VIP governor
+    // (traits + monetary ideology, linked from the Banking tab) and a
+    // seated MPC whose members cast roll-call votes on rate decisions.
+    // `governor_id` ships as a synthetic "GOV-XXX-001" stub from
+    // `build_central_bank`; replace it with the registered vip_id.
+    {
+        let mut rng_cb = crate::engine::seeded_rng::thread_rng();
+        let needs_governor = country.central_bank.governor_id.starts_with("GOV-")
+            || country.central_bank.governor_id.is_empty();
+        let needs_members = country
+            .central_bank
+            .rpp
+            .as_ref()
+            .map(|r| r.members.is_empty())
+            .unwrap_or(false);
+        if needs_governor || needs_members {
+            let registry2 = country.politics.vip_registry.as_mut().unwrap();
+            if needs_governor {
+                let gov_name =
+                    names::generate_key_vip(cultural_group, &mut rng_cb, &mut used_names);
+                let (gov_traits, gov_main) = assign_core_traits(&mut rng_cb);
+                let gov_vip_id = registry2.register_new(Vip {
+                    full_name: gov_name.full_name,
+                    gender: gov_name.gender,
+                    age: 45 + rng_cb.gen_range(0..20),
+                    health: crate::politics::vip_registry::VipHealth {
+                        physical_health: 1.0,
+                        mental_health: 1.0,
+                    },
+                    traits: gov_traits,
+                    main_trait: gov_main,
+                    ideology: "Ordoliberalism".to_string(),
+                    nationality: country.name.clone(),
+                    roles: vec![VipRoleExtended::CentralBankGovernor],
+                    base_influence: 40 + rng_cb.gen_range(0..20),
+                    ..Default::default()
+                });
+                country.central_bank.governor_id = gov_vip_id;
+            }
+            if needs_members {
+                let mut members: Vec<crate::state::MpcMember> = Vec::new();
+                for i in 0..5 {
+                    let m_name =
+                        names::generate_key_vip(cultural_group, &mut rng_cb, &mut used_names);
+                    let stance = match i % 3 {
+                        0 => "Hawk",
+                        1 => "Dove",
+                        _ => "Centrist",
+                    };
+                    registry2.register_new(Vip {
+                        full_name: m_name.full_name.clone(),
+                        gender: m_name.gender,
+                        age: 40 + rng_cb.gen_range(0..25),
+                        health: crate::politics::vip_registry::VipHealth {
+                            physical_health: 1.0,
+                            mental_health: 1.0,
+                        },
+                        ideology: "Ordoliberalism".to_string(),
+                        nationality: country.name.clone(),
+                        roles: vec![VipRoleExtended::MpcMember],
+                        base_influence: 20 + rng_cb.gen_range(0..20),
+                        ..Default::default()
+                    });
+                    members.push(crate::state::MpcMember {
+                        name: m_name.full_name,
+                        stance: stance.to_string(),
+                    });
+                }
+                if let Some(rpp) = country.central_bank.rpp.as_mut() {
+                    rpp.members = members;
+                }
+            }
+        }
+    }
 
     if !form.is_democratic() {
         // For non-democratic forms, install the strongest party as the regime.

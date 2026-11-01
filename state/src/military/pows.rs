@@ -98,6 +98,13 @@ pub struct PowCamp {
     /// this turn" — rewritten each intake pass).
     #[serde(default)]
     pub captured_last_turn: i64,
+    /// v4.27.0 (TASK-007): POWs who escaped during the most recent turn.
+    #[serde(default)]
+    pub escaped_last_turn: i64,
+    /// v4.27.0 (TASK-007): POWs who died in captivity during the most
+    /// recent turn (disease, exposure, overwork).
+    #[serde(default)]
+    pub deceased_last_turn: i64,
 }
 
 impl PowCamp {

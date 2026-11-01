@@ -1,9 +1,13 @@
+import { useCallback, useRef, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./ui";
-import type { RoyalDynastySnapshot, DynastyMemberRow, CourtIntrigueRow } from "../types/api";
+import type { RoyalDynastySnapshot, DynastyMemberRow, CourtIntrigueRow, InternalConflictsSnapshot } from "../types/api";
 import { VipHoverCard } from "./VipHoverCard";
 
 interface DynastyTreeProps {
   dynasty: RoyalDynastySnapshot;
+  /** v4.27.0 (TASK-009): active coup plots + historical resolution log —
+      passed from the government snapshot's `internal_conflicts`. */
+  conflicts?: InternalConflictsSnapshot | null;
 }
 
 /**
@@ -14,7 +18,79 @@ interface DynastyTreeProps {
  * (`father/mother/spouse/children`), succession order, regency state,
  * council disloyalty and claimant position from the politics machinery.
  */
-export function DynastyTree({ dynasty }: DynastyTreeProps) {
+/**
+ * v4.27.0 (TASK-009): click-drag pan + mouse-wheel zoom viewport so large
+ * dynasties never clip off-screen. The inner content renders at natural
+ * size inside a `translate/scale` transform; wheel zooms around the
+ * viewport center, drag pans freely.
+ */
+function PanZoomViewport({ children }: { children: React.ReactNode }) {
+  const [view, setView] = useState({ x: 0, y: 0, z: 1 });
+  const drag = useRef<{ px: number; py: number } | null>(null);
+
+  const onWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setView((v) => {
+      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      const z = Math.min(3, Math.max(0.25, v.z * factor));
+      // Zoom toward the viewport center — keep the focal point stable.
+      const rect = e.currentTarget.getBoundingClientRect();
+      const cx = e.clientX - rect.left - rect.width / 2;
+      const cy = e.clientY - rect.top - rect.height / 2;
+      const k = z / v.z;
+      return { x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k, z };
+    });
+  }, []);
+
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    drag.current = { px: e.clientX, py: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }, []);
+
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!drag.current) return;
+    const dx = e.clientX - drag.current.px;
+    const dy = e.clientY - drag.current.py;
+    drag.current = { px: e.clientX, py: e.clientY };
+    setView((v) => ({ ...v, x: v.x + dx, y: v.y + dy }));
+  }, []);
+
+  const endDrag = useCallback(() => {
+    drag.current = null;
+  }, []);
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-md border border-border/60 bg-background"
+      style={{ height: 420, cursor: drag.current ? "grabbing" : "grab", touchAction: "none" }}
+      onWheel={onWheel}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      onPointerLeave={endDrag}
+      title="Drag to pan · scroll to zoom"
+    >
+      <div
+        className="absolute left-1/2 top-4"
+        style={{
+          transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})`,
+          transformOrigin: "0 0",
+        }}
+      >
+        {children}
+      </div>
+      <button
+        type="button"
+        className="absolute right-2 bottom-2 rounded border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+        onClick={() => setView({ x: 0, y: 0, z: 1 })}
+      >
+        reset {Math.round(view.z * 100)}%
+      </button>
+    </div>
+  );
+}
+
+export function DynastyTree({ dynasty, conflicts }: DynastyTreeProps) {
   const members = dynasty.members;
   if (members.length === 0) {
     return (
@@ -192,11 +268,15 @@ export function DynastyTree({ dynasty }: DynastyTreeProps) {
       <Card>
         <CardHeader><CardTitle>Family Tree</CardTitle></CardHeader>
         <CardContent>
-          <div className="gss-dynasty-tree">
-            <ul>
-              {roots.map((r) => renderNode(r, new Set()))}
-            </ul>
-          </div>
+          {/* v4.27.0 (TASK-009): the tree lives inside a pan/zoom viewport
+              so wide dynasties stay reachable instead of clipping. */}
+          <PanZoomViewport>
+            <div className="gss-dynasty-tree">
+              <ul>
+                {roots.map((r) => renderNode(r, new Set()))}
+              </ul>
+            </div>
+          </PanZoomViewport>
           {roots.length === 0 && (
             <div className="text-muted-foreground text-sm">
               No lineage links recorded for this dynasty.
@@ -261,6 +341,44 @@ export function DynastyTree({ dynasty }: DynastyTreeProps) {
                 <IntrigueRow key={`${ig.vip_id}-${ig.kind}-${i}`} intrigue={ig} />
               ))}
             </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* v4.27.0 (TASK-009): Historical Plot & Coup Resolution Log —
+          how past plots ended, straight from internal_conflicts. */}
+      {conflicts && conflicts.resolutions.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle>Plot &amp; Coup Resolution Log</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Plot</TableHead>
+                  <TableHead>Kind</TableHead>
+                  <TableHead>Instigator</TableHead>
+                  <TableHead>Outcome</TableHead>
+                  <TableHead className="text-right">Peak</TableHead>
+                  <TableHead className="text-right">Resolved</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {conflicts.resolutions.map((r) => (
+                  <TableRow key={r.plot_id}>
+                    <TableCell className="font-medium">{r.title}</TableCell>
+                    <TableCell>{r.kind_label}</TableCell>
+                    <TableCell>{r.instigator_name}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[10px]">{r.outcome}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {Math.round(r.peak_strength)}%
+                    </TableCell>
+                    <TableCell className="text-right">T{r.resolved_turn}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
@@ -399,7 +517,14 @@ function MemberCard({
         {member.reign_start_turn !== null && member.reign_start_turn !== undefined && (
           <Badge variant="outline" className="text-[9px] px-1 py-0">
             reign T{member.reign_start_turn}
-            {member.is_dead ? "" : "–"}
+            {/* v4.27.0 (TASK-009): closed reign badge — "reign T109–T135"
+                for former/dead monarchs, open "reign T109–" only while the
+                reign is actually ongoing. */}
+            {member.reign_end_turn !== null && member.reign_end_turn !== undefined
+              ? `–T${member.reign_end_turn}`
+              : member.is_dead
+              ? ""
+              : "–"}
           </Badge>
         )}
         {!member.is_dead && member.succession_order > 0 && !member.is_heir_apparent && (
@@ -410,9 +535,11 @@ function MemberCard({
   );
 }
 
-/// One court intrigue row — kind badge, linked name, description, and a
-/// severity meter driven by the engine-derived 0–1 severity.
+/// One court intrigue row — kind badge, linked name, description, a
+/// severity meter, and (v4.27.0) an expandable detail block naming the
+/// plot's goal, known conspirators, and backing factions.
 function IntrigueRow({ intrigue }: { intrigue: CourtIntrigueRow }) {
+  const [open, setOpen] = useState(false);
   const kindClass =
     intrigue.kind === "Regent Ambition"
       ? "bg-amber-600/30 text-amber-300 border-amber-500/40"
@@ -420,27 +547,49 @@ function IntrigueRow({ intrigue }: { intrigue: CourtIntrigueRow }) {
       ? "bg-orange-600/30 text-orange-300 border-orange-500/40"
       : "bg-red-900/50 text-red-300 border-red-800/60"; // Faction Conspiracy
   return (
-    <li className="flex items-start gap-3 text-xs border border-border/60 rounded px-3 py-2">
-      <span className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-[10px] font-medium ${kindClass}`}>
-        {intrigue.kind}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="font-medium">
-          <VipHoverCard vipId={intrigue.vip_id}>{intrigue.name}</VipHoverCard>
+    <li
+      className="text-xs border border-border/60 rounded px-3 py-2 cursor-pointer hover:bg-muted/30"
+      onClick={() => setOpen((o) => !o)}
+    >
+      <div className="flex items-start gap-3">
+        <span className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-[10px] font-medium ${kindClass}`}>
+          {intrigue.kind}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="font-medium">
+            <VipHoverCard vipId={intrigue.vip_id}>{intrigue.name}</VipHoverCard>
+            <span className="ml-1 text-[9px] text-muted-foreground">{open ? "▾" : "▸"}</span>
+          </div>
+          <div className="text-muted-foreground">{intrigue.description}</div>
         </div>
-        <div className="text-muted-foreground">{intrigue.description}</div>
+        <div className="shrink-0 w-20 text-right" title={`Severity ${intrigue.severity.toFixed(2)}`}>
+          <div className="h-1.5 w-full bg-muted rounded overflow-hidden mt-1.5">
+            <div
+              className={intrigue.severity > 0.66 ? "h-full bg-red-500" : intrigue.severity > 0.33 ? "h-full bg-amber-500" : "h-full bg-yellow-500"}
+              style={{ width: `${Math.round(intrigue.severity * 100)}%` }}
+            />
+          </div>
+          <div className="text-[9px] text-muted-foreground mt-0.5">
+            {(intrigue.severity * 100).toFixed(0)}%
+          </div>
+        </div>
       </div>
-      <div className="shrink-0 w-20 text-right" title={`Severity ${intrigue.severity.toFixed(2)}`}>
-        <div className="h-1.5 w-full bg-muted rounded overflow-hidden mt-1.5">
-          <div
-            className={intrigue.severity > 0.66 ? "h-full bg-red-500" : intrigue.severity > 0.33 ? "h-full bg-amber-500" : "h-full bg-yellow-500"}
-            style={{ width: `${Math.round(intrigue.severity * 100)}%` }}
-          />
+      {open && (
+        <div className="mt-2 ml-1 space-y-1 border-l-2 border-border/60 pl-3">
+          <div>
+            <span className="text-muted-foreground">Goal: </span>
+            {intrigue.goal || "—"}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Conspirators: </span>
+            {intrigue.conspirators.length > 0 ? intrigue.conspirators.join(", ") : "none identified"}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Backing factions: </span>
+            {intrigue.backers.length > 0 ? intrigue.backers.join(", ") : "—"}
+          </div>
         </div>
-        <div className="text-[9px] text-muted-foreground mt-0.5">
-          {(intrigue.severity * 100).toFixed(0)}%
-        </div>
-      </div>
+      )}
     </li>
   );
 }

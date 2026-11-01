@@ -610,6 +610,32 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             process_demographics_and_labor(&mut task.ctx);
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
+
+        // v4.27.0 (TASK-009): the education/health capacity sync was only
+        // reachable via the orphaned `run_economic_turn` entry point —
+        // the "School seats: 0.00" defect. Wire it into the real loop so
+        // capacity_pool reflects live buildings every turn, then apply
+        // infrastructure effects on top (their original ordering).
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
+            crate::infrastructure::sync_education_capacity_pool(
+                &task.ctx.buildings,
+                &mut task.ctx.country.regions,
+            );
+            for region in &mut task.ctx.country.regions {
+                crate::infrastructure::effects::apply_infrastructure_effects(
+                    region, task.ctx.year,
+                );
+            }
+            // v4.27.0 (TASK-009): `social_unrest` accumulated without any
+            // decay — every producer only added, so it pinned at 100%
+            // forever ("universal 100% discontent"). Decay toward 0 at
+            // 3%/turn and clamp to the 0–100 scale the KPIs present.
+            let unrest = &mut task.ctx.country.macro_indicators.social_unrest;
+            *unrest = (*unrest * 0.97).clamp(0.0, 100.0);
+        });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "dm");
@@ -12111,6 +12137,18 @@ tasks.par_iter_mut().for_each(|task| {
                 &migration_config,
             );
 
+            // v4.27.0 (TASK-006): persist last-turn international flows per
+            // country (as origin or destination) — the Society page's
+            // Immigration Origins / Emigration Destinations table.
+            for task in &mut tasks {
+                let name = task.ctx.country_name.clone();
+                task.ctx.country.last_migration_flows = flows
+                    .iter()
+                    .filter(|f| f.origin_country == name || f.dest_country == name)
+                    .cloned()
+                    .collect();
+            }
+
             // Pass 3: Process deportations per country (parallel-safe, single country)
             let deportation_config = migration_config.clone();
             let _saved_rng_state = crate::engine::seeded_rng::save_stream();
@@ -12121,6 +12159,14 @@ tasks.par_iter_mut().for_each(|task| {
                 let (_deported, wealth) =
                     crate::economy::migration::process_deportations(task.ctx.country, border_cap, &deportation_config);
                 task.deported_wealth = wealth;
+
+                // v4.27.0 (TASK-006): internal region↔region migration —
+                // rural→urban, low-wage→high-wage. Population conserved
+                // within the country; parallel-safe (single country).
+                task.ctx.country.last_internal_flows =
+                    crate::economy::labor::migration::process_internal_migration(
+                        task.ctx.country,
+                    );
             });
             crate::engine::seeded_rng::restore_stream(_saved_rng_state);
             // Sequential: credit deported wealth to foreign_sector_balance (F4).

@@ -843,6 +843,8 @@ fn generate_country(
         politics: Politics::default(),
         regions: Vec::new(),
         megaregions: Vec::new(),
+        last_migration_flows: Vec::new(),
+        last_internal_flows: Vec::new(),
         is_rebellion: false,
         mother_country: None,
         rebellion_type: None,
@@ -1469,9 +1471,18 @@ fn spawn_standing_oob(
     use crate::military::oob::{generate_asymmetric_oob, Army, Division, OrderOfBattle, Regiment};
     use crate::military::units::{EquipmentReserve, MilitaryUnit, UnitType};
 
-    let total_pop: i64 = regions.values().map(|r| r.population).sum();
-    let total_gdp: f64 = regions.values().map(|r| r.gdp).sum();
-    let has_coast = regions.values().any(|r| r.geographic_traits.has_coastline);
+    // Deterministic summation order: HashMap iteration order is randomized
+    // per-process, and f64 addition is non-associative — an unordered sum
+    // leaks 1-ULP nondeterminism into gdp_per_capita (and every field derived
+    // from it, e.g. unit training). Sort by the canonical region key first.
+    let mut sorted_regions: Vec<&crate::society::geography::Region> =
+        regions.values().collect();
+    sorted_regions.sort_by_key(|r| map_region_sort_key(&r.id));
+    let total_pop: i64 = sorted_regions.iter().map(|r| r.population).sum();
+    let total_gdp: f64 = sorted_regions.iter().map(|r| r.gdp).sum();
+    let has_coast = sorted_regions
+        .iter()
+        .any(|r| r.geographic_traits.has_coastline);
 
     // Phase 76: Derive GDP per capita and average wage for OOB scaling.
     let gdp_per_capita = if total_pop > 0 {
@@ -1629,36 +1640,61 @@ fn spawn_standing_oob(
             support_regiment.add_unit(air);
         }
 
-        // Naval Fleet (if coastal, year >= 1880, and country can afford navy)
-        if has_coast && start_year >= 1880 && gdp_per_capita > 800.0 {
-            let naval_manpower = (army_size / 20).max(50);
-            // Deterministic pick: HashMap `.values().find()` takes the first
-            // coastal hit in RandomState order, which differs between the
-            // two generate_world calls in `same_seed_same_world`. Pick the
-            // earliest coastal region in generation order instead.
-            let coastal_region = regions
-                .values()
-                .filter(|r| r.geographic_traits.has_coastline)
-                .min_by_key(|r| map_region_sort_key(&r.id))
-                .map(|r| r.id.clone())
-                .unwrap_or_else(|| home_regions[0].clone());
-            let mut naval = MilitaryUnit::new(
-                format!("{}-NAV-1", country.name),
-                UnitType::Naval,
-                naval_manpower,
-                draw_manpower(regions, naval_manpower),
-                coastal_region,
-            );
-            naval.equipment_reserves = make_toe(&UnitType::Naval, naval_manpower);
-            support_regiment.add_unit(naval);
-        }
-
         // Only add the support army if it has units
         if !support_regiment.units.is_empty() {
             support_division.add_regiment(support_regiment);
             support_army.add_division(support_division);
             oob.add_army(support_army);
         }
+    }
+
+    // v4.27.0 (TASK-007): every COASTAL country fields a real standing
+    // fleet in 1880+ — not one lone naval unit buried in a support
+    // regiment. Squadron count scales with coastal breadth; ship classes
+    // cycle Battleship → Cruiser → Destroyer → Transport.
+    if has_coast && start_year >= 1880 {
+        use crate::military::oob::generate_fleet;
+        let coastal_region = regions
+            .values()
+            .filter(|r| r.geographic_traits.has_coastline)
+            .min_by_key(|r| map_region_sort_key(&r.id))
+            .map(|r| r.id.clone())
+            .unwrap_or_else(|| home_regions[0].clone());
+        let coastal_count = regions
+            .values()
+            .filter(|r| r.geographic_traits.has_coastline)
+            .count();
+        // Richer + wider coasts field more squadrons.
+        let squadron_count = ((coastal_count / 2).max(1) as f64
+            * (1.0 + gdp_per_capita / 2000.0).min(2.0))
+        .round() as usize;
+        let squadron_count = squadron_count.max(1).min(6);
+        let naval_manpower = (army_size / 8).max(200);
+        let mut fleet = generate_fleet(
+            &country.name,
+            squadron_count,
+            4,
+            naval_manpower,
+            &coastal_region,
+            draw_manpower(regions, naval_manpower).into_iter().collect(),
+        );
+        for div in &mut fleet.divisions {
+            for reg in &mut div.regiments {
+                for ship in &mut reg.units {
+                    ship.equipment_reserves =
+                        make_toe(&UnitType::Naval, ship.manpower);
+                }
+            }
+        }
+        oob.add_army(fleet);
+    }
+
+    // v4.27.0 (TASK-007): seed real drill levels at generation — raw
+    // conscripts start green, scaled by the country's development level
+    // (richer states afford better-trained cadres).
+    let base_training = (20.0 + gdp_per_capita / 100.0).min(60.0);
+    for unit in oob.all_units_mut() {
+        unit.training = base_training;
     }
 
     oob
@@ -2518,6 +2554,8 @@ fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> cr
             last_meeting_turn: 0,
             next_meeting_turn: 12, // Monthly meetings
             decision_log: Vec::new(),
+            members: Vec::new(),
+            mpc_decisions: Vec::new(),
             extra: Map::new(),
         }),
         reserve_requirement_ratio: 0.10,
@@ -2536,6 +2574,7 @@ fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> cr
         omo_last_operation_amount: 0.0,
         deposit_facility_interest_paid: 0.0,
         lombard_facility_interest_received: 0.0,
+        omo_log: Vec::new(),
         last_message: String::new(),
         // Phase 36: Configurable Taylor Rule targets
         target_inflation: 0.02, // 2% inflation target

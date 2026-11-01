@@ -1,9 +1,9 @@
 {
   "version": 2,
   "schema": "daemon-v2-backlog",
-  "release": "v4.26.0-ui-complete",
+  "release": "v4.27.0-task-batch",
   "base_ref": "origin/main",
-  "updated_at": "2026-10-31T15:56:47.506Z",
+  "updated_at": "2026-11-01T17:32:56.200Z",
   "tasks": [
     {
       "id": "TASK-001",
@@ -234,6 +234,314 @@
       ],
       "created_at": "2026-10-31T11:00:00Z",
       "updated_at": "2026-10-31T15:56:47.506Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-005",
+      "title": "Map geometry: true adjacency, real islands, inland lakes, fractal coasts, 4 map modes, dense parcels, climate/biome map",
+      "status": "DONE",
+      "priority": 10,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-005.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/society/geography.rs",
+        "state/src/ui/snapshot_map.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/RegionsPage.tsx",
+        "src/pages/MapPage.tsx",
+        "src/pages/LandPage.tsx",
+        "src/components/map/WorldMapSvg.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "mapMode|MapMode|map_mode",
+          "desc": "Map Mode switcher exists"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "arter|transport|road|rail",
+          "desc": "Transport arteries overlay"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "migration|Migration",
+          "desc": "Internal Migration mode w/ arrows"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "party|Party|faction|Faction",
+          "desc": "Party/Faction Support mode"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "megaregion|Megaregion|mega_region",
+          "desc": "Megaregions mode moved to Regions"
+        },
+        {
+          "file": "src/pages/LandPage.tsx",
+          "pattern": "topograph|Topograph|biome|Biome|terrain|Terrain",
+          "desc": "Topography & Biome map in Climate"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "Industrial|Commercial|Water",
+          "desc": "Industrial/Commercial/Water parcel zones"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "island|Island|is_island|isIsland",
+          "desc": "Islands rendered distinctly"
+        }
+      ],
+      "created_at": "2026-11-01T15:15:55.535Z",
+      "updated_at": "2026-11-01T15:47:09.258Z",
+      "verify_history": [
+        {
+          "at": "2026-11-01T15:46:10.326Z",
+          "result": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "TASK-006",
+      "title": "International & internal migration tracking — origins/destinations table, regional in/out/net flow",
+      "status": "DONE",
+      "priority": 9,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-006.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/economy/labor/migration.rs",
+        "state/src/ui/snapshot_regions.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/SocietyPage.tsx",
+        "src/pages/RegionsPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/SocietyPage.tsx",
+          "pattern": "[Ii]mmigration|[Ee]migration",
+          "desc": "Immigration/Emigration section"
+        },
+        {
+          "file": "src/pages/SocietyPage.tsx",
+          "pattern": "origin|destination|source|Origin|Destination",
+          "desc": "Origins & Destinations breakdown table"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "in_?migration|out_?migration|net_?migration|InMigration|OutMigration|NetMigration|migration",
+          "desc": "Regional in/out/net migration stats"
+        }
+      ],
+      "created_at": "2026-11-01T15:15:55.535Z",
+      "updated_at": "2026-11-01T16:07:11.047Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-007",
+      "title": "Deep military overhaul — regimental names, coalition wars + territory transfer, readiness/navy fix, dynamic POW camps",
+      "status": "DONE",
+      "priority": 9,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-007.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/military/oob.rs",
+        "state/src/military/pows.rs",
+        "state/src/military/units.rs",
+        "state/src/ui/snapshot.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/MilitaryPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "[Rr]egiment|Line Infantry|Lancers|Hussars",
+          "desc": "Cultural regimental names"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "[Dd]octrine|[Tt]actic|Barrage|Envelopment",
+          "desc": "Tactical doctrine per battle"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "coalition|Coalition|allied|Allies",
+          "desc": "Unified coalition war table"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "war_?goal|WarGoal|warGoal|casus",
+          "desc": "Concrete war goals"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "annex|cession|territor|conquered",
+          "desc": "Territorial transfers on war end"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "Battleship|Cruiser|Destroyer|Transport|[Nn]aval|[Ff]leet",
+          "desc": "Naval fleet unit types"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "Infantry|Cavalry|Artillery|Engineer",
+          "desc": "Land unit sub-types"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "forced_?labor|maintenance_?cost|escape|mortality",
+          "desc": "Dynamic POW economics"
+        }
+      ],
+      "created_at": "2026-11-01T15:15:55.535Z",
+      "updated_at": "2026-11-01T16:22:15.077Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-008",
+      "title": "Diplomacy missions (diplomat/ambassador/spy + progress) & distinct era-appropriate expandable org resolutions",
+      "status": "DONE",
+      "priority": 8,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-008.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/international/organizations.rs",
+        "state/src/ui/snapshot.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/DiplomacyPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/DiplomacyPage.tsx",
+          "pattern": "[Mm]ission|[Aa]mbassador|[Dd]iplomat",
+          "desc": "Missions table with agents"
+        },
+        {
+          "file": "src/pages/DiplomacyPage.tsx",
+          "pattern": "mission_?type|missionType|progress|assigned",
+          "desc": "Mission type + progress"
+        },
+        {
+          "file": "src/pages/DiplomacyPage.tsx",
+          "pattern": "[Ss]py|covert|Steal|Sabotage",
+          "desc": "Spy/covert missions surfaced"
+        },
+        {
+          "file": "src/pages/DiplomacyPage.tsx",
+          "pattern": "statutory|funding|economic_?effect|description",
+          "desc": "Expandable resolutions w/ rules+effects+funding"
+        }
+      ],
+      "created_at": "2026-11-01T15:15:55.535Z",
+      "updated_at": "2026-11-01T16:29:50.173Z",
+      "verify_history": [
+        {
+          "at": "2026-11-01T16:29:31.647Z",
+          "result": "FAIL"
+        }
+      ]
+    },
+    {
+      "id": "TASK-009",
+      "title": "Differentiated ministry budgets/KPIs (school seats>0) + pan/zoom dynasty tree + intrigue details + closed reigns",
+      "status": "PENDING",
+      "priority": 8,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-009.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/politics/ministries.rs",
+        "state/src/politics/succession.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/GovernmentPage.tsx",
+        "src/components/DynastyTree.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/GovernmentPage.tsx",
+          "pattern": "school_?seats|sanitary|kpi|KPI|enrollment",
+          "desc": "Domain KPIs incl. school seats"
+        },
+        {
+          "file": "src/components/DynastyTree.tsx",
+          "pattern": "onWheel|zoom|viewBox|pan|scale",
+          "desc": "Pan/zoom container on family tree"
+        },
+        {
+          "file": "src/components/DynastyTree.tsx",
+          "pattern": "reign|Reign",
+          "desc": "Reign badges with closed dates"
+        },
+        {
+          "file": "src/components/DynastyTree.tsx",
+          "pattern": "conspirator|plot|[Ii]ntrigue|backing|coup",
+          "desc": "Expandable intrigue details + resolution log"
+        }
+      ],
+      "created_at": "2026-11-01T15:15:55.535Z",
+      "updated_at": "2026-11-01T15:15:55.535Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-010",
+      "title": "Banking → Central Bank sub-tab (governor, independence, mandate, balance sheet, OMO log, MPC votes)",
+      "status": "DONE",
+      "priority": 7,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-010.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/state/central_bank.rs",
+        "state/src/ui/snapshot.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/BankingPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "Central Bank|central_bank|centralBank|Bank Centralny",
+          "desc": "Central Bank sub-tab"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "[Gg]overnor",
+          "desc": "Governor VIP link + traits"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "independence|Independence|mandate|Mandate",
+          "desc": "Independence index + mandate"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "gold|Gold|fx|FX|reserve",
+          "desc": "Balance sheet + reserve composition"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "MPC|committee|rate|bps|vote",
+          "desc": "MPC rate decisions + voting history"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "open.?market|OMO|liquidity|operation",
+          "desc": "Open market operations log"
+        }
+      ],
+      "created_at": "2026-11-01T15:15:55.535Z",
+      "updated_at": "2026-11-01T17:32:56.200Z",
       "verify_history": []
     }
   ]

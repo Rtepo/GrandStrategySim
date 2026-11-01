@@ -414,6 +414,14 @@ pub struct RegionRow {
     /// "Appointed Governor" | "Commissary Admin" | "Martial Law" | "None".
     pub governance_mode: String,
     pub liquid_reserves: f64,
+    /// v4.27.0 (TASK-006): last turn's internal in-migration (persons
+    /// arriving from other regions of the same country).
+    pub migration_in: i64,
+    /// v4.27.0 (TASK-006): last turn's internal out-migration (persons
+    /// leaving for other regions of the same country).
+    pub migration_out: i64,
+    /// v4.27.0 (TASK-006): net internal+international migration last turn.
+    pub net_migration: i64,
 }
 
 /// v4.22 WS3: derive the display governance mode from real governance state —
@@ -716,6 +724,15 @@ pub struct DiplomatRow {
     pub assigned_turn: u32,
     /// VIP traits.
     pub traits: Vec<String>,
+    /// v4.27.0 (TASK-008): active mission label — the spy's covert
+    /// operation for `Spy` posts, or the standing assignment derived
+    /// from the bilateral relationship for envoys.
+    #[serde(default)]
+    pub mission_type: String,
+    /// v4.27.0 (TASK-008): mission progress 0.0–1.0 — the real covert-op
+    /// progress for spies; a state-derived fraction for envoys.
+    #[serde(default)]
+    pub mission_progress: f64,
 }
 
 /// Phase 66: Intelligence on a foreign country (Fog of War filtered).
@@ -1060,6 +1077,19 @@ pub struct DirectiveRow {
     pub votes_abstain: usize,
     /// (member state, "For"|"Against"|"Abstain") roll call, sorted by member.
     pub votes: Vec<(String, String)>,
+    /// v4.27.0 (TASK-008): full description, statutory rules, economic
+    /// effects, and funding source for the expandable resolution panel.
+    #[serde(default)]
+    pub description: String,
+    /// v4.27.0 (TASK-008): statutory rules imposed on members.
+    #[serde(default)]
+    pub statutory_rules: String,
+    /// v4.27.0 (TASK-008): expected economic effects.
+    #[serde(default)]
+    pub economic_effects: String,
+    /// v4.27.0 (TASK-008): how the resolution is funded.
+    #[serde(default)]
+    pub funding_source: String,
 }
 
 /// Phase 68: A sanction row for the diplomacy snapshot.
@@ -1975,8 +2005,69 @@ pub fn build_diplomacy_snapshot(
                 .filter(|v| v.diplomatic_post.is_some())
                 .collect();
             posted_vips.sort_by_key(|v| v.id.clone());
+            // v4.27.0 (TASK-008): live covert operations run by this
+            // country's intelligence agency — spy posts join their op
+            // for the real mission type + progress.
+            let ops: &[crate::international::intelligence::CovertOperation] = state
+                .intelligence_agencies
+                .get(country_name)
+                .map(|a| a.operations.as_slice())
+                .unwrap_or(&[]);
             for vip in posted_vips {
                 let post = vip.diplomatic_post.as_ref().unwrap();
+                let rel = diplomacy
+                    .get(country_name)
+                    .and_then(|p| p.get(&post.host_country));
+                let (mission_type, mission_progress) = match post.post_type {
+                    crate::politics::vip_registry::DiplomaticPostType::Spy => {
+                        match ops
+                            .iter()
+                            .find(|o| {
+                                o.target_country == post.host_country
+                                    && o.status
+                                        == crate::international::intelligence::CovertOpStatus::Active
+                            })
+                            .or_else(|| {
+                                ops.iter().find(|o| o.target_country == post.host_country)
+                            }) {
+                            Some(op) => {
+                                (op.mission_type.as_str().to_string(), op.progress)
+                            }
+                            None => ("Deep Cover".to_string(), 0.0),
+                        }
+                    }
+                    _ => {
+                        let relations = rel.map(|r| r.relations).unwrap_or(0) as f64;
+                        let embargo = rel.map(|r| r.ban_import || r.ban_export).unwrap_or(false);
+                        let free_trade = rel.map(|r| r.free_trade).unwrap_or(false);
+                        if embargo {
+                            (
+                                "Negotiate Sanctions Relief".to_string(),
+                                ((relations + 100.0) / 200.0).clamp(0.0, 1.0),
+                            )
+                        } else if relations < 0.0 {
+                            (
+                                "Improve Relations".to_string(),
+                                ((relations + 100.0) / 200.0).clamp(0.0, 1.0),
+                            )
+                        } else if !free_trade {
+                            (
+                                "Negotiate Trade Pact".to_string(),
+                                (relations / 100.0).clamp(0.0, 1.0),
+                            )
+                        } else if !rel.map(|r| r.customs_union).unwrap_or(false) {
+                            (
+                                "Negotiate Customs Union".to_string(),
+                                (relations / 100.0).clamp(0.0, 1.0),
+                            )
+                        } else {
+                            (
+                                "Maintain Cordial Relations".to_string(),
+                                (relations / 100.0).clamp(0.0, 1.0),
+                            )
+                        }
+                    }
+                };
                 diplomats.push(DiplomatRow {
                     vip_id: vip.id.clone(),
                     name: vip.full_name.clone(),
@@ -1984,6 +2075,8 @@ pub fn build_diplomacy_snapshot(
                     post_type: format!("{:?}", post.post_type),
                     assigned_turn: post.assigned_turn,
                     traits: vip.traits.clone(),
+                    mission_type,
+                    mission_progress,
                 });
             }
         }
@@ -2072,6 +2165,10 @@ pub fn build_diplomacy_snapshot(
                     .iter()
                     .map(|(m, v)| (m.clone(), v.clone()))
                     .collect(),
+                description: d.description.clone(),
+                statutory_rules: d.statutory_rules.clone(),
+                economic_effects: d.economic_effects.clone(),
+                funding_source: d.funding_source.clone(),
             })
             .collect();
         organizations.push(InternationalOrgRow {
@@ -3650,6 +3747,16 @@ pub struct RegionDetail {
     /// Phase 87+: Geological deposits (role-gated — undiscovered deposits
     /// filtered out for foreign observers per Directive 11).
     pub geological_deposits: Vec<GeologicalDepositRow>,
+    /// v4.27.0 (TASK-006): regional migration stats — internal
+    /// in/out/net plus top source and destination regions.
+    pub migration_in: i64,
+    pub migration_out: i64,
+    pub net_migration: i64,
+    /// Top source regions + counts (this turn's in-migration) —
+    /// display-name resolved.
+    pub migration_top_sources: Vec<crate::ui::snapshot_regions::MigrationPartnerRow>,
+    /// Top destination regions + counts (this turn's out-migration).
+    pub migration_top_destinations: Vec<crate::ui::snapshot_regions::MigrationPartnerRow>,
 }
 
 /// Phase 87+: Geological deposit row for the Land Resources tab.
@@ -4110,6 +4217,17 @@ pub struct CourtIntrigueRow {
     pub kind: String,
     pub description: String,
     pub severity: f64,
+    /// v4.27.0 (TASK-009): what the plot aims at — "Depose the monarch",
+    /// "Seize the regency", "Claim the throne".
+    #[serde(default)]
+    pub goal: String,
+    /// v4.27.0 (TASK-009): named co-conspirators / backing factions the
+    /// court knows are involved — VIP names and faction labels.
+    #[serde(default)]
+    pub conspirators: Vec<String>,
+    /// v4.27.0 (TASK-009): backing factions lending the plot weight.
+    #[serde(default)]
+    pub backers: Vec<String>,
 }
 
 /// v4.23.0 WS2: A living claimant in the succession line behind the heir
@@ -4152,6 +4270,11 @@ pub struct DynastyMemberRow {
     /// the tree card show "reigns since T{n}".
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reign_start_turn: Option<u32>,
+    /// v4.27.0 (TASK-009): Turn this member's reign ended — death turn for
+    /// dead monarchs, the member's recorded `reign_end_turn` for living
+    /// abdicated/deposed monarchs. Lets the badge close ("reign T109–T135").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reign_end_turn: Option<u32>,
 }
 
 /// Phase 86: A royal marriage event row for UI display.
@@ -4437,6 +4560,87 @@ pub struct MacroHistoryPoint {
     pub ppi: f64,
 }
 
+/// v4.27.0 (TASK-010): one foreign-currency reserve holding.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct FxReserveRow {
+    pub currency: String,
+    pub amount: f64,
+}
+
+/// v4.27.0 (TASK-010): one open-market / FX / gold operation log entry.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct OmoOperationRow {
+    pub turn: u32,
+    pub kind: String,
+    pub amount: f64,
+    pub note: String,
+}
+
+/// v4.27.0 (TASK-010): one MPC roll-call vote.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MpcVoteRow {
+    pub member_name: String,
+    pub vote: String,
+}
+
+/// v4.27.0 (TASK-010): one MPC rate decision — rates, bps change, macro
+/// rationale and the committee roll-call.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MpcDecisionRow {
+    pub turn: u32,
+    pub previous_rate: f64,
+    pub new_rate: f64,
+    pub bps_change: f64,
+    pub cpi: f64,
+    pub output_gap: f64,
+    pub rationale: String,
+    pub votes: Vec<MpcVoteRow>,
+}
+
+/// v4.27.0 (TASK-010): full Central Bank DTO for the Banking → Central
+/// Bank sub-tab (governor, independence, mandate, balance sheet, OMO log,
+/// MPC decision history).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CentralBankDto {
+    pub bank_name: String,
+    pub governor_vip_id: String,
+    pub governor_name: String,
+    pub governor_traits: Vec<String>,
+    pub governor_main_trait: String,
+    /// Governor's ideology field (monetary-policy leaning).
+    pub monetary_ideology: String,
+    /// Turn the governor's term ends (None = indefinite).
+    pub term_end_turn: Option<u32>,
+    /// 0–100 institutional independence index.
+    pub independence_index: f64,
+    /// "Federal" | "CentralIndependent" | "Dependent" (display label).
+    pub independence_model: String,
+    /// Mandate display label ("Price Stability" | "Dual Mandate" |
+    /// "State Credit Financing").
+    pub mandate: String,
+    pub reference_rate: f64,
+    pub lombard_rate: f64,
+    pub deposit_rate: f64,
+    pub rediscount_rate: f64,
+    pub discount_rate: f64,
+    /// Physical bullion reserves (tons) and their IEU value.
+    pub gold_reserves_tons: f64,
+    pub gold_reserves_value: f64,
+    pub fx_reserves: Vec<FxReserveRow>,
+    /// Government bonds held via OMO purchases.
+    pub omo_bond_holdings: f64,
+    /// Outstanding ELA/Lombard liquidity extended to banks.
+    pub ela_outstanding: f64,
+    pub reserve_requirement: f64,
+    pub omo_log: Vec<OmoOperationRow>,
+    pub mpc_decisions: Vec<MpcDecisionRow>,
+}
+
 /// Response for the get_banking_aggregates command.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
@@ -4451,6 +4655,92 @@ pub struct BankingAggregates {
     pub m3: f64,
     pub cb_fx_reserves_total: f64,
     pub cb_gold_reserves: f64,
+    /// v4.27.0 (TASK-010): Central Bank sub-tab payload.
+    pub central_bank: CentralBankDto,
+}
+
+/// v4.27.0 (TASK-010): build the Central Bank DTO from country state —
+/// resolves the governor VIP for name/traits and maps every ledger field
+/// the sub-tab renders.
+pub fn build_central_bank_dto(country: &crate::state::Country) -> CentralBankDto {
+    let cb = &country.central_bank;
+    let gov = country
+        .politics
+        .vip_registry
+        .as_ref()
+        .and_then(|r| r.get(&cb.governor_id));
+    let term_end = if cb.governor_term_length > 0 {
+        Some(cb.governor_appointment_turn + cb.governor_term_length)
+    } else {
+        None
+    };
+    CentralBankDto {
+        bank_name: cb.name.clone(),
+        governor_vip_id: cb.governor_id.clone(),
+        governor_name: gov.map(|v| v.full_name.clone()).unwrap_or_default(),
+        governor_traits: gov.map(|v| v.traits.clone()).unwrap_or_default(),
+        governor_main_trait: gov.map(|v| v.main_trait.clone()).unwrap_or_default(),
+        monetary_ideology: gov.map(|v| v.ideology.clone()).unwrap_or_default(),
+        term_end_turn: term_end,
+        independence_index: cb.independence_index(),
+        independence_model: format!("{:?}", cb.independence_model),
+        mandate: cb.mandate_label().to_string(),
+        reference_rate: cb.interest_rates.reference_rate,
+        lombard_rate: cb.interest_rates.lombard_rate,
+        deposit_rate: cb.interest_rates.deposit_rate,
+        rediscount_rate: cb.interest_rates.rediscount_rate,
+        discount_rate: cb.interest_rates.discount_rate,
+        gold_reserves_tons: cb.physical_gold_reserves,
+        gold_reserves_value: cb.physical_gold_reserves
+            * crate::state::gold::GOLD_PRICE_IEU_1900,
+        fx_reserves: cb
+            .fx_reserves
+            .iter()
+            .map(|(c, a)| FxReserveRow {
+                currency: c.clone(),
+                amount: *a,
+            })
+            .collect(),
+        omo_bond_holdings: cb.omo_bond_holdings,
+        ela_outstanding: cb.liquidity_injected,
+        reserve_requirement: cb.reserve_requirement_ratio,
+        omo_log: cb
+            .omo_log
+            .iter()
+            .map(|o| OmoOperationRow {
+                turn: o.turn,
+                kind: o.kind.clone(),
+                amount: o.amount,
+                note: o.note.clone(),
+            })
+            .collect(),
+        mpc_decisions: cb
+            .rpp
+            .as_ref()
+            .map(|r| {
+                r.mpc_decisions
+                    .iter()
+                    .map(|d| MpcDecisionRow {
+                        turn: d.turn,
+                        previous_rate: d.previous_rate,
+                        new_rate: d.new_rate,
+                        bps_change: d.bps_change,
+                        cpi: d.cpi,
+                        output_gap: d.output_gap,
+                        rationale: d.rationale.clone(),
+                        votes: d
+                            .votes
+                            .iter()
+                            .map(|v| MpcVoteRow {
+                                member_name: v.member_name.clone(),
+                                vote: v.vote.clone(),
+                            })
+                            .collect(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
+    }
 }
 
 /// Phase 54: Banking history response for sparkline tooltips.
@@ -4897,6 +5187,9 @@ pub fn build_country_snapshot(
                     .as_ref()
                     .map(|g| g.budget.liquid_reserves)
                     .unwrap_or(0.0),
+                migration_in: r.migration.last_turn_in_internal,
+                migration_out: r.migration.last_turn_out_internal,
+                net_migration: r.migration.last_turn_net,
             }
         })
         .collect();
@@ -6483,6 +6776,18 @@ fn build_region_detail(
         // Phase 87+: Geological deposits from region resources.
         // Role-gated by caller — undiscovered deposits filtered for foreign observers.
         geological_deposits: build_geological_deposit_rows(region, buildings),
+        // v4.27.0 (TASK-006): real per-region migration ledger.
+        migration_in: region.migration.last_turn_in_internal,
+        migration_out: region.migration.last_turn_out_internal,
+        net_migration: region.migration.last_turn_net,
+        migration_top_sources: crate::ui::snapshot_regions::migration_partner_rows(
+            &region.migration.top_sources,
+            &country.regions,
+        ),
+        migration_top_destinations: crate::ui::snapshot_regions::migration_partner_rows(
+            &region.migration.top_destinations,
+            &country.regions,
+        ),
     })
 }
 
@@ -7070,6 +7375,17 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                 gender: vip.map(|v| v.gender.clone()).unwrap_or_default(),
                 portrait_seed: vip.map(|v| v.portrait_seed.clone()).unwrap_or_default(),
                 reign_start_turn: m.reign_start_turn,
+                // v4.27.0 (TASK-009): closed reign badge — abdication turn
+                // for living former monarchs, death turn for dead ones.
+                reign_end_turn: m.reign_end_turn.or_else(|| {
+                    if member_dead(m) {
+                        m.death_turn.or_else(|| {
+                            vip.and_then(|v| v.death_turn)
+                        })
+                    } else {
+                        None
+                    }
+                }),
             }
         })
         .collect();
@@ -7196,6 +7512,15 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
     let mut intrigues: Vec<CourtIntrigueRow> = Vec::new();
     if let Some(ref council) = country.politics.advisory_council {
         for m in council.disloyal_members() {
+            // Fellow council members who share the faction and trend
+            // disloyal are the known co-conspirators; the faction itself
+            // is the backing bloc.
+            let conspirators: Vec<String> = council
+                .members
+                .iter()
+                .filter(|o| o.vip_id != m.vip_id && o.faction == m.faction && o.loyalty < 0.5)
+                .map(|o| resolve_name_full(&o.vip_id))
+                .collect();
             intrigues.push(CourtIntrigueRow {
                 vip_id: m.vip_id.clone(),
                 name: resolve_name_full(&m.vip_id),
@@ -7207,6 +7532,9 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                     m.loyalty
                 ),
                 severity: ((0.2 - m.loyalty) / 0.2).clamp(0.0, 1.0),
+                goal: format!("Depose the monarch in favor of {} interests", m.faction),
+                conspirators,
+                backers: vec![m.faction.clone()],
             });
         }
     }
@@ -7214,13 +7542,14 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
         if let Some(ref regent_id) = dynasty.current_regent_id {
             if let Some(regent_vip) = registry.as_ref().and_then(|r| r.get(regent_id)) {
                 use crate::politics::succession::{regent_behavior, RegentBehavior};
-                let (description, severity) = match regent_behavior(regent_vip) {
+                let (description, severity, goal) = match regent_behavior(regent_vip) {
                     RegentBehavior::PowerGrab => (
                         format!(
                             "Regent {} delays the handover of power to the heir.",
                             resolve_name_full(regent_id)
                         ),
                         0.65,
+                        "Retain the regency beyond the heir's majority".to_string(),
                     ),
                     RegentBehavior::Usurpation => (
                         format!(
@@ -7228,8 +7557,9 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                             resolve_name_full(regent_id)
                         ),
                         0.95,
+                        "Seize the throne outright".to_string(),
                     ),
-                    RegentBehavior::Stewardship => (String::new(), 0.0),
+                    RegentBehavior::Stewardship => (String::new(), 0.0, String::new()),
                 };
                 if severity > 0.0 {
                     intrigues.push(CourtIntrigueRow {
@@ -7238,6 +7568,9 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                         kind: "Regent Ambition".to_string(),
                         description,
                         severity,
+                        goal,
+                        conspirators: Vec::new(),
+                        backers: vec!["Regency Council".to_string()],
                     });
                 }
             }
@@ -7261,6 +7594,9 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                     p.relation
                 ),
                 severity: p.claim_strength.clamp(0.0, 1.0),
+                goal: "Press a hereditary claim to the throne".to_string(),
+                conspirators: Vec::new(),
+                backers: vec![format!("{} legitimists", p.relation)],
             });
         }
     }
@@ -9450,6 +9786,26 @@ pub struct WarBattleRow {
     pub defender_captured: i64,
     /// Deterministic tactical phases (Contact → Exchange → Decision).
     pub phases: Vec<BattlePhaseRow>,
+    /// v4.27.0 (TASK-007): resolved regimental names for engaged
+    /// attacker units (replaces raw `UNIT-*` ids in the UI).
+    #[serde(default)]
+    pub attacker_unit_names: Vec<String>,
+    /// v4.27.0 (TASK-007): resolved regimental names, defender side.
+    #[serde(default)]
+    pub defender_unit_names: Vec<String>,
+    /// v4.27.0 (TASK-007): commanding VIPs on the attacker side.
+    #[serde(default)]
+    pub attacker_commanders: Vec<CommanderRow>,
+    /// v4.27.0 (TASK-007): commanding VIPs on the defender side.
+    #[serde(default)]
+    pub defender_commanders: Vec<CommanderRow>,
+    /// v4.27.0 (TASK-007): tactical doctrine employed by the attacker
+    /// (derived deterministically from the engaged force mix).
+    #[serde(default)]
+    pub attacker_doctrine: String,
+    /// v4.27.0 (TASK-007): tactical doctrine employed by the defender.
+    #[serde(default)]
+    pub defender_doctrine: String,
 }
 
 /// One deterministic tactical phase of a battle (v4.24.0).
@@ -9464,6 +9820,16 @@ pub struct BattlePhaseRow {
     pub defender_power: f64,
     /// Outcome note.
     pub note: String,
+    /// v4.27.0 (TASK-007): units engaged at this phase, each side.
+    #[serde(default)]
+    pub attacker_units: i64,
+    #[serde(default)]
+    pub defender_units: i64,
+    /// v4.27.0 (TASK-007): cumulative casualties at this phase.
+    #[serde(default)]
+    pub attacker_casualties: i64,
+    #[serde(default)]
+    pub defender_casualties: i64,
 }
 
 /// A concluded war for the Historical Wars sub-tab (v4.24.0).
@@ -9494,6 +9860,16 @@ pub struct EndedWarRow {
     pub defender_casualties: i64,
     /// Whether POW repatriation was part of the settlement.
     pub pows_repatriated: bool,
+    /// v4.27.0 (TASK-007): coalition members on both sides (one row per
+    /// war, not one row per belligerent pair).
+    #[serde(default)]
+    pub participants: Vec<String>,
+    /// v4.27.0 (TASK-007): estimated material destruction ($).
+    #[serde(default)]
+    pub material_destruction: f64,
+    /// v4.27.0 (TASK-007): civilian lives lost in war-touched regions.
+    #[serde(default)]
+    pub civilian_casualties: i64,
 }
 
 /// A single battle row for the Military dashboard.
@@ -9601,6 +9977,23 @@ pub struct ArmyRow {
     pub avg_experience: f64,
     /// Assigned command VIPs (Generals/Admirals by dominant branch).
     pub commanders: Vec<CommanderRow>,
+    /// v4.27.0 (TASK-007): operational readiness — mean equipment
+    /// quality weighted by unit fill, clamped to 0–100 (fixes the
+    /// 100× "Readiness 5000%" scaling defect).
+    #[serde(default)]
+    pub avg_readiness: f64,
+    /// v4.27.0 (TASK-007): mean drill/training level (0–100).
+    #[serde(default)]
+    pub avg_training: f64,
+    /// v4.27.0 (TASK-007): land-force manpower by arm
+    /// ("Line Infantry", "Hussars", "Field Artillery",
+    /// "Combat Engineers", "Militia Battalion").
+    #[serde(default)]
+    pub land_breakdown: Vec<(String, i64)>,
+    /// v4.27.0 (TASK-007): naval manpower by ship class
+    /// ("Battleship", "Cruiser", "Destroyer", "Transport").
+    #[serde(default)]
+    pub naval_breakdown: Vec<(String, i64)>,
 }
 
 /// A resolved command VIP on an army (v4.24.0).
@@ -9731,6 +10124,21 @@ pub struct PowCampRow {
     pub rations_per_turn: f64,
     /// v4.24.0: POWs by internment region.
     pub prisoners_by_region: Vec<(String, i64)>,
+    /// v4.27.0 (TASK-007): per-turn camp maintenance cost in fiat —
+    /// ration draw priced at the country's average wage.
+    #[serde(default)]
+    pub maintenance_cost: f64,
+    /// v4.27.0 (TASK-007): per-turn forced-labor output in fiat
+    /// (interned POWs × lease fee at camp productivity).
+    #[serde(default)]
+    pub labor_output: f64,
+    /// v4.27.0 (TASK-007): escapes during the most recent turn.
+    #[serde(default)]
+    pub escaped_this_turn: i64,
+    /// v4.27.0 (TASK-007): deaths in captivity during the most recent
+    /// turn.
+    #[serde(default)]
+    pub died_this_turn: i64,
 }
 
 /// Full military dashboard response.
@@ -9872,6 +10280,85 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     &front.regions,
                 )
                 .unwrap_or_default();
+                // v4.27.0 (TASK-007): resolve engaged unit ids to their
+                // display names via each belligerent's live OOB —
+                // regimental names, never raw `UNIT-*` tokens.
+                let unit_display = |country_nm: &str, uid: &str| -> String {
+                    state
+                        .countries
+                        .get(country_nm)
+                        .and_then(|c| {
+                            c.order_of_battle.armies.iter().find_map(|a| {
+                                a.divisions.iter().find_map(|d| {
+                                    d.regiments.iter().find_map(|r| {
+                                        r.units.iter().find(|u| u.id == uid).map(|u| {
+                                            if u.name.is_empty() {
+                                                r.name.clone()
+                                            } else {
+                                                u.name.clone()
+                                            }
+                                        })
+                                    })
+                                })
+                            })
+                        })
+                        .unwrap_or_else(|| uid.to_string())
+                };
+                let vip_name_of = |vid: &str| -> String {
+                    state
+                        .countries
+                        .values()
+                        .find_map(|c| {
+                            c.politics
+                                .vip_registry
+                                .as_ref()
+                                .and_then(|reg| reg.vips.get(vid))
+                                .map(|v| v.full_name.clone())
+                        })
+                        .unwrap_or_else(|| vid.to_string())
+                };
+                let cmd_rows = |pairs: &[(String, String)]| -> Vec<CommanderRow> {
+                    pairs
+                        .iter()
+                        .map(|(vid, echelon)| CommanderRow {
+                            vip_id: vid.clone(),
+                            name: vip_name_of(vid),
+                            rank: match echelon.as_str() {
+                                "Army" => "General",
+                                "Division" => "Lieutenant General",
+                                _ => "Colonel",
+                            }
+                            .to_string(),
+                            echelon: echelon.clone(),
+                        })
+                        .collect()
+                };
+                // v4.27.0 (TASK-007): tactical doctrine derived from the
+                // engaged force mix — deterministic, no RNG.
+                let doctrine_of = |forces: &[crate::military::fronts::BattleForceLine],
+                                   attacking: bool|
+                 -> String {
+                    let dominant = forces
+                        .iter()
+                        .max_by_key(|f| f.initial_manpower)
+                        .map(|f| f.branch.as_str())
+                        .unwrap_or("Infantry");
+                    match dominant {
+                        "Artillery" => "Artillery Barrage",
+                        "Armor" => "Flanking Envelopment",
+                        "Naval" => "Naval Bombardment",
+                        "Air" => "Air Superiority",
+                        "Militia" => "Guerrilla Resistance",
+                        _ => {
+                            if attacking {
+                                "Frontal Assault"
+                            } else {
+                                "Trench Defense"
+                            }
+                        }
+                    }
+                    .to_string()
+                };
                 let battles: Vec<WarBattleRow> = front
                     .battles
                     .iter()
@@ -9898,8 +10385,26 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                                 attacker_power: p.attacker_power,
                                 defender_power: p.defender_power,
                                 note: p.note.clone(),
+                                attacker_units: p.attacker_units as i64,
+                                defender_units: p.defender_units as i64,
+                                attacker_casualties: p.attacker_casualties,
+                                defender_casualties: p.defender_casualties,
                             })
                             .collect(),
+                        attacker_unit_names: b
+                            .attacker_units
+                            .iter()
+                            .map(|u| unit_display(&b.attacker, u))
+                            .collect(),
+                        defender_unit_names: b
+                            .defender_units
+                            .iter()
+                            .map(|u| unit_display(&b.defender, u))
+                            .collect(),
+                        attacker_commanders: cmd_rows(&b.attacker_commanders),
+                        defender_commanders: cmd_rows(&b.defender_commanders),
+                        attacker_doctrine: doctrine_of(&b.attacker_forces, true),
+                        defender_doctrine: doctrine_of(&b.defender_forces, false),
                     })
                     .collect();
                 WarRow {
@@ -10055,6 +10560,13 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             let mut eq_sum = 0.0;
             let mut xp_sum = 0.0;
             let mut regiments = 0usize;
+            // v4.27.0 (TASK-007): drill level + arm/ship-class manpower
+            // splits for the OOB breakdown panel.
+            let mut tr_sum = 0.0;
+            let mut land_breakdown: std::collections::BTreeMap<String, i64> =
+                std::collections::BTreeMap::new();
+            let mut naval_breakdown: std::collections::BTreeMap<String, i64> =
+                std::collections::BTreeMap::new();
             for div in &army.divisions {
                 for reg in &div.regiments {
                     regiments += 1;
@@ -10063,6 +10575,13 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                         mp += u.manpower;
                         eq_sum += u.equipment_quality;
                         xp_sum += u.experience;
+                        tr_sum += u.training;
+                        let sub = u.subtype_label();
+                        if u.unit_type == crate::military::units::UnitType::Naval {
+                            *naval_breakdown.entry(sub).or_insert(0) += u.manpower;
+                        } else {
+                            *land_breakdown.entry(sub).or_insert(0) += u.manpower;
+                        }
                     }
                 }
             }
@@ -10111,6 +10630,21 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     0.0
                 },
                 commanders,
+                // v4.27.0 (TASK-007): readiness = mean equipment quality,
+                // stored on its native 0–100 scale and clamped — the old
+                // UI multiplied by 100 a second time (5000% defect).
+                avg_readiness: if n_units > 0 {
+                    (eq_sum / n_units as f64).clamp(0.0, 100.0)
+                } else {
+                    0.0
+                },
+                avg_training: if n_units > 0 {
+                    (tr_sum / n_units as f64).clamp(0.0, 100.0)
+                } else {
+                    0.0
+                },
+                land_breakdown: land_breakdown.into_iter().collect(),
+                naval_breakdown: naval_breakdown.into_iter().collect(),
             });
         }
 
@@ -10290,6 +10824,17 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         let held = pow_camp.current_count();
         let rations_per_turn =
             held as f64 / 1000.0 * country.military_config.food_upkeep_per_1000;
+        // v4.27.0 (TASK-007): camp economics priced at the country's own
+        // average wage — rations cost a fixed share of a worker's wage
+        // per head-turn; forced labor yields the same lease fee the
+        // factory-lease market pays.
+        let avg_wage = country.macro_indicators.average_wage.max(1.0);
+        let maintenance_cost = held as f64 * avg_wage * 0.02;
+        let labor_output = forced_labor_assigned as f64
+            * crate::military::pows::calculate_lease_fee_per_pow(
+                avg_wage,
+                average_health.max(0.1),
+            );
         if total_prisoners > 0 || pow_camp.total_ever_captured > 0 {
             pow_camps.push(PowCampRow {
                 country: country_name.clone(),
@@ -10306,6 +10851,10 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 camp_qol: average_health,
                 rations_per_turn,
                 prisoners_by_region,
+                maintenance_cost,
+                labor_output,
+                escaped_this_turn: pow_camp.escaped_last_turn,
+                died_this_turn: pow_camp.deceased_last_turn,
             });
         }
     }
@@ -10326,6 +10875,9 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 aggressor_casualties: 0,
                 defender_casualties: 0,
                 pows_repatriated: false,
+                participants: Vec::new(),
+                material_destruction: 0.0,
+                civilian_casualties: 0,
             });
             EndedWarRow {
                 aggressor: ws.aggressor.clone(),
@@ -10340,6 +10892,9 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 aggressor_casualties: o.aggressor_casualties,
                 defender_casualties: o.defender_casualties,
                 pows_repatriated: o.pows_repatriated,
+                participants: o.participants,
+                material_destruction: o.material_destruction,
+                civilian_casualties: o.civilian_casualties,
             }
         })
         .collect();

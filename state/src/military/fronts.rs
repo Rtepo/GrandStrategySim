@@ -86,6 +86,18 @@ pub struct BattlePhase {
     pub defender_power: f64,
     /// Human-readable outcome note for the phase.
     pub note: String,
+    /// v4.27.0 (TASK-007): attacker units engaged at this phase.
+    #[serde(default)]
+    pub attacker_units: usize,
+    /// v4.27.0 (TASK-007): defender units engaged at this phase.
+    #[serde(default)]
+    pub defender_units: usize,
+    /// v4.27.0 (TASK-007): cumulative attacker casualties at this phase.
+    #[serde(default)]
+    pub attacker_casualties: i64,
+    /// v4.27.0 (TASK-007): cumulative defender casualties at this phase.
+    #[serde(default)]
+    pub defender_casualties: i64,
 }
 
 /// Per-branch force commitment recorded on a battle (v4.25.0).

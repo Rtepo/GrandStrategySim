@@ -62,7 +62,29 @@ pub fn sync_education_capacity_pool(
     buildings: &[crate::entities::Building],
     regions: &mut [crate::society::geography::Region],
 ) {
-    use crate::registries::enums::{Commodity, Sector};
+    use crate::registries::enums::{CapacityType, Commodity, Sector};
+
+    // v4.27.0 (TASK-009): this sync now runs every turn inside the real
+    // turn loop — clear the seat types this function owns before
+    // accumulating, or seats would compound each turn. Utility entries
+    // (ElectricitySupply, ThermalGridCapacity, …) written by other
+    // passes are left untouched.
+    const MANAGED: &[CapacityType] = &[
+        CapacityType::PrimarySeats,
+        CapacityType::MiddleSeats,
+        CapacityType::HighSchoolSeats,
+        CapacityType::UniversitySlots,
+        CapacityType::HospitalBeds,
+        CapacityType::ClinicVisits,
+        CapacityType::SanatoriumStays,
+        CapacityType::DPSCapacity,
+        CapacityType::DDPCapacity,
+    ];
+    for region in regions.iter_mut() {
+        for t in MANAGED {
+            region.capacity_pool.remove(t);
+        }
+    }
 
     // Build a map from region_id → index for O(1) region lookup.
     // Collect into an owned map to avoid holding an immutable borrow of `regions`.

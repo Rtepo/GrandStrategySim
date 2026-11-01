@@ -199,7 +199,28 @@ avg_experience: number,
 /**
  * Assigned command VIPs (Generals/Admirals by dominant branch).
  */
-commanders: Array<CommanderRow>, };
+commanders: Array<CommanderRow>, 
+/**
+ * v4.27.0 (TASK-007): operational readiness — mean equipment
+ * quality weighted by unit fill, clamped to 0–100 (fixes the
+ * 100× "Readiness 5000%" scaling defect).
+ */
+avg_readiness: number, 
+/**
+ * v4.27.0 (TASK-007): mean drill/training level (0–100).
+ */
+avg_training: number, 
+/**
+ * v4.27.0 (TASK-007): land-force manpower by arm
+ * ("Line Infantry", "Hussars", "Field Artillery",
+ * "Combat Engineers", "Militia Battalion").
+ */
+land_breakdown: Array<[string, bigint]>, 
+/**
+ * v4.27.0 (TASK-007): naval manpower by ship class
+ * ("Battleship", "Cruiser", "Destroyer", "Transport").
+ */
+naval_breakdown: Array<[string, bigint]>, };
 
 /**
  * v4.19 WS2: Full bank detail for the expandable row panel — balance-sheet
@@ -234,7 +255,11 @@ export type BankRow = { id: string, name: string, bank_type: string, reserves: n
 /**
  * Response for the get_banking_aggregates command.
  */
-export type BankingAggregates = { total_bank_reserves: number, total_bank_deposits: number, total_bank_loans: number, total_consumer_debt: number, dspw_bank_count: number, central_bank_rate: number, m0: number, m3: number, cb_fx_reserves_total: number, cb_gold_reserves: number, };
+export type BankingAggregates = { total_bank_reserves: number, total_bank_deposits: number, total_bank_loans: number, total_consumer_debt: number, dspw_bank_count: number, central_bank_rate: number, m0: number, m3: number, cb_fx_reserves_total: number, cb_gold_reserves: number, 
+/**
+ * v4.27.0 (TASK-010): Central Bank sub-tab payload.
+ */
+central_bank: CentralBankDto, };
 
 /**
  * Phase 54: Banking history response for sparkline tooltips.
@@ -260,7 +285,15 @@ defender_power: number,
 /**
  * Outcome note.
  */
-note: string, };
+note: string, 
+/**
+ * v4.27.0 (TASK-007): units engaged at this phase, each side.
+ */
+attacker_units: bigint, defender_units: bigint, 
+/**
+ * v4.27.0 (TASK-007): cumulative casualties at this phase.
+ */
+attacker_casualties: bigint, defender_casualties: bigint, };
 
 /**
  * A single battle row for the Military dashboard.
@@ -479,6 +512,46 @@ captured: bigint,
  * Missing / deserted.
  */
 missing_deserted: bigint, };
+
+/**
+ * v4.27.0 (TASK-010): full Central Bank DTO for the Banking → Central
+ * Bank sub-tab (governor, independence, mandate, balance sheet, OMO log,
+ * MPC decision history).
+ */
+export type CentralBankDto = { bank_name: string, governor_vip_id: string, governor_name: string, governor_traits: Array<string>, governor_main_trait: string, 
+/**
+ * Governor's ideology field (monetary-policy leaning).
+ */
+monetary_ideology: string, 
+/**
+ * Turn the governor's term ends (None = indefinite).
+ */
+term_end_turn: number | null, 
+/**
+ * 0–100 institutional independence index.
+ */
+independence_index: number, 
+/**
+ * "Federal" | "CentralIndependent" | "Dependent" (display label).
+ */
+independence_model: string, 
+/**
+ * Mandate display label ("Price Stability" | "Dual Mandate" |
+ * "State Credit Financing").
+ */
+mandate: string, reference_rate: number, lombard_rate: number, deposit_rate: number, rediscount_rate: number, discount_rate: number, 
+/**
+ * Physical bullion reserves (tons) and their IEU value.
+ */
+gold_reserves_tons: number, gold_reserves_value: number, fx_reserves: Array<FxReserveRow>, 
+/**
+ * Government bonds held via OMO purchases.
+ */
+omo_bond_holdings: number, 
+/**
+ * Outstanding ELA/Lombard liquidity extended to banks.
+ */
+ela_outstanding: number, reserve_requirement: number, omo_log: Array<OmoOperationRow>, mpc_decisions: Array<MpcDecisionRow>, };
 
 /**
  * A chamber snapshot for the Parliament tab.
@@ -1150,7 +1223,20 @@ anchor: MapPoint,
 /**
  * Outer boundary polygon the region cells tile (sea frontier).
  */
-boundary: Array<MapPoint>, regions: Array<MapRegionDto>, };
+boundary: Array<MapPoint>, regions: Array<MapRegionDto>, 
+/**
+ * v4.27.0: Major cities (dots scaled by urban population).
+ */
+cities: Array<MapCityDto>, 
+/**
+ * v4.27.0: Primary road/rail transport arteries between regional hubs.
+ */
+routes: Array<MapRouteDto>, 
+/**
+ * v4.27.0: Directed inter-region migrant flows for the Internal
+ * Migration map mode.
+ */
+flows: Array<MapFlowDto>, };
 
 /**
  * v4.23 WS4: Per-country trade treemap — REAL settled trade legs this
@@ -1308,7 +1394,21 @@ export type CourtIntrigueRow = { vip_id: string, name: string,
 /**
  * "Faction Conspiracy" | "Regent Ambition" | "Rival Claimant".
  */
-kind: string, description: string, severity: number, };
+kind: string, description: string, severity: number, 
+/**
+ * v4.27.0 (TASK-009): what the plot aims at — "Depose the monarch",
+ * "Seize the regency", "Claim the throne".
+ */
+goal: string, 
+/**
+ * v4.27.0 (TASK-009): named co-conspirators / backing factions the
+ * court knows are involved — VIP names and faction labels.
+ */
+conspirators: Array<string>, 
+/**
+ * v4.27.0 (TASK-009): backing factions lending the plot weight.
+ */
+backers: Array<string>, };
 
 /**
  * v4.25.0 WS7: one foreign covert operation in the Intelligence &
@@ -1451,7 +1551,13 @@ portrait_seed: string,
  * v4.23.0 WS2: Turn this member's reign began (monarchs only) — lets
  * the tree card show "reigns since T{n}".
  */
-reign_start_turn: number | null, };
+reign_start_turn: number | null, 
+/**
+ * v4.27.0 (TASK-009): Turn this member's reign ended — death turn for
+ * dead monarchs, the member's recorded `reign_end_turn` for living
+ * abdicated/deposed monarchs. Lets the badge close ("reign T109–T135").
+ */
+reign_end_turn: number | null, };
 
 /**
  * One education-level row of the national education distribution.
@@ -1624,7 +1730,20 @@ defender_casualties: bigint,
 /**
  * Whether POW repatriation was part of the settlement.
  */
-pows_repatriated: boolean, };
+pows_repatriated: boolean, 
+/**
+ * v4.27.0 (TASK-007): coalition members on both sides (one row per
+ * war, not one row per belligerent pair).
+ */
+participants: Array<string>, 
+/**
+ * v4.27.0 (TASK-007): estimated material destruction ($).
+ */
+material_destruction: number, 
+/**
+ * v4.27.0 (TASK-007): civilian lives lost in war-touched regions.
+ */
+civilian_casualties: bigint, };
 
 /**
  * Role-gated: foreign observers see only public aggregate data (national
@@ -1861,6 +1980,11 @@ top_holdings: Array<[string, number]>, };
  * Phase 42: A single entry in the Central Bank's FX reserves basket.
  */
 export type FxBasketEntry = { currency: string, amount: number, exchange_rate: number, };
+
+/**
+ * v4.27.0 (TASK-010): one foreign-currency reserve holding.
+ */
+export type FxReserveRow = { currency: string, amount: number, };
 
 /**
  * Response for the get_game_status command.
@@ -2390,6 +2514,12 @@ progress: number,
 per_turn_disbursement: number, };
 
 /**
+ * v4.27.0: A major city marker — dot scaled by urban population, rendered
+ * by the Political & Infrastructure map mode.
+ */
+export type MapCityDto = { region_id: string, name: string, point: MapPoint, population: bigint, is_capital: boolean, };
+
+/**
  * One land-border adjacency edge between two regions (deduplicated).
  */
 export type MapEdgeDto = { from_region: string, to_region: string, 
@@ -2399,18 +2529,40 @@ export type MapEdgeDto = { from_region: string, to_region: string,
 edge_type: string, };
 
 /**
- * A decorative map feature (inland lake or mountain range) — pure
- * presentation geometry derived from the same deterministic layout.
+ * A decorative map feature (inland lake, inland sea, river, or mountain
+ * range) — pure presentation geometry derived from the same
+ * deterministic layout.
  */
 export type MapFeatureDto = { 
 /**
- * `lake` | `mountain`.
+ * `lake` | `inland_sea` | `river` | `mountain`.
  */
 kind: string, 
 /**
  * `lake`: closed polygon vertices. `mountain`: ridge polyline points.
  */
-points: Array<MapPoint>, };
+points: Array<MapPoint>, 
+/**
+ * Owning region id for cell-local features (`lake`, `inland_sea`,
+ * `river`); empty for `mountain` (spans a country border — see
+ * `country_tag`).
+ */
+region_id: string, 
+/**
+ * Owning country for cell features; `A|B` (sorted, pipe-joined) for
+ * border mountains so `onlyCountry` views can include them.
+ */
+country_tag: string, };
+
+/**
+ * v4.27.0: A directed migrant flow between two regions — rendered as a
+ * scaled directional arrow in the Internal Migration map mode.
+ */
+export type MapFlowDto = { from_region: string, to_region: string, 
+/**
+ * Persons per turn moving from → to.
+ */
+amount: bigint, };
 
 /**
  * One parcel cell on a region's cadastral map.
@@ -2459,7 +2611,12 @@ infrastructure_access: number, is_frozen: boolean, is_border_zone: boolean,
 /**
  * Phase 61.4 endowment tag (`forest_district`, `PrivateEstate`, …).
  */
-land_use_tag: string, };
+land_use_tag: string, 
+/**
+ * v4.27.0: real parcel topography (`river` | `lake` | `sea` | `none`)
+ * — water parcels render as rivers/lakes on the cadastral map.
+ */
+water_access: string, };
 
 /**
  * A single 2D point in world-map space (procedural units, not lat/lon).
@@ -2552,7 +2709,49 @@ megaregion_index: bigint,
 /**
  * v4.25.0 WS1: Megaregion display name (empty when unassigned).
  */
-megaregion_name: string, };
+megaregion_name: string, 
+/**
+ * v4.27.0: True offshore island/archipelago region — its polygon is a
+ * real island blob OUTSIDE the country boundary, connected to the
+ * mainland only by `sea_lane` edges (never land adjacency).
+ */
+is_island: boolean, 
+/**
+ * v4.27.0: Climate/terrain classification driving the Topography &
+ * Biome map (`Mountains` | `Highlands` | `Steppe` | `Plains` |
+ * `Forest` | `Wetlands` | `Coast`).
+ */
+biome: string, 
+/**
+ * v4.27.0: Dominant local-council faction for the Party map mode
+ * (empty when the region has no seated council).
+ */
+dominant_party: string, 
+/**
+ * v4.27.0: Seat share (0–1) of the dominant faction.
+ */
+party_share: number, 
+/**
+ * v4.27.0: Net internal+international migration balance (persons/turn)
+ * — negative = net emigration, positive = net immigration.
+ */
+net_migration: bigint, 
+/**
+ * v4.27.0: Urban-class population — drives city-dot scaling in the
+ * Political & Infrastructure mode.
+ */
+urban_population: bigint, };
+
+/**
+ * v4.27.0: A primary transport artery between regional hubs. Points run
+ * centroid-to-centroid, so the polyline always crosses polygon interiors
+ * (never the outer country border).
+ */
+export type MapRouteDto = { 
+/**
+ * `road` | `rail`.
+ */
+kind: string, points: Array<MapPoint>, };
 
 /**
  * Phase 56: Market index snapshot for the stock exchange UI.
@@ -2606,6 +2805,43 @@ sector_employment: Array<[string, number]>,
  * v4.21 WS3: Unfunded mandates targeting member regions.
  */
 active_mandates: Array<MandateSummary>, };
+
+/**
+ * v4.27.0 (TASK-006): one row of the Immigration Origins / Emigration
+ * Destinations breakdown — an exact partner country and migrant count.
+ */
+export type MigrationBreakdownRow = { 
+/**
+ * The other country (source for immigration, destination for emigration).
+ */
+country: string, 
+/**
+ * Persons who moved last turn.
+ */
+count: bigint, 
+/**
+ * Dominant reason label (`Economic` | `Unrest` | `Persecution` | …).
+ */
+reason: string, };
+
+/**
+ * v4.27.0 (TASK-006): one row of a region's migration partner list —
+ * display-name-resolved so the Regions panel shows "Northern Marches"
+ * instead of the raw `Anglia-Region3` id.
+ */
+export type MigrationPartnerRow = { 
+/**
+ * Partner region id.
+ */
+region_id: string, 
+/**
+ * Partner display name (`display_name` with id fallback).
+ */
+name: string, 
+/**
+ * Persons moved this turn.
+ */
+count: bigint, };
 
 /**
  * Full military dashboard response.
@@ -2789,6 +3025,17 @@ unionized: boolean, };
 export type MovementDetailData = { movement_type: string, initiating_class: string, start_turn: number, expected_duration: number, intensity: number, participant_count: bigint, union_backed: boolean, backing_union_id: string | null, strike_fund_per_participant: number, target_company_ids: Array<string> | null, status: string, demands: Array<string>, };
 
 /**
+ * v4.27.0 (TASK-010): one MPC rate decision — rates, bps change, macro
+ * rationale and the committee roll-call.
+ */
+export type MpcDecisionRow = { turn: number, previous_rate: number, new_rate: number, bps_change: number, cpi: number, output_gap: number, rationale: string, votes: Array<MpcVoteRow>, };
+
+/**
+ * v4.27.0 (TASK-010): one MPC roll-call vote.
+ */
+export type MpcVoteRow = { member_name: string, vote: string, };
+
+/**
  * Phase 86.5B: Municipal AI snapshot for a country.
  */
 export type MunicipalAiSnapshot = { 
@@ -2841,6 +3088,11 @@ is_crisis: boolean, };
  * OHS / casualty summary.
  */
 export type OhsSummary = { total_deceased: bigint, total_disabled: bigint, total_unable_to_work_fte: number, ohs_accidents_on_projects: number, };
+
+/**
+ * v4.27.0 (TASK-010): one open-market / FX / gold operation log entry.
+ */
+export type OmoOperationRow = { turn: number, kind: string, amount: number, note: string, };
 
 /**
  * Phase 87+: Organization category for the consolidated Organizations page.
@@ -3065,7 +3317,26 @@ rations_per_turn: number,
 /**
  * v4.24.0: POWs by internment region.
  */
-prisoners_by_region: Array<[string, bigint]>, };
+prisoners_by_region: Array<[string, bigint]>, 
+/**
+ * v4.27.0 (TASK-007): per-turn camp maintenance cost in fiat —
+ * ration draw priced at the country's average wage.
+ */
+maintenance_cost: number, 
+/**
+ * v4.27.0 (TASK-007): per-turn forced-labor output in fiat
+ * (interned POWs × lease fee at camp productivity).
+ */
+labor_output: number, 
+/**
+ * v4.27.0 (TASK-007): escapes during the most recent turn.
+ */
+escaped_this_turn: bigint, 
+/**
+ * v4.27.0 (TASK-007): deaths in captivity during the most recent
+ * turn.
+ */
+died_this_turn: bigint, };
 
 /**
  * Phase 81 Wave 2: PPA summary info.
@@ -3449,7 +3720,21 @@ arable_land_used: bigint,
  * Phase 87+: Geological deposits (role-gated — undiscovered deposits
  * filtered out for foreign observers per Directive 11).
  */
-geological_deposits: Array<GeologicalDepositRow>, };
+geological_deposits: Array<GeologicalDepositRow>, 
+/**
+ * v4.27.0 (TASK-006): regional migration stats — internal
+ * in/out/net plus top source and destination regions.
+ */
+migration_in: bigint, migration_out: bigint, net_migration: bigint, 
+/**
+ * Top source regions + counts (this turn's in-migration) —
+ * display-name resolved.
+ */
+migration_top_sources: Array<MigrationPartnerRow>, 
+/**
+ * Top destination regions + counts (this turn's out-migration).
+ */
+migration_top_destinations: Array<MigrationPartnerRow>, };
 
 /**
  * Phase 81: Regional energy information.
@@ -3529,7 +3814,21 @@ megaregion_id: string, population: bigint, regional_gdp: number, gdp_per_capita:
  * v4.22 WS3: human-readable governance mode — "Autonomous Council" |
  * "Appointed Governor" | "Commissary Admin" | "Martial Law" | "None".
  */
-governance_mode: string, liquid_reserves: number, };
+governance_mode: string, liquid_reserves: number, 
+/**
+ * v4.27.0 (TASK-006): last turn's internal in-migration (persons
+ * arriving from other regions of the same country).
+ */
+migration_in: bigint, 
+/**
+ * v4.27.0 (TASK-006): last turn's internal out-migration (persons
+ * leaving for other regions of the same country).
+ */
+migration_out: bigint, 
+/**
+ * v4.27.0 (TASK-006): net internal+international migration last turn.
+ */
+net_migration: bigint, };
 
 /**
  * Per-region expenditure composition for the Region Overview.
@@ -3808,6 +4107,22 @@ last_deaths: number,
  * stays 0 — real flows move through physical transport).
  */
 last_migration: number, 
+/**
+ * v4.27.0 (TASK-006): last turn's immigration breakdown — exact
+ * source countries and migrant counts (real `MigrationFlow`s where
+ * this country is the destination).
+ */
+immigration_origins: Array<MigrationBreakdownRow>, 
+/**
+ * v4.27.0 (TASK-006): last turn's emigration breakdown — exact
+ * destination countries and migrant counts.
+ */
+emigration_destinations: Array<MigrationBreakdownRow>, 
+/**
+ * v4.27.0 (TASK-006): persons who relocated between this country's
+ * own regions last turn (internal migration, rural→urban).
+ */
+internal_migration_last_turn: bigint, 
 /**
  * Life expectancy (`health_statistics.average_lifespan`, computed each
  * turn from health infrastructure/quality and era-anchored to the
@@ -4345,7 +4660,33 @@ defender_captured: bigint,
 /**
  * Deterministic tactical phases (Contact → Exchange → Decision).
  */
-phases: Array<BattlePhaseRow>, };
+phases: Array<BattlePhaseRow>, 
+/**
+ * v4.27.0 (TASK-007): resolved regimental names for engaged
+ * attacker units (replaces raw `UNIT-*` ids in the UI).
+ */
+attacker_unit_names: Array<string>, 
+/**
+ * v4.27.0 (TASK-007): resolved regimental names, defender side.
+ */
+defender_unit_names: Array<string>, 
+/**
+ * v4.27.0 (TASK-007): commanding VIPs on the attacker side.
+ */
+attacker_commanders: Array<CommanderRow>, 
+/**
+ * v4.27.0 (TASK-007): commanding VIPs on the defender side.
+ */
+defender_commanders: Array<CommanderRow>, 
+/**
+ * v4.27.0 (TASK-007): tactical doctrine employed by the attacker
+ * (derived deterministically from the engaged force mix).
+ */
+attacker_doctrine: string, 
+/**
+ * v4.27.0 (TASK-007): tactical doctrine employed by the defender.
+ */
+defender_doctrine: string, };
 
 /**
  * A single active war/front row for the Military dashboard.
@@ -4591,9 +4932,16 @@ features: Array<MapFeatureDto>,
 shared_land_borders_count: number, 
 /**
  * v4.25.0 WS1 release gate: smallest region-polygon vertex count in the
- * snapshot (fractal subdivision guarantees ≥16).
+ * snapshot (fractal subdivision guarantees ≥40).
  */
-min_region_polygon_vertices: number, };
+min_region_polygon_vertices: number, 
+/**
+ * v4.27.0 release gate: regions whose Voronoi cell degenerated into a
+ * zero-area fallback blob — the "pseudo-island dots" defect. Must
+ * stay 0 (sites are clamped inside the country boundary; deliberate
+ * islands get real blob polygons instead).
+ */
+degenerate_region_count: number, };
 
 /**
  * Phase 60: Zoning plan row (public data).

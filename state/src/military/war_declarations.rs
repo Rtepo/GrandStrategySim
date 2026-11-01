@@ -151,6 +151,19 @@ pub struct WarOutcome {
     pub defender_casualties: i64,
     /// Whether POW repatriation was part of the settlement.
     pub pows_repatriated: bool,
+    /// v4.27.0 (TASK-007): all belligerents on both sides (coalition
+    /// members), aggressor listed first.
+    #[serde(default)]
+    pub participants: Vec<String>,
+    /// v4.27.0 (TASK-007): estimated material destruction ($) — sum of
+    /// devastated-parcel land value across war-touched regions at
+    /// settlement time.
+    #[serde(default)]
+    pub material_destruction: f64,
+    /// v4.27.0 (TASK-007): civilian lives lost in war-touched regions
+    /// (devastation-weighted population share).
+    #[serde(default)]
+    pub civilian_casualties: i64,
 }
 
 // ============================================================================

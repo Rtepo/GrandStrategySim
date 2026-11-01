@@ -4,6 +4,8 @@ import { useGameStore } from "../store/gameStore";
 import { getPaginatedBanks, getBankingAggregates, getBankingHistory, getBankDetail } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button } from "../components/ui";
 import { Sparkline } from "../components/charts/Sparkline";
+import { VipHoverCard } from "../components/VipHoverCard";
+import type { CentralBankDto } from "../types/api";
 import { fmt } from "../lib/format";
 
 const PAGE_SIZE = 20;
@@ -12,6 +14,8 @@ export function BankingPage() {
   const { selectedCountry } = useGameStore();
   const [offset, setOffset] = useState(0);
   const [expandedBankId, setExpandedBankId] = useState<string | null>(null);
+  // v4.27.0 (TASK-010): Commercial Banks | Central Bank sub-tabs.
+  const [tab, setTab] = useState<"commercial" | "central">("commercial");
 
   const { data: aggregates, isLoading: aggLoading } = useQuery({
     queryKey: ["banking-aggregates", selectedCountry],
@@ -41,7 +45,33 @@ export function BankingPage() {
     <div className="p-6 space-y-4">
       <h2 className="text-xl font-bold text-foreground">Banking — {selectedCountry}</h2>
 
-      {aggregates && (
+      {/* v4.27.0 (TASK-010): sub-tab switcher */}
+      <div className="flex gap-1 border-b border-border">
+        {(
+          [
+            ["commercial", "Commercial Banks"],
+            ["central", "Central Bank"],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`px-4 py-1.5 text-sm rounded-t border border-b-0 border-border ${
+              tab === key
+                ? "bg-card text-foreground font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "central" && aggregates && (
+        <CentralBankPanel cb={aggregates.central_bank} />
+      )}
+
+      {tab === "commercial" && aggregates && (
         <div className="grid grid-cols-5 gap-3">
           <SparklineStatCard
             label="Bank Reserves"
@@ -73,10 +103,11 @@ export function BankingPage() {
           <StatCard label="Gold" value={fmt(aggregates.cb_gold_reserves)} />
         </div>
       )}
-      {hasHistory && hasHistory && (
+      {tab === "commercial" && hasHistory && (
         <p className="text-xs text-muted-foreground">Double-click a sparkline to pin/unpin it.</p>
       )}
 
+      {tab === "commercial" && (
       <Card>
         <CardHeader><CardTitle>Commercial Banks</CardTitle></CardHeader>
         <CardContent className="p-0">
@@ -113,20 +144,181 @@ export function BankingPage() {
           </Table>
         </CardContent>
       </Card>
+      )}
 
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          {banksData ? `${offset + 1}–${Math.min(offset + PAGE_SIZE, banksData.total_count)} of ${banksData.total_count}` : ""}
-        </span>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}>
-            Prev
-          </Button>
-          <Button variant="outline" size="sm" disabled={!banksData || offset + PAGE_SIZE >= banksData.total_count} onClick={() => setOffset(offset + PAGE_SIZE)}>
-            Next
-          </Button>
+      {tab === "commercial" && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {banksData ? `${offset + 1}–${Math.min(offset + PAGE_SIZE, banksData.total_count)} of ${banksData.total_count}` : ""}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}>
+              Prev
+            </Button>
+            <Button variant="outline" size="sm" disabled={!banksData || offset + PAGE_SIZE >= banksData.total_count} onClick={() => setOffset(offset + PAGE_SIZE)}>
+              Next
+            </Button>
+          </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+/** v4.27.0 (TASK-010): the Central Bank (Bank Centralny) sub-tab —
+    governor, independence index, mandate, balance sheet, operations log
+    and MPC rate decisions with roll-call votes. */
+function CentralBankPanel({ cb }: { cb: CentralBankDto }) {
+  const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
+  const lastDecisions = [...cb.mpc_decisions].reverse().slice(0, 12);
+  const lastOps = [...cb.omo_log].reverse().slice(0, 12);
+  return (
+    <div className="space-y-4">
+      {/* Governor + institution card */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="col-span-2">
+          <CardHeader><CardTitle>Governor &amp; Mandate — {cb.bank_name}</CardTitle></CardHeader>
+          <CardContent className="text-sm space-y-1.5">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Governor</span>
+              <span className="font-medium">
+                {cb.governor_name ? (
+                  <VipHoverCard vipId={cb.governor_vip_id}>{cb.governor_name}</VipHoverCard>
+                ) : (
+                  "—"
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Traits</span>
+              <span>{cb.governor_main_trait}{cb.governor_traits.length > 1 ? ` · ${cb.governor_traits.slice(1).join(", ")}` : ""}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Monetary ideology</span>
+              <span>{cb.monetary_ideology || "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Term ends</span>
+              <span>{cb.term_end_turn !== null ? `T${cb.term_end_turn}` : "indefinite"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Mandate</span>
+              <Badge variant="outline">{cb.mandate}</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Independence ({cb.independence_model})</span>
+              <span className="flex items-center gap-2">
+                <span className="h-1.5 w-24 bg-muted rounded overflow-hidden">
+                  <span className="block h-full bg-blue-500" style={{ width: `${cb.independence_index}%` }} />
+                </span>
+                <span className="font-medium">{cb.independence_index.toFixed(0)}%</span>
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Policy Rates</CardTitle></CardHeader>
+          <CardContent className="text-sm space-y-1.5">
+            <Dl label="Reference" value={pct(cb.reference_rate)} bold />
+            <Dl label="Lombard" value={pct(cb.lombard_rate)} />
+            <Dl label="Deposit" value={pct(cb.deposit_rate)} />
+            <Dl label="Rediscount" value={pct(cb.rediscount_rate)} />
+            <Dl label="Discount" value={pct(cb.discount_rate)} />
+            <Dl label="Reserve req." value={pct(cb.reserve_requirement)} />
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Balance sheet */}
+      <Card>
+        <CardHeader><CardTitle>Balance Sheet &amp; Reserve Composition</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-2 gap-x-8 text-sm">
+          <div className="space-y-1.5">
+            <Dl label="Gold reserves" value={`${cb.gold_reserves_tons.toFixed(1)} t · ${fmt(cb.gold_reserves_value)}`} bold />
+            {cb.fx_reserves.map((f) => (
+              <Dl key={f.currency} label={`FX · ${f.currency}`} value={fmt(f.amount)} />
+            ))}
+          </div>
+          <div className="space-y-1.5">
+            <Dl label="Gov. bonds (OMO)" value={fmt(cb.omo_bond_holdings)} />
+            <Dl label="ELA / liquidity extended" value={fmt(cb.ela_outstanding)} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* MPC decisions */}
+      <Card>
+        <CardHeader><CardTitle>MPC / RPP Rate Decisions &amp; Votes</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Turn</TableHead>
+                <TableHead className="text-right">Prev</TableHead>
+                <TableHead className="text-right">New</TableHead>
+                <TableHead className="text-right">Δ bps</TableHead>
+                <TableHead>Rationale (CPI / output gap)</TableHead>
+                <TableHead>Roll call</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lastDecisions.length === 0 ? (
+                <TableEmpty colSpan={6} message="No MPC decisions recorded yet" />
+              ) : (
+                lastDecisions.map((d) => (
+                  <TableRow key={d.turn}>
+                    <TableCell>T{d.turn}</TableCell>
+                    <TableCell className="text-right">{(d.previous_rate * 100).toFixed(2)}%</TableCell>
+                    <TableCell className="text-right font-medium">{(d.new_rate * 100).toFixed(2)}%</TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant={d.bps_change > 0 ? "destructive" : d.bps_change < 0 ? "success" : "secondary"}>
+                        {d.bps_change >= 0 ? "+" : ""}{d.bps_change.toFixed(0)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-72 truncate" title={d.rationale}>
+                      {(d.cpi * 100).toFixed(1)}% CPI · {(d.output_gap * 100).toFixed(1)}% gap — {d.rationale}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {d.votes.map((v) => `${v.member_name.split(" ").pop()}: ${v.vote}`).join(" · ") || "—"}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* OMO / FX operations log */}
+      <Card>
+        <CardHeader><CardTitle>Open Market &amp; FX Operations Log</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Turn</TableHead>
+                <TableHead>Operation</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Note</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lastOps.length === 0 ? (
+                <TableEmpty colSpan={4} message="No operations recorded yet" />
+              ) : (
+                lastOps.map((o, i) => (
+                  <TableRow key={`${o.turn}-${i}`}>
+                    <TableCell>T{o.turn}</TableCell>
+                    <TableCell><Badge variant="outline" className="text-[10px]">{o.kind}</Badge></TableCell>
+                    <TableCell className="text-right">{fmt(o.amount)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{o.note}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

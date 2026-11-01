@@ -50,6 +50,19 @@ pub enum UnitType {
 }
 
 impl UnitType {
+    /// v4.27.0 (TASK-007): Default arm/branch sub-type label used when a
+    /// unit has no explicit `subtype` recorded (legacy saves).
+    pub fn default_subtype(&self) -> &'static str {
+        match self {
+            UnitType::Infantry => "Line Infantry",
+            UnitType::Tanks => "Hussars",
+            UnitType::Artillery => "Field Artillery",
+            UnitType::AirForce => "Aviation Section",
+            UnitType::Naval => "Man-of-War",
+            UnitType::PeasantBattalion => "Militia Battalion",
+        }
+    }
+
     /// v4.25.0: Display label used for battle force lines and OOB unit-type
     /// groupings ("Infantry", "Artillery", "Armor", "Air", "Naval", "Militia").
     pub fn branch_label(&self) -> &'static str {
@@ -494,6 +507,25 @@ pub struct MilitaryUnit {
     /// Each entry tracks target quantity, current quantity, and condition.
     /// B2B procurement orders are generated to fill replacement_demand().
     pub equipment_reserves: Vec<EquipmentReserve>,
+
+    /// v4.27.0 (TASK-007): Human-readable display name
+    /// (e.g. "1st Anatolian Line Infantry"). Empty on legacy saves —
+    /// the snapshot layer falls back to the parent regiment's name.
+    #[serde(default)]
+    pub name: String,
+
+    /// v4.27.0 (TASK-007): Arm/branch sub-type label used for the OOB
+    /// breakdown ("Line Infantry", "Hussars", "Field Artillery",
+    /// "Combat Engineers", "Battleship", "Cruiser", "Destroyer",
+    /// "Transport"). Empty on legacy saves → derived from `unit_type`.
+    #[serde(default)]
+    pub subtype: String,
+
+    /// v4.27.0 (TASK-007): Drill/training level (0–100). Seeded at world
+    /// generation from the country's development level and drilled each
+    /// turn in peacetime; degraded by heavy casualties (green replacements).
+    #[serde(default)]
+    pub training: f64,
 }
 
 impl MilitaryUnit {
@@ -527,7 +559,29 @@ impl MilitaryUnit {
             equipment_quality: 50.0,
             stockpile: HashMap::default(),
             equipment_reserves: Vec::new(),
+            name: String::new(),
+            subtype: String::new(),
+            training: 0.0,
         }
+    }
+
+    /// v4.27.0 (TASK-007): Display name — the unit's own name when set,
+    /// otherwise a sensible derivation from its id (never a raw
+    /// `UNIT-*` token in UI-facing strings).
+    pub fn display_name(&self) -> String {
+        if !self.name.is_empty() {
+            return self.name.clone();
+        }
+        self.id.clone()
+    }
+
+    /// v4.27.0 (TASK-007): Sub-type label — the stored label when set,
+    /// otherwise derived from `unit_type` for legacy saves.
+    pub fn subtype_label(&self) -> String {
+        if !self.subtype.is_empty() {
+            return self.subtype.clone();
+        }
+        self.unit_type.default_subtype().to_string()
     }
 
     /// Calculate total commodity upkeep cost

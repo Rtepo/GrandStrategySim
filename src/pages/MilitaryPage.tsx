@@ -126,14 +126,58 @@ function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
                                   </button>
                                   {bOpen && (
                                     <div className="px-3 pb-2 pt-1 text-xs space-y-1 border-t border-border/60">
+                                      {/* v4.27.0 TASK-007: regimental names + commanders + doctrine —
+                                          no raw UNIT-* ids. */}
                                       <div>
                                         <span className="text-muted-foreground">Attackers:</span>{" "}
-                                        {b.attacker_units.join(", ")}
+                                        {(b.attacker_unit_names.length > 0
+                                          ? b.attacker_unit_names
+                                          : b.attacker_units
+                                        ).join(", ")}
+                                        {b.attacker_doctrine && (
+                                          <span className="text-muted-foreground"> — {b.attacker_doctrine}</span>
+                                        )}
                                       </div>
                                       <div>
                                         <span className="text-muted-foreground">Defenders:</span>{" "}
-                                        {b.defender_units.join(", ")}
+                                        {(b.defender_unit_names.length > 0
+                                          ? b.defender_unit_names
+                                          : b.defender_units
+                                        ).join(", ")}
+                                        {b.defender_doctrine && (
+                                          <span className="text-muted-foreground"> — {b.defender_doctrine}</span>
+                                        )}
                                       </div>
+                                      {(b.attacker_commanders.length > 0 || b.defender_commanders.length > 0) && (
+                                        <div className="grid grid-cols-2 gap-1">
+                                          <div>
+                                            <span className="text-muted-foreground">Attacker Command:</span>{" "}
+                                            {b.attacker_commanders.map((c, i) => (
+                                              <span key={c.vip_id + i}>
+                                                {i > 0 && ", "}
+                                                <VipHoverCard vipId={c.vip_id}>
+                                                  <span className="underline decoration-dotted cursor-pointer">
+                                                    {c.rank} {c.name}
+                                                  </span>
+                                                </VipHoverCard>
+                                              </span>
+                                            ))}
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">Defender Command:</span>{" "}
+                                            {b.defender_commanders.map((c, i) => (
+                                              <span key={c.vip_id + i}>
+                                                {i > 0 && ", "}
+                                                <VipHoverCard vipId={c.vip_id}>
+                                                  <span className="underline decoration-dotted cursor-pointer">
+                                                    {c.rank} {c.name}
+                                                  </span>
+                                                </VipHoverCard>
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
                                       <div className="grid grid-cols-2 gap-1">
                                         <div>
                                           Attacker — KIA {num(Number(b.attacker_dead))} · WIA{" "}
@@ -153,9 +197,18 @@ function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
                                           <div className="text-muted-foreground uppercase mt-1">Tactical Phases</div>
                                           {b.phases.map((p, i) => (
                                             <div key={i} className="flex justify-between gap-2">
-                                              <span>{p.name}</span>
+                                              <span>
+                                                {p.name}
+                                                {(p.attacker_units > 0 || p.defender_units > 0) && (
+                                                  <span className="text-muted-foreground">
+                                                    {" "}({num(p.attacker_units)} vs {num(p.defender_units)} units)
+                                                  </span>
+                                                )}
+                                              </span>
                                               <span className="text-muted-foreground">
                                                 atk {p.attacker_power.toFixed(0)} / def {p.defender_power.toFixed(0)}
+                                                {(p.attacker_casualties > 0 || p.defender_casualties > 0) &&
+                                                  ` · losses ${num(p.attacker_casualties)} / ${num(p.defender_casualties)}`}
                                                 {p.note ? ` — ${p.note}` : ""}
                                               </span>
                                             </div>
@@ -183,8 +236,9 @@ function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
 }
 
 /** v4.26.0 TASK-003: concluded wars with peace terms. */
-function HistoricalWarsPanel({ endedWars }: { endedWars: MilitaryDashboardResponse["ended_wars"] }) {
+function HistoricalWarsPanel({ endedWars, regionNameById }: { endedWars: MilitaryDashboardResponse["ended_wars"]; regionNameById: Map<string, string> }) {
   const [open, setOpen] = useState<string | null>(null);
+  const regionName = (id: string) => regionNameById.get(id) ?? id;
   return (
     <Card>
       <CardHeader><CardTitle>Historical Wars</CardTitle></CardHeader>
@@ -210,9 +264,40 @@ function HistoricalWarsPanel({ endedWars }: { endedWars: MilitaryDashboardRespon
                     </span>
                   </button>
                   {isOpen && (
-                    <div className="px-4 pb-3 pt-1 text-sm border-t border-border">
+                    <div className="px-4 pb-3 pt-1 text-sm border-t border-border space-y-1">
                       <div className="text-xs text-muted-foreground uppercase">War Goal / Peace Terms</div>
-                      <div>{w.war_goal || "—"}</div>
+                      <div>{w.war_goal || "—"} — {w.terms_label}</div>
+                      {/* v4.27.0 TASK-007: coalition ledger — participants,
+                          total casualties, destruction, territory. */}
+                      {w.participants.length > 0 && (
+                        <div>
+                          <span className="text-xs text-muted-foreground uppercase">Coalition Participants:</span>{" "}
+                          {w.participants.join(", ")}
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs">
+                        <div><span className="text-muted-foreground">Initiator losses:</span> {num(Number(w.aggressor_casualties))}</div>
+                        <div><span className="text-muted-foreground">Defender losses:</span> {num(Number(w.defender_casualties))}</div>
+                        {w.civilian_casualties > 0 && (
+                          <div><span className="text-muted-foreground">Civilian deaths:</span> {num(Number(w.civilian_casualties))}</div>
+                        )}
+                        {w.material_destruction > 0 && (
+                          <div><span className="text-muted-foreground">Material destruction:</span> ${num(Math.round(w.material_destruction))}</div>
+                        )}
+                        {w.reparations_paid > 0 && (
+                          <div><span className="text-muted-foreground">Reparations:</span> ${num(Math.round(w.reparations_paid))}</div>
+                        )}
+                        <div><span className="text-muted-foreground">Victor:</span> {w.victor ?? "Negotiated peace"}</div>
+                      </div>
+                      {w.regions_ceded.length > 0 && (
+                        <div>
+                          <span className="text-xs text-muted-foreground uppercase">Territory Transferred:</span>{" "}
+                          {w.regions_ceded.map((r) => regionName(r)).join(", ")}
+                        </div>
+                      )}
+                      {w.pows_repatriated && (
+                        <div className="text-xs text-muted-foreground">POW repatriation included in settlement.</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -259,8 +344,13 @@ function PowCampsPanel({ camps }: { camps: MilitaryDashboardResponse["pow_camps"
                         <div><span className="text-muted-foreground">Forced labour:</span> {num(Number(c.forced_labor_assigned))}</div>
                         <div><span className="text-muted-foreground">Interned:</span> {num(Number(c.interned))}</div>
                         <div><span className="text-muted-foreground">New captures:</span> {num(Number(c.captured_this_turn))}</div>
-                        <div><span className="text-muted-foreground">Escapes:</span> {num(Number(c.escaped))}</div>
-                        <div><span className="text-muted-foreground">Repatriated:</span> {num(Number(c.repatriated))} · Deceased {num(Number(c.deceased))}</div>
+                        <div><span className="text-muted-foreground">Escapes:</span> {num(Number(c.escaped))} ({num(Number(c.escaped_this_turn))} this turn)</div>
+                        <div><span className="text-muted-foreground">Repatriated:</span> {num(Number(c.repatriated))} · Deceased {num(Number(c.deceased))} ({num(Number(c.died_this_turn))} this turn)</div>
+                        {/* v4.27.0 TASK-007: camp economics — maintenance
+                            cost and forced-labour output per turn. */}
+                        <div><span className="text-muted-foreground">Camp maintenance:</span> ${num(Math.round(c.maintenance_cost))}/turn</div>
+                        <div><span className="text-muted-foreground">Labour output:</span> ${num(Math.round(c.labor_output))}/turn</div>
+                        <div><span className="text-muted-foreground">Rations:</span> {c.rations_per_turn.toFixed(1)} food/turn</div>
                       </div>
                       {c.prisoners_by_origin.length > 0 && (
                         <div>
@@ -476,8 +566,11 @@ function ArmyCompositionPanel({
                                   </div>
                                   <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-muted-foreground">
                                     <span>Garrison: {regionName(army.garrison_name)}</span>
-                                    <span>Readiness {(army.avg_equipment_quality * 100).toFixed(0)}%</span>
-                                    <span>Training {(army.avg_experience * 100).toFixed(0)}%</span>
+                                    {/* v4.27.0 TASK-007: readiness/training arrive on their native
+                                        0–100 scale — no second ×100 (fixes "Readiness 5000%"). */}
+                                    <span>Readiness {army.avg_readiness.toFixed(0)}%</span>
+                                    <span>Training {army.avg_training.toFixed(0)}%</span>
+                                    <span>Experience {army.avg_experience.toFixed(0)}%</span>
                                     <span>
                                       Branch Split:{" "}
                                       {(["Land", "Navy", "Air"] as const)
@@ -488,6 +581,26 @@ function ArmyCompositionPanel({
                                         .join(" · ")}
                                     </span>
                                   </div>
+                                  {(army.land_breakdown.length > 0 || army.naval_breakdown.length > 0) && (
+                                    <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-0.5 text-muted-foreground">
+                                      {army.land_breakdown.length > 0 && (
+                                        <span>
+                                          Land Forces (Infantry · Cavalry · Artillery · Engineers):{" "}
+                                          {army.land_breakdown
+                                            .map(([arm, mp]) => `${arm} ${num(Number(mp))}`)
+                                            .join(" · ")}
+                                        </span>
+                                      )}
+                                      {army.naval_breakdown.length > 0 && (
+                                        <span>
+                                          Naval Fleet:{" "}
+                                          {army.naval_breakdown
+                                            .map(([cls, mp]) => `${cls} ${num(Number(mp))}`)
+                                            .join(" · ")}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                   {army.commanders.length > 0 && (
                                     <div className="mt-1">
                                       <span className="text-muted-foreground">Commanding Generals:</span>{" "}
@@ -741,7 +854,7 @@ export function MilitaryPage() {
 
       {/* Main panels */}
       <WarsPanel wars={dashboard.wars} />
-      <HistoricalWarsPanel endedWars={dashboard.ended_wars} />
+      <HistoricalWarsPanel endedWars={dashboard.ended_wars} regionNameById={regionNameById} />
       <RecentBattlesPanel battles={dashboard.recent_battles} />
       <DevastationHeatmapPanel devastation={dashboard.devastation_map} />
       <ArmyCompositionPanel armies={dashboard.army_compositions} regionNameById={regionNameById} />

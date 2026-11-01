@@ -61,6 +61,11 @@ pub struct RoyalFamilyMember {
     /// founding monarch; `None` for members who never reigned.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reign_start_turn: Option<u32>,
+    /// v4.27.0 (TASK-009): Turn this member's reign ENDED while they were
+    /// still alive — abdication/deposition (`relation` → `FormerMonarch`).
+    /// Dead monarchs use `death_turn` as the reign end instead.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reign_end_turn: Option<u32>,
 }
 
 /// Relationship of a royal family member to the monarch.
@@ -350,6 +355,7 @@ pub fn process_dynasty_turn(
                 death_turn: None,
                 death_cause: None,
                 reign_start_turn: None,
+reign_end_turn: None,
             });
 
             // Log marriage event.
@@ -515,6 +521,7 @@ pub fn process_dynasty_turn(
                 marriage_turn: None,
                 death_turn: None,
                 death_cause: None,
+reign_end_turn: None,
                 reign_start_turn: None,
             });
 

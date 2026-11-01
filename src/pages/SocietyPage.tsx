@@ -179,6 +179,74 @@ export function SocietyPage() {
         <Stat label="Higher Education" value={pct(s.higher_education_rate * 100)} />
       </div>
 
+      {/* v4.27.0 TASK-006: Immigration Origins & Emigration Destinations
+          breakdown — exact partner countries and migrant counts from the
+          migration engine's last-turn ledger, plus internal relocation. */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Immigration Origins</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Source Country</TableHead>
+                  <TableHead>Migrants</TableHead>
+                  <TableHead>Primary Reason</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(s.immigration_origins ?? []).length === 0 && (
+                  <TableEmpty colSpan={3} message="No immigration recorded last turn" />
+                )}
+                {(s.immigration_origins ?? []).map((r) => (
+                  <TableRow key={r.country}>
+                    <TableCell className="font-medium">{r.country}</TableCell>
+                    <TableCell>{num(r.count)}</TableCell>
+                    <TableCell>{humanize(r.reason)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Emigration Destinations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Destination Country</TableHead>
+                  <TableHead>Migrants</TableHead>
+                  <TableHead>Primary Reason</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(s.emigration_destinations ?? []).length === 0 && (
+                  <TableEmpty colSpan={3} message="No emigration recorded last turn" />
+                )}
+                {(s.emigration_destinations ?? []).map((r) => (
+                  <TableRow key={r.country}>
+                    <TableCell className="font-medium">{r.country}</TableCell>
+                    <TableCell>{num(r.count)}</TableCell>
+                    <TableCell>{humanize(r.reason)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="grid grid-cols-4 gap-3">
+        <Stat
+          label="Internal Relocation (region↔region)"
+          value={num(s.internal_migration_last_turn ?? 0)}
+        />
+      </div>
+
       <Card>
         <CardHeader><CardTitle>Standard of Living by Social Class</CardTitle></CardHeader>
         <CardContent>

@@ -198,6 +198,8 @@ pub fn spawn_rebel_proto_state(
         politics: mother_country.politics.clone(), // Inherit political structure
         regions: vec![rebel_region],           // Only the rebel region
         megaregions: Vec::new(),               // No megaregions initially
+        last_migration_flows: Vec::new(),
+        last_internal_flows: Vec::new(),
         is_rebellion: true,
         mother_country: Some(mother_country.name.clone()),
         rebellion_type: Some(rebellion_type.clone()),

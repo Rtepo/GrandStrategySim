@@ -93,9 +93,91 @@ pub struct MonetaryPolicyCouncil {
     /// RPP decision log (rate changes, rationale).
     #[serde(default)]
     pub decision_log: Vec<String>,
+    /// v4.27.0 (TASK-010): sitting council members — name + policy stance.
+    /// Populated once at genesis from the country's VIP name pool.
+    #[serde(default)]
+    pub members: Vec<MpcMember>,
+    /// v4.27.0 (TASK-010): structured rate decisions with roll-call votes —
+    /// supersedes `decision_log` strings for the Central Bank UI.
+    #[serde(default)]
+    pub mpc_decisions: Vec<MpcDecision>,
     /// Any additional RPP fields.
     #[serde(flatten, default)]
     pub extra: Map<String, Value>,
+}
+
+/// v4.27.0 (TASK-010): a sitting MPC member — display name + policy stance
+/// that determines how they vote on rate moves.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct MpcMember {
+    #[serde(default)]
+    /// Member display name (VIP).
+    pub name: String,
+    /// "Hawk" | "Dove" | "Centrist" — hawks vote For tightening, doves For
+    /// easing, centrists back the consensus direction.
+    #[serde(default)]
+    pub stance: String,
+}
+
+/// v4.27.0 (TASK-010): one member's roll-call vote on a rate decision.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct MpcVote {
+    #[serde(default)]
+    /// Voting member display name.
+    pub member_name: String,
+    /// "For" | "Against" — the member's position on the decided move.
+    #[serde(default)]
+    pub vote: String,
+}
+
+/// v4.27.0 (TASK-010): a structured MPC rate decision — previous/new rate,
+/// bps change, macro rationale (CPI, output gap) and the roll-call vote.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct MpcDecision {
+    #[serde(default)]
+    /// Decision turn.
+    pub turn: u32,
+    #[serde(default)]
+    /// Reference rate before the decision.
+    pub previous_rate: f64,
+    #[serde(default)]
+    /// Reference rate after the decision.
+    pub new_rate: f64,
+    /// Basis-point change (new − previous) × 10,000.
+    #[serde(default)]
+    pub bps_change: f64,
+    /// CPI inflation observed at decision time.
+    #[serde(default)]
+    pub cpi: f64,
+    /// Growth gap vs potential observed at decision time.
+    #[serde(default)]
+    pub output_gap: f64,
+    /// Free-text macroeconomic rationale.
+    #[serde(default)]
+    pub rationale: String,
+    #[serde(default)]
+    /// Roll-call votes (For/Against per member).
+    pub votes: Vec<MpcVote>,
+}
+
+/// v4.27.0 (TASK-010): one recorded open-market / FX / gold operation in
+/// the Central Bank operations log.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct OmoOperation {
+    #[serde(default)]
+    /// Operation turn.
+    pub turn: u32,
+    /// "Bond Purchase" | "Bond Sale" | "Gold Purchase" | "Gold Sale" |
+    /// "ELA Injection" | "Lombard Repayment"
+    #[serde(default)]
+    pub kind: String,
+    /// Signed amount in domestic currency units (+ injection, − drain);
+    /// gold trades record the fine-tons quantity.
+    #[serde(default)]
+    pub amount: f64,
+    /// Context note — target rate, rationale, settlement currency.
+    #[serde(default)]
+    pub note: String,
 }
 
 // ============================================================================
@@ -180,6 +262,10 @@ pub struct CentralBank {
     /// Total interest received from banks on Lombard facility loans (cumulative).
     #[serde(default)]
     pub lombard_facility_interest_received: f64,
+    /// v4.27.0 (TASK-010): chronological Open Market / FX / gold operations
+    /// log for the Central Bank tab (most recent last, capped at 200).
+    #[serde(default)]
+    pub omo_log: Vec<OmoOperation>,
     /// Last CB communication/message.
     #[serde(default)]
     pub last_message: String,
@@ -242,6 +328,7 @@ impl Default for CentralBank {
             omo_last_operation_amount: 0.0,
             deposit_facility_interest_paid: 0.0,
             lombard_facility_interest_received: 0.0,
+            omo_log: Vec::new(),
             last_message: String::new(),
             target_inflation: default_target_inflation(),
             potential_growth: default_potential_growth(),
@@ -252,6 +339,46 @@ impl Default for CentralBank {
 }
 
 impl CentralBank {
+    /// v4.27.0 (TASK-010): institutional independence index 0–100 derived
+    /// from the legal model and the governor's term protection.
+    /// Federal 95 / CentralIndependent 75 / Dependent 25, ±5 for a
+    /// guaranteed term of office.
+    pub fn independence_index(&self) -> f64 {
+        let base = match self.independence_model {
+            CentralBankIndependence::Federal => 95.0,
+            CentralBankIndependence::CentralIndependent => 75.0,
+            CentralBankIndependence::Dependent => 25.0,
+        };
+        let term_bonus: f64 = if self.governor_term_length > 0 { 5.0 } else { -5.0 };
+        (base + term_bonus).clamp(0.0, 100.0)
+    }
+
+    /// v4.27.0 (TASK-010): human label for the monetary-policy mandate —
+    /// era-appropriate (the 1900 world runs a metallic standard when gold
+    /// cover is present).
+    pub fn mandate_label(&self) -> &'static str {
+        match self.mandate {
+            MonetaryMandate::Inflationary => "Price Stability",
+            MonetaryMandate::Mixed => "Dual Mandate",
+            MonetaryMandate::Market => "State Credit Financing",
+        }
+    }
+
+    /// v4.27.0 (TASK-010): append an operation to the OMO/FX log, capped at
+    /// the most recent 200 entries.
+    pub fn record_omo(&mut self, turn: u32, kind: &str, amount: f64, note: String) {
+        self.omo_log.push(OmoOperation {
+            turn,
+            kind: kind.to_string(),
+            amount,
+            note,
+        });
+        if self.omo_log.len() > 200 {
+            let drop = self.omo_log.len() - 200;
+            self.omo_log.drain(0..drop);
+        }
+    }
+
     /// Calculates M0 (Monetary Base) - cash in circulation + bank reserves at central bank.
     /// This is dynamically computed from actual ledgers to guarantee double-entry accuracy.
     ///
@@ -382,7 +509,41 @@ impl CentralBank {
                 potential_growth * 100.0,
                 neutral_rate * 100.0
             );
-            rpp.decision_log.push(rationale);
+            rpp.decision_log.push(rationale.clone());
+
+            // v4.27.0 (TASK-010): structured decision + roll-call vote.
+            // Hawks vote For tightening (rate up), doves For easing (rate
+            // down), centrists back the decided direction; on a hold every
+            // stance votes For (consensus = status quo).
+            let votes: Vec<MpcVote> = rpp
+                .members
+                .iter()
+                .map(|m| {
+                    let for_move = match m.stance.as_str() {
+                        "Hawk" => rate_adjustment >= 0.0,
+                        "Dove" => rate_adjustment <= 0.0,
+                        _ => true, // Centrist backs the council line
+                    };
+                    MpcVote {
+                        member_name: m.name.clone(),
+                        vote: if for_move { "For" } else { "Against" }.to_string(),
+                    }
+                })
+                .collect();
+            rpp.mpc_decisions.push(MpcDecision {
+                turn: current_turn,
+                previous_rate: prev_rate,
+                new_rate: new_reference_rate,
+                bps_change: rate_adjustment * 10_000.0,
+                cpi: current_inflation,
+                output_gap: growth_gap,
+                rationale,
+                votes,
+            });
+            if rpp.mpc_decisions.len() > 200 {
+                let drop = rpp.mpc_decisions.len() - 200;
+                rpp.mpc_decisions.drain(0..drop);
+            }
         }
     }
 
@@ -504,6 +665,16 @@ impl CentralBank {
             self.omo_bond_holdings += buy_amount;
             self.omo_last_operation_turn = current_turn;
             self.omo_last_operation_amount = buy_amount;
+            self.record_omo(
+                current_turn,
+                "Bond Purchase",
+                buy_amount,
+                format!(
+                    "XIBOR {:.2}% above target {:.2}% — injecting reserves",
+                    current_xibor * 100.0,
+                    target * 100.0
+                ),
+            );
             buy_amount
         } else {
             // XIBOR too low -> CB sells bonds to banks, absorbs reserves
@@ -512,6 +683,16 @@ impl CentralBank {
             self.omo_bond_holdings -= sell_amount;
             self.omo_last_operation_turn = current_turn;
             self.omo_last_operation_amount = -sell_amount;
+            self.record_omo(
+                current_turn,
+                "Bond Sale",
+                -sell_amount,
+                format!(
+                    "XIBOR {:.2}% below target {:.2}% — draining reserves",
+                    current_xibor * 100.0,
+                    target * 100.0
+                ),
+            );
             -sell_amount
         }
     }
@@ -596,6 +777,12 @@ impl CentralBank {
         )?;
 
         // Double-entry and vault updates handled by execute_cb_trade
+        self.record_omo(
+            current_turn,
+            "Gold Purchase",
+            gold_amount,
+            format!("Bullion bought on the exchange, settled in {payment_currency}"),
+        );
         Ok(())
     }
 
@@ -651,6 +838,12 @@ impl CentralBank {
         )?;
 
         // Double-entry and vault updates handled by execute_cb_trade
+        self.record_omo(
+            current_turn,
+            "Gold Sale",
+            -gold_amount,
+            format!("Bullion sold to defend reserves, settled in {target_currency}"),
+        );
         Ok(())
     }
 

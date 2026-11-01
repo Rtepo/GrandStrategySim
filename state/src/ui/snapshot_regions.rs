@@ -8,7 +8,53 @@
 
 use crate::politics::local_council::LocalCouncil;
 use crate::politics::local_legislation::{MandateFundingDecision, UnfundedMandate};
+use crate::society::geography::Region;
 use crate::ui::snapshot::MandateSummary;
+
+/// v4.27.0 (TASK-006): one row of a region's migration partner list —
+/// display-name-resolved so the Regions panel shows "Northern Marches"
+/// instead of the raw `Anglia-Region3` id.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MigrationPartnerRow {
+    /// Partner region id.
+    pub region_id: String,
+    /// Partner display name (`display_name` with id fallback).
+    pub name: String,
+    /// Persons moved this turn.
+    pub count: i64,
+}
+
+/// Resolve `(region_id, count)` ledger pairs into named rows, ordered by
+/// count descending. Unknown ids pass through with `name == region_id`.
+pub fn migration_partner_rows(
+    pairs: &[(String, i64)],
+    regions: &[Region],
+) -> Vec<MigrationPartnerRow> {
+    let mut rows: Vec<MigrationPartnerRow> = pairs
+        .iter()
+        .map(|(rid, count)| {
+            let name = regions
+                .iter()
+                .find(|r| &r.id == rid)
+                .map(|r| {
+                    if r.display_name.is_empty() {
+                        r.id.clone()
+                    } else {
+                        r.display_name.clone()
+                    }
+                })
+                .unwrap_or_else(|| rid.clone());
+            MigrationPartnerRow {
+                region_id: rid.clone(),
+                name,
+                count: *count,
+            }
+        })
+        .collect();
+    rows.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.name.cmp(&b.name)));
+    rows
+}
 
 /// A sitting regional councilor (or, in the megaregion assembly view, a
 /// member of a member-region council) for the expandable faction summary.

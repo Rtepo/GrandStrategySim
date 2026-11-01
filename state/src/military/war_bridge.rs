@@ -258,6 +258,9 @@ pub fn process_war_bridge(
                 aggressor_casualties: agg_cas,
                 defender_casualties: def_cas,
                 pows_repatriated: true,
+                participants: vec![agg.clone(), ddf.clone()],
+                material_destruction: 0.0,
+                civilian_casualties: 0,
             };
             for ws in state.declared_wars.iter_mut().rev() {
                 if ws.end_turn.is_none()
@@ -388,11 +391,13 @@ pub fn process_war_bridge(
             }
             let escape_rate = (1.0 - avg_prod.clamp(0.0, 1.0)) * 0.01;
             let escapes = country.pow_camp.process_escapes(escape_rate);
+            country.pow_camp.escaped_last_turn = escapes;
             if escapes > 0 {
                 eprintln!("[POW] {}: {} POWs escaped internment", name, escapes);
             }
             let attrition_rate = (1.0 - avg_prod.clamp(0.0, 1.0)) * 0.005;
             let deaths = country.pow_camp.process_attrition(attrition_rate);
+            country.pow_camp.deceased_last_turn = deaths;
             if deaths > 0 {
                 eprintln!("[POW] {}: {} POWs died in captivity", name, deaths);
             }
@@ -1296,6 +1301,102 @@ fn conclude_war(
     ac.at_war_with.retain(|e| *e != defender);
     dc.at_war_with.retain(|e| *e != aggressor);
 
+    // v4.27.0 (TASK-007): EXECUTE the territorial settlement — the ceded
+    // regions physically change hands. `Country.regions` is positional
+    // ownership, so transfer = move the Region structs from the loser's
+    // vector into the victor's. Megaregion membership stays untouched
+    // (megaregions are geographic groupings, not ownership indexes); the
+    // world map colors by `country.regions` so the transfer is
+    // immediately visible.
+    let mut transferred: Vec<String> = Vec::new();
+    if victor.as_deref() == Some(aggressor.as_str()) && !regions_ceded.is_empty() {
+        let mut capital_ceded = false;
+        for rid in &regions_ceded {
+            if let Some(pos) = dc.regions.iter().position(|r| &r.id == rid) {
+                let mut region = dc.regions.remove(pos);
+                capital_ceded |= region.is_capital;
+                region.is_capital = false;
+                // Move the region's parcels into the victor's cadastre —
+                // slotmap keys are per-map, so each ParcelChunk is
+                // re-inserted and `region.parcel_ids` rewritten to the
+                // new ids. Legal ownership (`owner_id`) is preserved:
+                // owners keep their deeds across the new border.
+                let mut new_parcel_ids = Vec::with_capacity(region.parcel_ids.len());
+                for old_pid in &region.parcel_ids {
+                    if let Some(chunk) = dc.cadastre.remove(*old_pid) {
+                        new_parcel_ids.push(ac.cadastre.insert(chunk));
+                    }
+                }
+                region.parcel_ids = new_parcel_ids;
+                transferred.push(region.id.clone());
+                ac.regions.push(region);
+            }
+        }
+        // Relocate the defender's capital if it was annexed — promote the
+        // defender's first remaining region.
+        if capital_ceded
+            && !dc.regions.is_empty()
+            && !dc.regions.iter().any(|r| r.is_capital)
+        {
+            dc.regions[0].is_capital = true;
+        }
+        // Keep region ordering deterministic for downstream passes.
+        ac.regions.sort_by(|a, b| a.id.cmp(&b.id));
+        regions_ceded = transferred.clone();
+    } else {
+        regions_ceded = Vec::new();
+    }
+
+    // v4.27.0 (TASK-007): material destruction ($) = devastated-parcel
+    // land value across the regions this war actually touched (battle
+    // locations on the front + occupied corridor cells), measured on
+    // BOTH belligerents' cadastres. Civilian losses are the
+    // devastation-weighted share of those regions' populations.
+    let war_regions: std::collections::BTreeSet<String> = dc
+        .military_fronts
+        .iter()
+        .find(|f| f.id == front_id)
+        .map(|f| {
+            f.battles
+                .iter()
+                .map(|b| b.location.clone())
+                .chain(occupied.iter().cloned())
+                .collect()
+        })
+        .unwrap_or_default();
+    /// v4.27.0 (TASK-007): civilian share of a region's population lost
+    /// per unit of parcel devastation (fires, requisition, famine) —
+    /// attribution, not a stochastic roll.
+    const WAR_CIVILIAN_LOSS_SHARE: f64 = 0.02;
+    let mut material_destruction = 0.0;
+    let mut civilian_casualties = 0i64;
+    for belligerent in [&*dc, &*ac] {
+        for rid in &war_regions {
+            if let Some(region) = belligerent.regions.iter().find(|r| &r.id == rid) {
+                let dev: f64 = if region.parcel_ids.is_empty() {
+                    0.0
+                } else {
+                    region
+                        .parcel_ids
+                        .iter()
+                        .filter_map(|pid| belligerent.cadastre.parcels.get(*pid))
+                        .map(|p| p.devastation_index)
+                        .sum::<f64>()
+                        / region.parcel_ids.len() as f64
+                };
+                if dev > 0.0 {
+                    material_destruction +=
+                        crate::society::cadastre::total_land_value_for_region(
+                            &belligerent.cadastre,
+                            rid,
+                        ) * dev;
+                    civilian_casualties +=
+                        (region.population as f64 * dev * WAR_CIVILIAN_LOSS_SHARE) as i64;
+                }
+            }
+        }
+    }
+
     let outcome = WarOutcome {
         victor: victor.clone(),
         terms_label: terms_label.clone(),
@@ -1306,6 +1407,9 @@ fn conclude_war(
         // POWs repatriate when the front tears down on the next bridge
         // pass (`repatriate_pows_from_country`) — always true at peace.
         pows_repatriated: true,
+        participants: vec![aggressor.clone(), defender.clone()],
+        material_destruction,
+        civilian_casualties,
     };
 
     let _ = terms; // Terms are summarized by `terms_label`; the enum stays
