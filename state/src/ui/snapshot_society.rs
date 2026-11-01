@@ -603,6 +603,16 @@ pub struct SocietySnapshotDto {
     /// society telemetry hook (`labor.rs`'s own `net_migration` input
     /// stays 0 — real flows move through physical transport).
     pub last_migration: f64,
+    /// v4.27.0 (TASK-006): last turn's immigration breakdown — exact
+    /// source countries and migrant counts (real `MigrationFlow`s where
+    /// this country is the destination).
+    pub immigration_origins: Vec<MigrationBreakdownRow>,
+    /// v4.27.0 (TASK-006): last turn's emigration breakdown — exact
+    /// destination countries and migrant counts.
+    pub emigration_destinations: Vec<MigrationBreakdownRow>,
+    /// v4.27.0 (TASK-006): persons who relocated between this country's
+    /// own regions last turn (internal migration, rural→urban).
+    pub internal_migration_last_turn: i64,
     /// Life expectancy (`health_statistics.average_lifespan`, computed each
     /// turn from health infrastructure/quality and era-anchored to the
     /// 42–65 band by the Phase 85B society telemetry hook).
@@ -940,6 +950,15 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
         last_births: demo.last_births,
         last_deaths: demo.last_deaths,
         last_migration: demo.last_migration,
+        // v4.27.0 (TASK-006): real flow breakdowns from the migration
+        // engine's persisted last-turn ledger.
+        immigration_origins: migration_breakdown(country, true),
+        emigration_destinations: migration_breakdown(country, false),
+        internal_migration_last_turn: country
+            .last_internal_flows
+            .iter()
+            .map(|f| f.count)
+            .sum(),
         life_expectancy: country.macro_indicators.health_statistics.average_lifespan,
         literacy_rate: country
             .macro_indicators
@@ -954,6 +973,54 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
         nomad_share: demo.nomads,
         classes: class_rows,
     }
+}
+
+/// v4.27.0 (TASK-006): one row of the Immigration Origins / Emigration
+/// Destinations breakdown — an exact partner country and migrant count.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MigrationBreakdownRow {
+    /// The other country (source for immigration, destination for emigration).
+    pub country: String,
+    /// Persons who moved last turn.
+    pub count: i64,
+    /// Dominant reason label (`Economic` | `Unrest` | `Persecution` | …).
+    pub reason: String,
+}
+
+/// Aggregate `country.last_migration_flows` into per-partner rows.
+/// `immigration` selects flows INTO this country, `false` selects outflows.
+fn migration_breakdown(country: &Country, immigration: bool) -> Vec<MigrationBreakdownRow> {
+    let mut acc: std::collections::BTreeMap<String, (i64, std::collections::HashMap<String, i64>)> =
+        std::collections::BTreeMap::new();
+    for f in &country.last_migration_flows {
+        let (is_match, partner) = if immigration {
+            (f.dest_country == country.name, f.origin_country.clone())
+        } else {
+            (f.origin_country == country.name, f.dest_country.clone())
+        };
+        if !is_match {
+            continue;
+        }
+        let e = acc.entry(partner).or_default();
+        e.0 += f.count;
+        *e.1.entry(format!("{:?}", f.reason)).or_default() += f.count;
+    }
+    acc.into_iter()
+        .map(|(country, (count, reasons))| {
+            // Dominant reason = the modal bucket.
+            let reason = reasons
+                .into_iter()
+                .max_by_key(|(_, c)| *c)
+                .map(|(r, _)| r)
+                .unwrap_or_else(|| "Economic".to_string());
+            MigrationBreakdownRow {
+                country,
+                count,
+                reason,
+            }
+        })
+        .collect()
 }
 
 #[allow(dead_code)]

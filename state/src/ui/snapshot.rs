@@ -414,6 +414,14 @@ pub struct RegionRow {
     /// "Appointed Governor" | "Commissary Admin" | "Martial Law" | "None".
     pub governance_mode: String,
     pub liquid_reserves: f64,
+    /// v4.27.0 (TASK-006): last turn's internal in-migration (persons
+    /// arriving from other regions of the same country).
+    pub migration_in: i64,
+    /// v4.27.0 (TASK-006): last turn's internal out-migration (persons
+    /// leaving for other regions of the same country).
+    pub migration_out: i64,
+    /// v4.27.0 (TASK-006): net internal+international migration last turn.
+    pub net_migration: i64,
 }
 
 /// v4.22 WS3: derive the display governance mode from real governance state —
@@ -3650,6 +3658,16 @@ pub struct RegionDetail {
     /// Phase 87+: Geological deposits (role-gated — undiscovered deposits
     /// filtered out for foreign observers per Directive 11).
     pub geological_deposits: Vec<GeologicalDepositRow>,
+    /// v4.27.0 (TASK-006): regional migration stats — internal
+    /// in/out/net plus top source and destination regions.
+    pub migration_in: i64,
+    pub migration_out: i64,
+    pub net_migration: i64,
+    /// Top source regions + counts (this turn's in-migration) —
+    /// display-name resolved.
+    pub migration_top_sources: Vec<crate::ui::snapshot_regions::MigrationPartnerRow>,
+    /// Top destination regions + counts (this turn's out-migration).
+    pub migration_top_destinations: Vec<crate::ui::snapshot_regions::MigrationPartnerRow>,
 }
 
 /// Phase 87+: Geological deposit row for the Land Resources tab.
@@ -4897,6 +4915,9 @@ pub fn build_country_snapshot(
                     .as_ref()
                     .map(|g| g.budget.liquid_reserves)
                     .unwrap_or(0.0),
+                migration_in: r.migration.last_turn_in_internal,
+                migration_out: r.migration.last_turn_out_internal,
+                net_migration: r.migration.last_turn_net,
             }
         })
         .collect();
@@ -6483,6 +6504,18 @@ fn build_region_detail(
         // Phase 87+: Geological deposits from region resources.
         // Role-gated by caller — undiscovered deposits filtered for foreign observers.
         geological_deposits: build_geological_deposit_rows(region, buildings),
+        // v4.27.0 (TASK-006): real per-region migration ledger.
+        migration_in: region.migration.last_turn_in_internal,
+        migration_out: region.migration.last_turn_out_internal,
+        net_migration: region.migration.last_turn_net,
+        migration_top_sources: crate::ui::snapshot_regions::migration_partner_rows(
+            &region.migration.top_sources,
+            &country.regions,
+        ),
+        migration_top_destinations: crate::ui::snapshot_regions::migration_partner_rows(
+            &region.migration.top_destinations,
+            &country.regions,
+        ),
     })
 }
 

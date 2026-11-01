@@ -202,12 +202,14 @@ export function RegionsPage() {
                     <TableHead className="text-right">Population</TableHead>
                     <TableHead className="text-right">Regional GDP</TableHead>
                     <TableHead className="text-right">GDP/Cap</TableHead>
+                    {/* v4.27.0 TASK-006: internal migration balance. */}
+                    <TableHead className="text-right">Net Migration</TableHead>
                     <TableHead>Governance</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableEmpty colSpan={6} message="Loading..." />
+                    <TableEmpty colSpan={7} message="Loading..." />
                   ) : regions && regions.length > 0 ? (
                     (() => {
                       const groups = new Map<string, typeof regions>();
@@ -221,6 +223,7 @@ export function RegionsPage() {
                         const totalPop = groupRegions.reduce((s, r) => s + Number(r.population ?? 0), 0);
                         const totalGdp = groupRegions.reduce((s, r) => s + (r.regional_gdp ?? 0), 0);
                         const megaId = megaNameToId.get(mega) ?? mega;
+                        const megaNetMig = groupRegions.reduce((s, r) => s + Number(r.net_migration ?? 0), 0);
                         rows.push(
                           <TableRow
                             key={`mega-${mega}`}
@@ -233,7 +236,12 @@ export function RegionsPage() {
                             <TableCell colSpan={2} className="font-bold">{mega}</TableCell>
                             <TableCell className="text-right">{num(totalPop)}</TableCell>
                             <TableCell className="text-right">{fmt(totalGdp)}</TableCell>
-                            <TableCell colSpan={2} />
+                            <TableCell className="text-right" colSpan={2}>
+                              <span className={megaNetMig > 0 ? "text-green-500" : megaNetMig < 0 ? "text-red-400" : ""}>
+                                {megaNetMig > 0 ? "+" : ""}{num(megaNetMig)}
+                              </span>
+                            </TableCell>
+                            <TableCell />
                           </TableRow>
                         );
                         for (const r of groupRegions) {
@@ -251,6 +259,13 @@ export function RegionsPage() {
                               <TableCell className="text-right">{num(r.population ?? 0)}</TableCell>
                               <TableCell className="text-right">{fmt(r.regional_gdp ?? 0)}</TableCell>
                               <TableCell className="text-right">{fmt(r.gdp_per_capita ?? 0)}</TableCell>
+                              {/* v4.27.0 TASK-006: regional migration balance —
+                                  in/out counts in the tooltip. */}
+                              <TableCell className="text-right" title={`In: ${num(r.migration_in ?? 0)} · Out: ${num(r.migration_out ?? 0)}`}>
+                                <span className={Number(r.net_migration ?? 0) > 0 ? "text-green-500" : Number(r.net_migration ?? 0) < 0 ? "text-red-400" : ""}>
+                                  {Number(r.net_migration ?? 0) > 0 ? "+" : ""}{num(r.net_migration ?? 0)}
+                                </span>
+                              </TableCell>
                               <TableCell>
                                 {/* v4.22 WS3: real governance mode, not a static Yes badge */}
                                 {r.governance_mode && r.governance_mode !== "None" ? (
@@ -268,7 +283,7 @@ export function RegionsPage() {
                       return rows;
                     })()
                   ) : (
-                    <TableEmpty colSpan={6} message="No regions found" />
+                    <TableEmpty colSpan={7} message="No regions found" />
                   )}
                 </TableBody>
               </Table>
@@ -332,6 +347,36 @@ function RegionDetailPanel({ detail }: { detail: RegionDetailExtended }) {
                 <Field label="Debt Total" value={fmt(safeNum(detail.debt_total))} />
                 <Field label="Debt/Revenue" value={debtRatio.toFixed(2)} />
                 <Field label="Infra Avg Condition" value={`${(infraCond * 100).toFixed(1)}%`} />
+                {/* v4.27.0 TASK-006: regional migration stats — real
+                    in/out/net plus top source & destination regions. */}
+                <Field label="In-Migration" value={`+${num(Number(detail.migration_in ?? 0))}`} />
+                <Field label="Out-Migration" value={`−${num(Number(detail.migration_out ?? 0))}`} />
+                <Field
+                  label="Net Migration"
+                  value={`${Number(detail.net_migration ?? 0) > 0 ? "+" : ""}${num(Number(detail.net_migration ?? 0))}`}
+                />
+                {safeArr(detail.migration_top_sources).length > 0 && (
+                  <div>
+                    <div className="text-xs text-muted-foreground uppercase mt-2 mb-1">Top Source Regions</div>
+                    {safeArr(detail.migration_top_sources).map((p) => (
+                      <div key={p.region_id} className="flex justify-between text-xs">
+                        <span className="text-foreground/80">{p.name}</span>
+                        <span className="text-green-500">+{num(p.count)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {safeArr(detail.migration_top_destinations).length > 0 && (
+                  <div>
+                    <div className="text-xs text-muted-foreground uppercase mt-2 mb-1">Top Destination Regions</div>
+                    {safeArr(detail.migration_top_destinations).map((p) => (
+                      <div key={p.region_id} className="flex justify-between text-xs">
+                        <span className="text-foreground/80">{p.name}</span>
+                        <span className="text-red-400">−{num(p.count)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {/* v4.22 WS4: regional GDP expenditure donut */}
                 <RegionGdpDonut regionId={safeStr(detail.region_id)} />
               </div>

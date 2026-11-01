@@ -1582,7 +1582,17 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             regions: regions_out,
             cities,
             routes,
-            flows: Vec::new(),
+            // v4.27.0 (TASK-006): real internal region→region flows from
+            // the migration ledger — rendered as directional arrows.
+            flows: country
+                .last_internal_flows
+                .iter()
+                .map(|f| MapFlowDto {
+                    from_region: f.from_region.clone(),
+                    to_region: f.to_region.clone(),
+                    amount: f.count,
+                })
+                .collect(),
         });
     }
 

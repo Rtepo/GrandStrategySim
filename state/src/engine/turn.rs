@@ -12111,6 +12111,18 @@ tasks.par_iter_mut().for_each(|task| {
                 &migration_config,
             );
 
+            // v4.27.0 (TASK-006): persist last-turn international flows per
+            // country (as origin or destination) — the Society page's
+            // Immigration Origins / Emigration Destinations table.
+            for task in &mut tasks {
+                let name = task.ctx.country_name.clone();
+                task.ctx.country.last_migration_flows = flows
+                    .iter()
+                    .filter(|f| f.origin_country == name || f.dest_country == name)
+                    .cloned()
+                    .collect();
+            }
+
             // Pass 3: Process deportations per country (parallel-safe, single country)
             let deportation_config = migration_config.clone();
             let _saved_rng_state = crate::engine::seeded_rng::save_stream();
@@ -12121,6 +12133,14 @@ tasks.par_iter_mut().for_each(|task| {
                 let (_deported, wealth) =
                     crate::economy::migration::process_deportations(task.ctx.country, border_cap, &deportation_config);
                 task.deported_wealth = wealth;
+
+                // v4.27.0 (TASK-006): internal region↔region migration —
+                // rural→urban, low-wage→high-wage. Population conserved
+                // within the country; parallel-safe (single country).
+                task.ctx.country.last_internal_flows =
+                    crate::economy::labor::migration::process_internal_migration(
+                        task.ctx.country,
+                    );
             });
             crate::engine::seeded_rng::restore_stream(_saved_rng_state);
             // Sequential: credit deported wealth to foreign_sector_balance (F4).

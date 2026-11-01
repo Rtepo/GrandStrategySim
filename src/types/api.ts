@@ -2696,6 +2696,43 @@ sector_employment: Array<[string, number]>,
 active_mandates: Array<MandateSummary>, };
 
 /**
+ * v4.27.0 (TASK-006): one row of the Immigration Origins / Emigration
+ * Destinations breakdown — an exact partner country and migrant count.
+ */
+export type MigrationBreakdownRow = { 
+/**
+ * The other country (source for immigration, destination for emigration).
+ */
+country: string, 
+/**
+ * Persons who moved last turn.
+ */
+count: bigint, 
+/**
+ * Dominant reason label (`Economic` | `Unrest` | `Persecution` | …).
+ */
+reason: string, };
+
+/**
+ * v4.27.0 (TASK-006): one row of a region's migration partner list —
+ * display-name-resolved so the Regions panel shows "Northern Marches"
+ * instead of the raw `Anglia-Region3` id.
+ */
+export type MigrationPartnerRow = { 
+/**
+ * Partner region id.
+ */
+region_id: string, 
+/**
+ * Partner display name (`display_name` with id fallback).
+ */
+name: string, 
+/**
+ * Persons moved this turn.
+ */
+count: bigint, };
+
+/**
  * Full military dashboard response.
  */
 export type MilitaryDashboardResponse = { 
@@ -3537,7 +3574,21 @@ arable_land_used: bigint,
  * Phase 87+: Geological deposits (role-gated — undiscovered deposits
  * filtered out for foreign observers per Directive 11).
  */
-geological_deposits: Array<GeologicalDepositRow>, };
+geological_deposits: Array<GeologicalDepositRow>, 
+/**
+ * v4.27.0 (TASK-006): regional migration stats — internal
+ * in/out/net plus top source and destination regions.
+ */
+migration_in: bigint, migration_out: bigint, net_migration: bigint, 
+/**
+ * Top source regions + counts (this turn's in-migration) —
+ * display-name resolved.
+ */
+migration_top_sources: Array<MigrationPartnerRow>, 
+/**
+ * Top destination regions + counts (this turn's out-migration).
+ */
+migration_top_destinations: Array<MigrationPartnerRow>, };
 
 /**
  * Phase 81: Regional energy information.
@@ -3617,7 +3668,21 @@ megaregion_id: string, population: bigint, regional_gdp: number, gdp_per_capita:
  * v4.22 WS3: human-readable governance mode — "Autonomous Council" |
  * "Appointed Governor" | "Commissary Admin" | "Martial Law" | "None".
  */
-governance_mode: string, liquid_reserves: number, };
+governance_mode: string, liquid_reserves: number, 
+/**
+ * v4.27.0 (TASK-006): last turn's internal in-migration (persons
+ * arriving from other regions of the same country).
+ */
+migration_in: bigint, 
+/**
+ * v4.27.0 (TASK-006): last turn's internal out-migration (persons
+ * leaving for other regions of the same country).
+ */
+migration_out: bigint, 
+/**
+ * v4.27.0 (TASK-006): net internal+international migration last turn.
+ */
+net_migration: bigint, };
 
 /**
  * Per-region expenditure composition for the Region Overview.
@@ -3896,6 +3961,22 @@ last_deaths: number,
  * stays 0 — real flows move through physical transport).
  */
 last_migration: number, 
+/**
+ * v4.27.0 (TASK-006): last turn's immigration breakdown — exact
+ * source countries and migrant counts (real `MigrationFlow`s where
+ * this country is the destination).
+ */
+immigration_origins: Array<MigrationBreakdownRow>, 
+/**
+ * v4.27.0 (TASK-006): last turn's emigration breakdown — exact
+ * destination countries and migrant counts.
+ */
+emigration_destinations: Array<MigrationBreakdownRow>, 
+/**
+ * v4.27.0 (TASK-006): persons who relocated between this country's
+ * own regions last turn (internal migration, rural→urban).
+ */
+internal_migration_last_turn: bigint, 
 /**
  * Life expectancy (`health_statistics.average_lifespan`, computed each
  * turn from health infrastructure/quality and era-anchored to the

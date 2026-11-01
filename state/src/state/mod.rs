@@ -340,6 +340,16 @@ pub struct Country {
     /// Megaregional groupings.
     #[serde(default)]
     pub megaregions: Vec<Megaregion>,
+    /// v4.27.0 (TASK-006): last turn's international migration flows
+    /// touching this country (as origin or destination) — powers the
+    /// Immigration Origins / Emigration Destinations table.
+    #[serde(default)]
+    pub last_migration_flows: Vec<crate::politics::laws::MigrationFlow>,
+    /// v4.27.0 (TASK-006): last turn's internal region→region migrant
+    /// flows — powers the Internal Migration map mode and per-region
+    /// source/destination lists.
+    #[serde(default)]
+    pub last_internal_flows: Vec<crate::economy::labor::migration::InternalMigrationFlow>,
     /// Phase 3: Rebellion flag - true if this is a rebel proto-state.
     #[serde(default)]
     pub is_rebellion: bool,
@@ -796,6 +806,8 @@ impl Country {
             politics: Politics::default(),
             regions: Vec::new(),
             megaregions: Vec::new(),
+            last_migration_flows: Vec::new(),
+            last_internal_flows: Vec::new(),
             is_rebellion: false,
             mother_country: None,
             rebellion_type: None,
@@ -1233,6 +1245,8 @@ impl CountryBuilder {
             politics: self.politics.unwrap_or_default(),
             regions: Vec::new(),
             megaregions: Vec::new(),
+            last_migration_flows: Vec::new(),
+            last_internal_flows: Vec::new(),
             is_rebellion: false,
             mother_country: None,
             rebellion_type: None,

@@ -22,6 +22,7 @@
 use crate::economy::legal_status::LegalStatus;
 use crate::entities::Building;
 use crate::politics::laws::{DeportationPolicy, MigrationFlow, MigrationReason};
+use crate::society::geography::NodeType;
 use crate::registries::enums::Commodity;
 use crate::state::macro_data::ImmigrantCohort;
 use crate::state::Country;
@@ -548,6 +549,226 @@ pub fn collect_migration_flows(
     }
 
     flows
+}
+
+// ============================================================================
+// v4.27.0 (TASK-006): INTERNAL (region↔region) MIGRATION
+// ============================================================================
+
+/// One internal migrant flow between two regions of the same country.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct InternalMigrationFlow {
+    pub from_region: String,
+    pub to_region: String,
+    /// Persons moved this turn.
+    pub count: i64,
+}
+
+/// Ceiling on the share of a source region's population that can relocate
+/// within one turn (~0.4%/turn — gradual rural→urban drift, not teleport).
+const INTERNAL_MIGRATION_MAX_RATE: f64 = 0.004;
+
+/// Pull score for a region: high GDP/capita (wage proxy), urban share,
+/// and development attract; low values push people out. Exactly the
+/// rural→urban and low-wage→high-wage dynamics the mandate requires.
+fn region_attractiveness(r: &crate::society::geography::Region) -> f64 {
+    let gdp_norm = (r.gdp_pc.max(0.0) / 10_000.0).min(2.0);
+    let urban_pop: i64 = r
+        .class_demographics
+        .urban_classes
+        .values()
+        .map(|c| c.population.max(0))
+        .sum();
+    let urban_share = if r.population > 0 {
+        (urban_pop as f64 / r.population as f64).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    0.5 * gdp_norm + 0.3 * urban_share + 0.2 * r.development_level.clamp(0.0, 1.0)
+}
+
+/// Per-turn internal migration pass — moves real population between a
+/// country's regions and records the ledger on `Region.migration` plus
+/// `Country.last_internal_flows`.
+///
+/// Conservation: every person removed from a source is added to a
+/// destination — region totals and country population are preserved.
+/// Rural→urban dynamics: emigrants are drawn from the source's rural
+/// classes first and land in the destination's urban classes.
+pub fn process_internal_migration(country: &mut Country) -> Vec<InternalMigrationFlow> {
+    let n = country.regions.len();
+    if n < 2 {
+        return Vec::new();
+    }
+    // `last_turn_*` counters reflect ONLY this turn.
+    reset_internal_migration_ledgers(country);
+
+    // Score every land region (sea/ocean nodes and ghost regions excluded).
+    let mut attr = vec![f64::NEG_INFINITY; n];
+    for (i, r) in country.regions.iter().enumerate() {
+        if r.node_type == NodeType::LandRegion && r.population > 1_000 {
+            attr[i] = region_attractiveness(r);
+        }
+    }
+    let scores: Vec<f64> = attr.iter().copied().filter(|a| a.is_finite()).collect();
+    if scores.len() < 2 {
+        return Vec::new();
+    }
+    let mean: f64 = scores.iter().sum::<f64>() / scores.len() as f64;
+
+    // Sources sit below the mean, destinations above it. Total pull weight
+    // normalizes the distribution so stronger hubs absorb more migrants.
+    let pull_total: f64 = scores
+        .iter()
+        .map(|a| (a - mean).max(0.0))
+        .sum();
+    if pull_total <= 1e-9 {
+        return Vec::new();
+    }
+
+    // Plan flows without mutating (indices stable across the pass).
+    // movers[i][j] = persons i → j.
+    let mut movers: Vec<(usize, usize, i64)> = Vec::new();
+    for (i, r) in country.regions.iter().enumerate() {
+        if !attr[i].is_finite() || attr[i] >= mean {
+            continue;
+        }
+        let deficit = (mean - attr[i]) / pull_total.max(mean);
+        let emigrants = ((r.population as f64)
+            * INTERNAL_MIGRATION_MAX_RATE
+            * (deficit * scores.len() as f64).min(1.0)) as i64;
+        // Leave at least a viable remnant population.
+        let emigrants = emigrants.min(r.population.saturating_sub(1_000));
+        if emigrants <= 0 {
+            continue;
+        }
+        let mut assigned: i64 = 0;
+        for (j, d) in country.regions.iter().enumerate() {
+            if i == j || !attr[j].is_finite() || attr[j] <= mean {
+                continue;
+            }
+            let share = (attr[j] - mean) / pull_total;
+            let cnt = ((emigrants as f64 * share) as i64).min(emigrants - assigned);
+            if cnt <= 0 {
+                continue;
+            }
+            assigned += cnt;
+            movers.push((i, j, cnt));
+            let _ = d;
+            if assigned >= emigrants {
+                break;
+            }
+        }
+    }
+
+    // Apply: population, class demographics (rural → urban), savings.
+    let mut flows: Vec<InternalMigrationFlow> = Vec::new();
+    for (i, j, cnt) in &movers {
+        let (i, j, cnt) = (*i, *j, *cnt);
+        let (lo, hi) = if i < j { (i, j) } else { (j, i) };
+        let (a, b) = country.regions.split_at_mut(hi);
+        let (src, dst) = if i < j {
+            (&mut a[lo], &mut b[0])
+        } else {
+            (&mut b[0], &mut a[lo])
+        };
+
+        src.population = (src.population - cnt).max(0);
+        dst.population += cnt;
+
+        // Demographic move — rural classes of the source shrink, the
+        // destination's largest urban class grows (or is created).
+        let mut remaining = cnt;
+        for demo in src.class_demographics.rural_classes.values_mut() {
+            if remaining <= 0 {
+                break;
+            }
+            let take = demo.population.min(remaining);
+            // Emigrants carry their per-capita savings share.
+            let per_cap = if demo.population > 0 {
+                demo.savings / demo.population as f64
+            } else {
+                0.0
+            };
+            demo.population -= take;
+            demo.savings -= per_cap * take as f64;
+            demo.savings_per_capita = if demo.population > 0 {
+                demo.savings / demo.population as f64
+            } else {
+                0.0
+            };
+            remaining -= take;
+            // Credit destination's biggest urban class.
+            if let Some(target) = dst
+                .class_demographics
+                .urban_classes
+                .values_mut()
+                .max_by_key(|d| d.population)
+            {
+                target.population += take;
+                target.savings += per_cap * take as f64;
+                target.savings_per_capita = if target.population > 0 {
+                    target.savings / target.population as f64
+                } else {
+                    0.0
+                };
+            }
+        }
+
+        // Ledger bookkeeping on both ends.
+        src.migration.last_turn_out_internal += cnt;
+        src.migration.last_turn_net -= cnt;
+        src.migration.cumulative_out += cnt;
+        dst.migration.last_turn_in_internal += cnt;
+        dst.migration.last_turn_net += cnt;
+        dst.migration.cumulative_in += cnt;
+
+        flows.push(InternalMigrationFlow {
+            from_region: src.id.clone(),
+            to_region: dst.id.clone(),
+            count: cnt,
+        });
+    }
+
+    // Rebuild top source/destination lists from this turn's flows.
+    let mut in_map: HashMap<usize, Vec<(String, i64)>> = HashMap::new();
+    let mut out_map: HashMap<usize, Vec<(String, i64)>> = HashMap::new();
+    for (i, j, cnt) in &movers {
+        out_map
+            .entry(*i)
+            .or_default()
+            .push((country.regions[*j].id.clone(), *cnt));
+        in_map
+            .entry(*j)
+            .or_default()
+            .push((country.regions[*i].id.clone(), *cnt));
+    }
+    for (idx, mut list) in in_map {
+        list.sort_by(|a, b| b.1.cmp(&a.1));
+        list.truncate(5);
+        country.regions[idx].migration.top_sources = list;
+    }
+    for (idx, mut list) in out_map {
+        list.sort_by(|a, b| b.1.cmp(&a.1));
+        list.truncate(5);
+        country.regions[idx].migration.top_destinations = list;
+    }
+
+    flows
+}
+
+/// Clear last-turn per-region migration counters — called at the start of
+/// each internal pass so `last_turn_*` reflects ONLY the current turn.
+pub fn reset_internal_migration_ledgers(country: &mut Country) {
+    for r in &mut country.regions {
+        r.migration.last_turn_in_internal = 0;
+        r.migration.last_turn_out_internal = 0;
+        r.migration.last_turn_in_international = 0;
+        r.migration.last_turn_out_international = 0;
+        r.migration.last_turn_net = 0;
+        r.migration.top_sources.clear();
+        r.migration.top_destinations.clear();
+    }
 }
 
 /// Determine the primary reason for migration based on country conditions.
@@ -1172,5 +1393,71 @@ mod tests {
             country.macro_indicators.demographics.illegal_immigrants,
             0.0
         );
+    }
+
+    /// v4.27.0 (TASK-006): internal migration moves real population
+    /// rural→urban / poor→rich, conserves totals, and writes the ledger.
+    #[test]
+    fn test_internal_migration_moves_population_and_ledgers() {
+        use crate::society::geography::{NodeType, UrbanClass};
+
+        let mut country = Country::mock_for_tests();
+        // Poor rural source + rich urban destination.
+        let mut src = test_region_with_population("R-SRC", "Test", 20_000);
+        src.node_type = NodeType::LandRegion;
+        src.gdp_pc = 500.0;
+        src.development_level = 0.1;
+        let mut dst = test_region_with_population("R-DST", "Test", 20_000);
+        dst.node_type = NodeType::LandRegion;
+        dst.gdp_pc = 20_000.0;
+        dst.development_level = 0.9;
+        dst.class_demographics.urban_classes.insert(
+            UrbanClass::Worker,
+            ClassDemographics {
+                population: 20_000,
+                ..Default::default()
+            },
+        );
+        country.regions = vec![src, dst];
+
+        let pop_before: i64 = country.regions.iter().map(|r| r.population).sum();
+        let flows = process_internal_migration(&mut country);
+        let pop_after: i64 = country.regions.iter().map(|r| r.population).sum();
+
+        // Conservation: total population unchanged.
+        assert_eq!(pop_before, pop_after, "population not conserved");
+        // Direction: flows only run poor → rich region.
+        assert!(!flows.is_empty(), "no internal flows generated");
+        for f in &flows {
+            assert_eq!(f.from_region, "R-SRC");
+            assert_eq!(f.to_region, "R-DST");
+            assert!(f.count > 0);
+        }
+        let moved: i64 = flows.iter().map(|f| f.count).sum();
+        assert_eq!(country.regions[0].population, 20_000 - moved);
+        assert_eq!(country.regions[1].population, 20_000 + moved);
+        // Ledgers: source out / dest in / net signs correct.
+        assert_eq!(country.regions[0].migration.last_turn_out_internal, moved);
+        assert_eq!(country.regions[0].migration.last_turn_net, -moved);
+        assert_eq!(country.regions[1].migration.last_turn_in_internal, moved);
+        assert_eq!(country.regions[1].migration.last_turn_net, moved);
+        assert_eq!(country.regions[1].migration.cumulative_in, moved);
+        // Top lists populated.
+        assert_eq!(
+            country.regions[0].migration.top_destinations,
+            vec![("R-DST".to_string(), moved)]
+        );
+        assert_eq!(
+            country.regions[1].migration.top_sources,
+            vec![("R-SRC".to_string(), moved)]
+        );
+        // Urban class absorbed the migrants.
+        let urban_pop: i64 = country.regions[1]
+            .class_demographics
+            .urban_classes
+            .values()
+            .map(|d| d.population)
+            .sum();
+        assert_eq!(urban_pop, 20_000 + moved);
     }
 }

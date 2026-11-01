@@ -125,6 +125,8 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
                 politics,
                 regions: Vec::new(),
                 megaregions: Vec::new(),
+                last_migration_flows: Vec::new(),
+                last_internal_flows: Vec::new(),
                 is_rebellion: false,
                 mother_country: None,
                 rebellion_type: None,

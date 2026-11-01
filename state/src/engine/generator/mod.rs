@@ -843,6 +843,8 @@ fn generate_country(
         politics: Politics::default(),
         regions: Vec::new(),
         megaregions: Vec::new(),
+        last_migration_flows: Vec::new(),
+        last_internal_flows: Vec::new(),
         is_rebellion: false,
         mother_country: None,
         rebellion_type: None,
