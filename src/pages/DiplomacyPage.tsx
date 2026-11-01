@@ -23,6 +23,10 @@ type DiplomatRow = {
   post_type: string;
   assigned_turn: number;
   traits: string[];
+  /** v4.27.0 TASK-008: active mission + progress (0–1). Spies join their
+      live covert op; envoys carry a relation-derived assignment. */
+  mission_type?: string;
+  mission_progress?: number;
 };
 
 type ForeignIntelRow = {
@@ -56,6 +60,12 @@ type DirectiveRow = {
   votes_against: number;
   votes_abstain: number;
   votes: [string, string][];
+  /** v4.27.0 TASK-008: expandable resolution detail — full description,
+      statutory rules, economic effects, funding source. */
+  description?: string;
+  statutory_rules?: string;
+  economic_effects?: string;
+  funding_source?: string;
 };
 
 type DeclaredWarRow = {
@@ -237,6 +247,8 @@ export function DiplomacyPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Host Country</TableHead>
                   <TableHead>Post Type</TableHead>
+                  <TableHead>Mission</TableHead>
+                  <TableHead>Progress</TableHead>
                   <TableHead>Traits</TableHead>
                 </TableRow>
               </TableHeader>
@@ -250,13 +262,24 @@ export function DiplomacyPage() {
                         {d.post_type}
                       </span>
                     </TableCell>
+                    <TableCell className={d.post_type === "Spy" ? "text-red-600" : ""}>
+                      {d.mission_type ?? "Assigned"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-1.5 w-16 rounded bg-muted overflow-hidden">
+                        <div
+                          className={`h-full ${d.post_type === "Spy" ? "bg-red-500" : "bg-blue-500"}`}
+                          style={{ width: `${Math.round((d.mission_progress ?? 0) * 100)}%` }}
+                        />
+                      </div>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{d.traits.join(", ")}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           ) : (
-            <TableEmpty colSpan={4} message="No diplomats currently posted." />
+            <TableEmpty colSpan={6} message="No diplomats currently posted." />
           )}
         </CardContent>
       </Card>
@@ -656,6 +679,34 @@ function AssemblyResolutionRow({ directive }: { directive: DirectiveRow }) {
       {open && (
         <TableRow>
           <TableCell colSpan={4} className="bg-muted/20">
+            {/* v4.27.0 TASK-008: full resolution detail — description,
+                statutory rules, economic effects, funding source. */}
+            {directive.description && (
+              <p className="text-xs text-foreground mb-2">{directive.description}</p>
+            )}
+            {(directive.statutory_rules || directive.economic_effects || directive.funding_source) && (
+              <div className="grid md:grid-cols-3 gap-3 mb-2">
+                {directive.statutory_rules && (
+                  <div>
+                    <div className="text-[10px] uppercase text-muted-foreground mb-0.5">Statutory Rules</div>
+                    <p className="text-xs">{directive.statutory_rules}</p>
+                  </div>
+                )}
+                {directive.economic_effects && (
+                  <div>
+                    <div className="text-[10px] uppercase text-muted-foreground mb-0.5">Economic Effects</div>
+                    <p className="text-xs">{directive.economic_effects}</p>
+                  </div>
+                )}
+                {directive.funding_source && (
+                  <div>
+                    <div className="text-[10px] uppercase text-muted-foreground mb-0.5">Funding Source</div>
+                    <p className="text-xs">{directive.funding_source}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="text-[10px] uppercase text-muted-foreground mb-0.5">Roll Call</div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-0.5 py-1">
               {directive.votes.map(([member, vote]) => (
                 <div key={member} className="text-xs">

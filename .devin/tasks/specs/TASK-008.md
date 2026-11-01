@@ -22,5 +22,9 @@ and resolutions are not expandable to their actual rules/effects/funding.
 - `world_forum_resolutions != regional_bloc_resolutions`.
 
 ## Files
-- `state/src/international/diplomacy.rs`, `state/src/international/organizations.rs`
-- `src/pages/DiplomacyPage.tsx`, `src/pages/OrganizationDetailPage.tsx`
+- `state/src/international/organizations.rs` (resolution catalogues),
+  `state/src/ui/snapshot.rs` (DiplomatRow mission join, DirectiveRow
+  expansion fields)
+- `src/pages/DiplomacyPage.tsx` (international organisations + their
+  Assembly resolutions render inside Diplomacy's IA panel —
+  `OrganizationDetailPage` is for domestic guilds/unions/movements)

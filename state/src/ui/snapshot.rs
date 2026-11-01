@@ -724,6 +724,15 @@ pub struct DiplomatRow {
     pub assigned_turn: u32,
     /// VIP traits.
     pub traits: Vec<String>,
+    /// v4.27.0 (TASK-008): active mission label — the spy's covert
+    /// operation for `Spy` posts, or the standing assignment derived
+    /// from the bilateral relationship for envoys.
+    #[serde(default)]
+    pub mission_type: String,
+    /// v4.27.0 (TASK-008): mission progress 0.0–1.0 — the real covert-op
+    /// progress for spies; a state-derived fraction for envoys.
+    #[serde(default)]
+    pub mission_progress: f64,
 }
 
 /// Phase 66: Intelligence on a foreign country (Fog of War filtered).
@@ -1068,6 +1077,19 @@ pub struct DirectiveRow {
     pub votes_abstain: usize,
     /// (member state, "For"|"Against"|"Abstain") roll call, sorted by member.
     pub votes: Vec<(String, String)>,
+    /// v4.27.0 (TASK-008): full description, statutory rules, economic
+    /// effects, and funding source for the expandable resolution panel.
+    #[serde(default)]
+    pub description: String,
+    /// v4.27.0 (TASK-008): statutory rules imposed on members.
+    #[serde(default)]
+    pub statutory_rules: String,
+    /// v4.27.0 (TASK-008): expected economic effects.
+    #[serde(default)]
+    pub economic_effects: String,
+    /// v4.27.0 (TASK-008): how the resolution is funded.
+    #[serde(default)]
+    pub funding_source: String,
 }
 
 /// Phase 68: A sanction row for the diplomacy snapshot.
@@ -1983,8 +2005,69 @@ pub fn build_diplomacy_snapshot(
                 .filter(|v| v.diplomatic_post.is_some())
                 .collect();
             posted_vips.sort_by_key(|v| v.id.clone());
+            // v4.27.0 (TASK-008): live covert operations run by this
+            // country's intelligence agency — spy posts join their op
+            // for the real mission type + progress.
+            let ops: &[crate::international::intelligence::CovertOperation] = state
+                .intelligence_agencies
+                .get(country_name)
+                .map(|a| a.operations.as_slice())
+                .unwrap_or(&[]);
             for vip in posted_vips {
                 let post = vip.diplomatic_post.as_ref().unwrap();
+                let rel = diplomacy
+                    .get(country_name)
+                    .and_then(|p| p.get(&post.host_country));
+                let (mission_type, mission_progress) = match post.post_type {
+                    crate::politics::vip_registry::DiplomaticPostType::Spy => {
+                        match ops
+                            .iter()
+                            .find(|o| {
+                                o.target_country == post.host_country
+                                    && o.status
+                                        == crate::international::intelligence::CovertOpStatus::Active
+                            })
+                            .or_else(|| {
+                                ops.iter().find(|o| o.target_country == post.host_country)
+                            }) {
+                            Some(op) => {
+                                (op.mission_type.as_str().to_string(), op.progress)
+                            }
+                            None => ("Deep Cover".to_string(), 0.0),
+                        }
+                    }
+                    _ => {
+                        let relations = rel.map(|r| r.relations).unwrap_or(0) as f64;
+                        let embargo = rel.map(|r| r.ban_import || r.ban_export).unwrap_or(false);
+                        let free_trade = rel.map(|r| r.free_trade).unwrap_or(false);
+                        if embargo {
+                            (
+                                "Negotiate Sanctions Relief".to_string(),
+                                ((relations + 100.0) / 200.0).clamp(0.0, 1.0),
+                            )
+                        } else if relations < 0.0 {
+                            (
+                                "Improve Relations".to_string(),
+                                ((relations + 100.0) / 200.0).clamp(0.0, 1.0),
+                            )
+                        } else if !free_trade {
+                            (
+                                "Negotiate Trade Pact".to_string(),
+                                (relations / 100.0).clamp(0.0, 1.0),
+                            )
+                        } else if !rel.map(|r| r.customs_union).unwrap_or(false) {
+                            (
+                                "Negotiate Customs Union".to_string(),
+                                (relations / 100.0).clamp(0.0, 1.0),
+                            )
+                        } else {
+                            (
+                                "Maintain Cordial Relations".to_string(),
+                                (relations / 100.0).clamp(0.0, 1.0),
+                            )
+                        }
+                    }
+                };
                 diplomats.push(DiplomatRow {
                     vip_id: vip.id.clone(),
                     name: vip.full_name.clone(),
@@ -1992,6 +2075,8 @@ pub fn build_diplomacy_snapshot(
                     post_type: format!("{:?}", post.post_type),
                     assigned_turn: post.assigned_turn,
                     traits: vip.traits.clone(),
+                    mission_type,
+                    mission_progress,
                 });
             }
         }
@@ -2080,6 +2165,10 @@ pub fn build_diplomacy_snapshot(
                     .iter()
                     .map(|(m, v)| (m.clone(), v.clone()))
                     .collect(),
+                description: d.description.clone(),
+                statutory_rules: d.statutory_rules.clone(),
+                economic_effects: d.economic_effects.clone(),
+                funding_source: d.funding_source.clone(),
             })
             .collect();
         organizations.push(InternationalOrgRow {

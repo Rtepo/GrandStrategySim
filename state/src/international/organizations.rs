@@ -220,6 +220,20 @@ pub struct Directive {
     /// confirmed). None while still inside the compliance window.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub enforcement_turn: Option<u32>,
+    /// v4.27.0 (TASK-008): full-text description of the resolution —
+    /// what it is and why the assembly tabled it.
+    #[serde(default)]
+    pub description: String,
+    /// v4.27.0 (TASK-008): statutory rules the resolution imposes on
+    /// member states.
+    #[serde(default)]
+    pub statutory_rules: String,
+    /// v4.27.0 (TASK-008): expected economic effects on members.
+    #[serde(default)]
+    pub economic_effects: String,
+    /// v4.27.0 (TASK-008): how the resolution's programmes are funded.
+    #[serde(default)]
+    pub funding_source: String,
 }
 
 fn default_directive_status() -> String {
@@ -478,22 +492,26 @@ impl OrganizationRegistry {
     /// record. Assent propensity rises with integration depth — a Free Trade
     /// Area debates more contested measures than a Political Union.
     pub fn deliberate_resolutions(&mut self, current_turn: u32, config: &OrgConfig) {
-        const RESOLUTION_THEMES: [&str; 6] = [
-            "Harmonized Tariff Schedule",
-            "Emission Standards Accord",
-            "Freedom of Navigation Compact",
-            "Regional Infrastructure Compact",
-            "Common Agricultural Charter",
-            "Mutual Defense Consultation Pact",
-        ];
         let mut rng = crate::engine::seeded_rng::thread_rng();
         let cycle = (current_turn / config.resolution_interval_turns) as usize;
         for org in &mut self.organizations {
             if org.member_states.len() < 2 {
                 continue;
             }
-            let theme = RESOLUTION_THEMES
-                [(cycle + org.member_states.len()) % RESOLUTION_THEMES.len()];
+            // v4.27.0 (TASK-008): each organisation debates from ITS OWN
+            // era-appropriate catalogue — universal themes for the World
+            // Forum, regional-cooperation themes for "… Compact" blocs,
+            // offset by the bloc name so two blocs never clone rows.
+            let catalog = resolution_catalog(&org.name);
+            let name_offset: usize = org
+                .name
+                .bytes()
+                .map(|b| b as usize)
+                .sum::<usize>()
+                % catalog.len();
+            let idx = (cycle + org.member_states.len() + name_offset) % catalog.len();
+            let (theme, description, statutory_rules, economic_effects, funding_source) =
+                catalog[idx];
             // Canonical draw order — member_states insertion order can differ
             // across loads; sorting keeps the RNG stream deterministic.
             let mut members = org.member_states.clone();
@@ -572,9 +590,14 @@ impl OrganizationRegistry {
                 member_compliance,
                 debate_log,
                 enforcement_turn: None,
+                description: description.to_string(),
+                statutory_rules: statutory_rules.to_string(),
+                economic_effects: economic_effects.to_string(),
+                funding_source: funding_source.to_string(),
             });
         }
     }
+
 
     /// Enforces directives — checks compliance and applies fines.
     /// Fines are returned as (country, amount) pairs for sequential double-entry processing.
@@ -831,6 +854,10 @@ mod tests {
             member_compliance: std::collections::BTreeMap::new(),
             debate_log: Vec::new(),
             enforcement_turn: None,
+            description: String::new(),
+            statutory_rules: String::new(),
+            economic_effects: String::new(),
+            funding_source: String::new(),
         });
         registry.organizations.push(org);
 
@@ -863,9 +890,215 @@ mod tests {
             member_compliance: std::collections::BTreeMap::new(),
             debate_log: Vec::new(),
             enforcement_turn: None,
+            description: String::new(),
+            statutory_rules: String::new(),
+            economic_effects: String::new(),
+            funding_source: String::new(),
         };
         let json = serde_json::to_string(&directive).unwrap();
         let deserialized: Directive = serde_json::from_str(&json).unwrap();
         assert_eq!(directive, deserialized);
+    }
+}
+// ============================================================================
+// v4.27.0 (TASK-008): ERA-APPROPRIATE RESOLUTION CATALOGUES
+// ============================================================================
+//
+// Each catalogue entry is (title, description, statutory_rules,
+// economic_effects, funding_source). Universal bodies (the World Forum)
+// debate planet-wide instruments; regional "… Compact" blocs debate
+// intra-bloc cooperation. All themes are period-appropriate for the
+// game's early-industrial era — no anachronisms (no emissions accords
+// in 1900).
+
+/// Catalogue row: (title, description, statutory rules, economic
+/// effects, funding source).
+type ResolutionTheme = (&'static str, &'static str, &'static str, &'static str, &'static str);
+
+/// Universal-body resolutions (World Forum and any org that is not a
+/// regional Compact).
+const WORLD_FORUM_THEMES: &[ResolutionTheme] = &[
+    (
+        "Concert of Nations Peace Protocol",
+        "A standing mediation protocol obliging signatories to submit \
+         interstate disputes to a Forum-arbitrated conference before \
+         resorting to arms.",
+        "Members must offer good offices before any declaration of war; \
+         a two-thirds quorum of members may convene an emergency \
+         congress against an aggressor.",
+        "Dampens bilateral tension growth among members; war-weary \
+         states recover trade access faster after a mediated peace.",
+        "Funded by proportional member dues levied on treasuries each \
+         assembly cycle.",
+    ),
+    (
+        "Universal Postal & Telegraphic Convention",
+        "Standardises cross-border mail rates, telegraph routing, and \
+         interconnection of national telegraph networks among all \
+         member states.",
+        "Members must honour foreign mail at domestic-equivalent rates \
+         and maintain telegraph interconnection at designated border \
+         exchanges.",
+        "Improves commercial correspondence speed, marginally raising \
+         trade throughput and B2B clearing velocity across borders.",
+        "Funded by per-member communication tariffs collected at border \
+         exchanges.",
+    ),
+    (
+        "Open Straits Navigation Accord",
+        "Guarantees free merchant passage through internationally \
+         administered straits and coastal sea lanes in peace and war.",
+        "No member may levy discriminatory tolls or close recognised \
+         international straits to neutral shipping.",
+        "Lowers effective freight costs on sea lanes, raising export \
+         revenue for coastal member economies.",
+        "Funded by tonnage dues remitted to the org treasury.",
+    ),
+    (
+        "Gold Standard Arbitration Charter",
+        "Establishes a standing monetary conference to arbitrate \
+         exchange disputes between gold-standard member treasuries.",
+        "Members pledge convertibility of their currency into gold at \
+         declared parity and accept arbitration of parity disputes.",
+        "Stabilises FX spreads, reducing treasury reserve volatility on \
+         cross-border settlements.",
+        "Funded by assessments scaled to members' declared gold \
+         reserves.",
+    ),
+    (
+        "International Railway Interconnection Charter",
+        "Coordinates gauge standards and through-ticketing on \
+         trans-national rail corridors crossing member frontiers.",
+        "Members must permit through-running of foreign rolling stock \
+         on designated international corridors at published tariffs.",
+        "Cuts border-transfer delays on trade routes, boosting rail \
+         freight share on international corridors.",
+        "Funded by corridor access fees shared pro-rata among members.",
+    ),
+    (
+        "Colonial Spheres Mediation Pact",
+        "Creates a forum procedure for the peaceful delimitation of \
+         colonial claims and sphere-of-influence disputes.",
+        "Members must register new territorial claims with the Forum \
+         and accept arbitration findings before annexation.",
+        "Reduces the incidence of escalatory border incidents over \
+         contested periphery regions.",
+        "Funded by proportional member dues plus filing fees on \
+         registered claims.",
+    ),
+];
+
+/// Regional-bloc resolutions (any "… Compact" organisation). Distinct
+/// from the universal catalogue so a bloc never debates a World Forum
+/// instrument.
+const BLOC_THEMES: &[ResolutionTheme] = &[
+    (
+        "Most-Favoured-Nation Tariff Schedule",
+        "A reciprocal schedule granting every bloc member the lowest \
+         tariff rate extended to any member — consolidating the \
+         bloc's free-trade area.",
+        "Members must apply the published common schedule to intra-bloc \
+         trade and may not raise preferential barriers against members.",
+        "Raises intra-bloc trade volume and customs revenue stability; \
+         narrows price spreads between member markets.",
+        "Revenue-neutral — funded by the customs duties it harmonises.",
+    ),
+    (
+        "Interstate Railway Gauge Convention",
+        "Harmonises track gauge and signalling practice on railways \
+         crossing the bloc's internal borders.",
+        "Members must convert designated trunk lines to the common \
+         gauge and accept mutual inspection of signalling standards.",
+        "Cuts transshipment costs at borders, increasing rail freight \
+         throughput inside the bloc.",
+        "Funded by a bloc infrastructure levy scaled to each member's \
+         rail mileage.",
+    ),
+    (
+        "Joint Border Demarcation Survey",
+        "A mixed-commission survey producing a legally binding common \
+         map of the bloc's internal frontiers.",
+        "Members must place survey commissioners and accept the \
+         demarcated boundary line as final between them.",
+        "Ends border-strip disputes that periodically raise bilateral \
+         tension; secures cadastral registries along the frontier.",
+        "Funded by equal shares from member treasury survey budgets.",
+    ),
+    (
+        "Reciprocal Consular Immunity Compact",
+        "Extends mutual consular immunity and expedited visa \
+         processing to accredited diplomats of all bloc members.",
+        "Members grant consular premises inviolability and honour \
+         expedited travel papers issued under the compact.",
+        "Improves the reliability of bilateral diplomacy missions and \
+         reduces incident-related tension spikes.",
+        "Funded by consular fees administered by each member's foreign \
+         ministry.",
+    ),
+    (
+        "Common Grain Reserve Protocol",
+        "Establishes a pooled strategic grain reserve drawn from member \
+         harvests to stabilise regional food prices in dearth years.",
+        "Members must contribute their quota of grain to the reserve \
+         and may draw only under certified harvest failure.",
+        "Blaunts famine-driven price spikes and emigration waves inside \
+         the bloc; smooths food-commodity volatility.",
+        "Funded by in-kind member grain quotas warehoused at designated \
+         depots.",
+    ),
+    (
+        "Mutual Defense Consultation Pact",
+        "A standing military consultative council coordinating bloc \
+         members' defensive posture against external aggression.",
+        "Members must convene the council within two turns of an \
+         external war declaration touching any member.",
+        "Deters external aggression; modest joint-planning bonuses to \
+         readiness on bloc borders.",
+        "Funded by a bloc military assessment scaled to each member's \
+         standing manpower.",
+    ),
+];
+
+/// Picks the era-appropriate resolution catalogue for an organisation.
+/// The World Forum (and non-Compact bodies) use the universal
+/// catalogue; any org named "… Compact" is a regional bloc and uses
+/// the bloc catalogue — guaranteeing `world_forum_resolutions !=
+/// regional_bloc_resolutions` at every cycle.
+fn resolution_catalog(org_name: &str) -> &'static [ResolutionTheme] {
+    if org_name.ends_with("Compact") {
+        BLOC_THEMES
+    } else {
+        WORLD_FORUM_THEMES
+    }
+}
+
+
+#[cfg(test)]
+mod resolution_catalog_tests {
+    use super::*;
+
+    /// v4.27.0 (TASK-008) release gate: the World Forum and regional
+    /// blocs debate from disjoint catalogues — no cloned rows and no
+    /// anachronisms in the early-industrial era.
+    #[test]
+    fn test_v4270_world_forum_resolutions_differ_from_bloc_resolutions() {
+        let forum_titles: std::collections::BTreeSet<_> =
+            WORLD_FORUM_THEMES.iter().map(|t| t.0).collect();
+        let bloc_titles: std::collections::BTreeSet<_> =
+            BLOC_THEMES.iter().map(|t| t.0).collect();
+        assert!(
+            forum_titles.is_disjoint(&bloc_titles),
+            "catalogues must be disjoint"
+        );
+        for (_, desc, rules, effects, funding) in
+            WORLD_FORUM_THEMES.iter().chain(BLOC_THEMES.iter())
+        {
+            assert!(!desc.is_empty() && !rules.is_empty());
+            assert!(!effects.is_empty() && !funding.is_empty());
+        }
+        assert_eq!(resolution_catalog("World Forum").first().unwrap().0,
+            "Concert of Nations Peace Protocol");
+        assert!(resolution_catalog("Slavic Compact")
+            .iter().all(|t| t.0 != "Concert of Nations Peace Protocol"));
     }
 }
