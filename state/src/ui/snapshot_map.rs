@@ -102,6 +102,59 @@ pub struct MapRegionDto {
     pub megaregion_index: i64,
     /// v4.25.0 WS1: Megaregion display name (empty when unassigned).
     pub megaregion_name: String,
+    /// v4.27.0: True offshore island/archipelago region — its polygon is a
+    /// real island blob OUTSIDE the country boundary, connected to the
+    /// mainland only by `sea_lane` edges (never land adjacency).
+    pub is_island: bool,
+    /// v4.27.0: Climate/terrain classification driving the Topography &
+    /// Biome map (`Mountains` | `Highlands` | `Steppe` | `Plains` |
+    /// `Forest` | `Wetlands` | `Coast`).
+    pub biome: String,
+    /// v4.27.0: Dominant local-council faction for the Party map mode
+    /// (empty when the region has no seated council).
+    pub dominant_party: String,
+    /// v4.27.0: Seat share (0–1) of the dominant faction.
+    pub party_share: f64,
+    /// v4.27.0: Net internal+international migration balance (persons/turn)
+    /// — negative = net emigration, positive = net immigration.
+    pub net_migration: i64,
+    /// v4.27.0: Urban-class population — drives city-dot scaling in the
+    /// Political & Infrastructure mode.
+    pub urban_population: i64,
+}
+
+/// v4.27.0: A major city marker — dot scaled by urban population, rendered
+/// by the Political & Infrastructure map mode.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MapCityDto {
+    pub region_id: String,
+    pub name: String,
+    pub point: MapPoint,
+    pub population: i64,
+    pub is_capital: bool,
+}
+
+/// v4.27.0: A primary transport artery between regional hubs. Points run
+/// centroid-to-centroid, so the polyline always crosses polygon interiors
+/// (never the outer country border).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MapRouteDto {
+    /// `road` | `rail`.
+    pub kind: String,
+    pub points: Vec<MapPoint>,
+}
+
+/// v4.27.0: A directed migrant flow between two regions — rendered as a
+/// scaled directional arrow in the Internal Migration map mode.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct MapFlowDto {
+    pub from_region: String,
+    pub to_region: String,
+    /// Persons per turn moving from → to.
+    pub amount: i64,
 }
 
 /// One land-border adjacency edge between two regions (deduplicated).
@@ -131,17 +184,32 @@ pub struct CountryMapDto {
     /// Outer boundary polygon the region cells tile (sea frontier).
     pub boundary: Vec<MapPoint>,
     pub regions: Vec<MapRegionDto>,
+    /// v4.27.0: Major cities (dots scaled by urban population).
+    pub cities: Vec<MapCityDto>,
+    /// v4.27.0: Primary road/rail transport arteries between regional hubs.
+    pub routes: Vec<MapRouteDto>,
+    /// v4.27.0: Directed inter-region migrant flows for the Internal
+    /// Migration map mode.
+    pub flows: Vec<MapFlowDto>,
 }
 
-/// A decorative map feature (inland lake or mountain range) — pure
-/// presentation geometry derived from the same deterministic layout.
+/// A decorative map feature (inland lake, inland sea, river, or mountain
+/// range) — pure presentation geometry derived from the same
+/// deterministic layout.
 #[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct MapFeatureDto {
-    /// `lake` | `mountain`.
+    /// `lake` | `inland_sea` | `river` | `mountain`.
     pub kind: String,
     /// `lake`: closed polygon vertices. `mountain`: ridge polyline points.
     pub points: Vec<MapPoint>,
+    /// Owning region id for cell-local features (`lake`, `inland_sea`,
+    /// `river`); empty for `mountain` (spans a country border — see
+    /// `country_tag`).
+    pub region_id: String,
+    /// Owning country for cell features; `A|B` (sorted, pipe-joined) for
+    /// border mountains so `onlyCountry` views can include them.
+    pub country_tag: String,
 }
 
 /// Complete world-map snapshot for the Map tab and mini-map embeds.
@@ -162,8 +230,13 @@ pub struct WorldMapSnapshot {
     /// international borders migration/freight routing can cross.
     pub shared_land_borders_count: u32,
     /// v4.25.0 WS1 release gate: smallest region-polygon vertex count in the
-    /// snapshot (fractal subdivision guarantees ≥16).
+    /// snapshot (fractal subdivision guarantees ≥40).
     pub min_region_polygon_vertices: u32,
+    /// v4.27.0 release gate: regions whose Voronoi cell degenerated into a
+    /// zero-area fallback blob — the "pseudo-island dots" defect. Must
+    /// stay 0 (sites are clamped inside the country boundary; deliberate
+    /// islands get real blob polygons instead).
+    pub degenerate_region_count: u32,
 }
 
 // ============================================================================
@@ -340,6 +413,195 @@ fn cell_touches_boundary(
 }
 
 // ============================================================================
+// v4.27.0: polygon predicates — island siting, site clamping, degenerate
+// detection. All pure functions of position + deterministic hash salts.
+// ============================================================================
+
+/// Ray-cast point-in-polygon test (even-odd rule).
+fn point_in_polygon(p: (f64, f64), poly: &[(f64, f64)]) -> bool {
+    if poly.len() < 3 {
+        return false;
+    }
+    let mut inside = false;
+    let mut j = poly.len() - 1;
+    for i in 0..poly.len() {
+        let (xi, yi) = poly[i];
+        let (xj, yj) = poly[j];
+        if ((yi > p.1) != (yj > p.1))
+            && (p.0 < (xj - xi) * (p.1 - yi) / (yj - yi) + xi)
+        {
+            inside = !inside;
+        }
+        j = i;
+    }
+    inside
+}
+
+/// Shoelace signed area (absolute value).
+fn polygon_area(poly: &[(f64, f64)]) -> f64 {
+    if poly.len() < 3 {
+        return 0.0;
+    }
+    let mut s = 0.0;
+    for i in 0..poly.len() {
+        let a = poly[i];
+        let b = poly[(i + 1) % poly.len()];
+        s += a.0 * b.1 - b.0 * a.1;
+    }
+    s.abs() * 0.5
+}
+
+/// Polygon centroid (vertex mean — good enough for layout work).
+fn polygon_centroid(poly: &[(f64, f64)]) -> (f64, f64) {
+    if poly.is_empty() {
+        return (0.0, 0.0);
+    }
+    let (mut sx, mut sy) = (0.0, 0.0);
+    for p in poly {
+        sx += p.0;
+        sy += p.1;
+    }
+    (sx / poly.len() as f64, sy / poly.len() as f64)
+}
+
+/// Pull a site that fell outside `boundary` back inside: binary-search the
+/// anchor→site ray for the boundary crossing, then settle at 85% of the
+/// way out (keeps the cell near the rim instead of collapsing to centre).
+/// Guarantees `point_in_polygon(result, boundary)` for convex-ish cells.
+fn clamp_inside_boundary(
+    site: (f64, f64),
+    boundary: &[(f64, f64)],
+    anchor: (f64, f64),
+) -> (f64, f64) {
+    if point_in_polygon(site, boundary) {
+        return site;
+    }
+    let (mut lo, mut hi) = (0.0_f64, 1.0_f64);
+    for _ in 0..40 {
+        let mid = (lo + hi) * 0.5;
+        let p = (anchor.0 + (site.0 - anchor.0) * mid, anchor.1 + (site.1 - anchor.1) * mid);
+        if point_in_polygon(p, boundary) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    let t = lo * 0.85;
+    (anchor.0 + (site.0 - anchor.0) * t, anchor.1 + (site.1 - anchor.1) * t)
+}
+
+/// Push a rim site OUTSIDE the country boundary: march the anchor→site ray
+/// past the boundary crossing, then offset by `off` world units seaward.
+fn push_offshore(
+    site: (f64, f64),
+    boundary: &[(f64, f64)],
+    anchor: (f64, f64),
+    off: f64,
+) -> (f64, f64) {
+    // Find the ray parameter where the site exits the polygon.
+    let (mut lo, mut hi) = (0.0_f64, 4.0_f64);
+    if !point_in_polygon(
+        (anchor.0 + (site.0 - anchor.0) * hi, anchor.1 + (site.1 - anchor.1) * hi),
+        boundary,
+    ) {
+        for _ in 0..48 {
+            let mid = (lo + hi) * 0.5;
+            let p = (anchor.0 + (site.0 - anchor.0) * mid, anchor.1 + (site.1 - anchor.1) * mid);
+            if point_in_polygon(p, boundary) {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+    }
+    // `hi` ≈ first outside point — step a bit further seaward.
+    let t = hi + off;
+    (anchor.0 + (site.0 - anchor.0) * t, anchor.1 + (site.1 - anchor.1) * t)
+}
+
+/// Jittered N-gon island blob around `site` — a REAL polygon with proper
+/// area (~0.5–0.9 REGION_SPACING radius), subdivided like every other cell
+/// so coastlines stay fractal.
+fn island_blob(site: (f64, f64), region_id: &str) -> Vec<(f64, f64)> {
+    let base_r = REGION_SPACING * (0.55 + hash_unit(&format!("isle-r:{region_id}"), 101) * 0.45);
+    let n = 10 + (hash_unit(&format!("isle-n:{region_id}"), 103) * 5.0) as usize;
+    let mut pts = Vec::with_capacity(n);
+    for i in 0..n {
+        let a = (i as f64 / n as f64) * std::f64::consts::TAU;
+        let jr = 1.0 + (hash_unit(&format!("isle:{region_id}:{i}"), 107) - 0.5) * 0.5;
+        pts.push((
+            site.0 + base_r * jr * a.cos(),
+            site.1 + base_r * jr * a.sin(),
+        ));
+    }
+    pts
+}
+
+/// Climate/terrain biome for the Topography & Biome map. Priority order:
+/// true mountains > coast > arid steppe > riverine wetlands > forest/
+/// plains by climate — deterministic hash breaks the fertile/forest tie.
+fn biome_of(region: &Region, is_coastal: bool) -> &'static str {
+    let t = &region.geographic_traits;
+    if matches!(region.climate, crate::society::geography::Climate::Mountainous)
+        || region.elevation_difference_m > 800.0
+    {
+        return "Mountains";
+    }
+    if t.has_mountain_pass || region.elevation_difference_m > 300.0 {
+        return "Highlands";
+    }
+    if is_coastal {
+        return "Coast";
+    }
+    if matches!(region.climate, crate::society::geography::Climate::Desert) {
+        return "Steppe";
+    }
+    if t.has_navigable_river
+        && hash_unit(&format!("wet:{}", region.id), 109) < 0.4
+    {
+        return "Wetlands";
+    }
+    match region.climate {
+        crate::society::geography::Climate::Fertile => {
+            if hash_unit(&format!("for:{}", region.id), 111) < 0.45 {
+                "Forest"
+            } else {
+                "Plains"
+            }
+        }
+        _ => {
+            if hash_unit(&format!("for:{}", region.id), 113) < 0.3 {
+                "Forest"
+            } else {
+                "Plains"
+            }
+        }
+    }
+}
+
+/// Dominant local-council faction `(name, seat share 0–1)` for the Party
+/// map mode — real governance data, empty name when no council is seated.
+fn dominant_faction(region: &Region) -> (String, f64) {
+    let Some(gov) = &region.governance else {
+        return (String::new(), 0.0);
+    };
+    let fd = &gov.council.faction_distribution;
+    let total = (fd.populares_count + fd.moderates_count + fd.optimates_count) as f64;
+    if total <= 0.0 {
+        return (String::new(), 0.0);
+    }
+    let (name, seats) = [
+        ("Populares", fd.populares_count),
+        ("Moderates", fd.moderates_count),
+        ("Optimates", fd.optimates_count),
+    ]
+    .into_iter()
+    .max_by_key(|(_, s)| *s)
+    .unwrap_or(("", 0));
+    (name.to_string(), seats as f64 / total)
+}
+
+// ============================================================================
 // Fractal border subdivision (deterministic value noise)
 // ============================================================================
 //
@@ -385,14 +647,16 @@ fn value_noise_2d(x: f64, y: f64, salt: u64) -> f64 {
 }
 
 /// Fractal displacement for an edge-interior point — position-keyed.
+/// v4.27.0: three octaves (was two) for higher-detail coastlines.
 fn fractal_displace(
     p: (f64, f64),
     edge_dir: (f64, f64),
     edge_len: f64,
     salt: u64,
 ) -> (f64, f64) {
-    let n = 0.62 * value_noise_2d(p.0 * 0.11, p.1 * 0.11, salt)
-        + 0.38 * value_noise_2d(p.0 * 0.34, p.1 * 0.34, salt + 91);
+    let n = 0.52 * value_noise_2d(p.0 * 0.11, p.1 * 0.11, salt)
+        + 0.33 * value_noise_2d(p.0 * 0.34, p.1 * 0.34, salt + 91)
+        + 0.15 * value_noise_2d(p.0 * 0.9, p.1 * 0.9, salt + 173);
     // Amplitude: ~16% of edge length, capped so small cells stay sane.
     let amp = (edge_len * 0.16).min(REGION_SPACING * 0.45);
     let inv = 1.0 / edge_len.max(1e-9);
@@ -415,23 +679,26 @@ fn fractal_displace(
 /// noise field is what makes shared borders line up across adjacent cells.
 const SUBDIV_SALT: u64 = 424_242;
 
-/// Subdivide every polygon edge into ≥6 (up to 24) segments with fractal
-/// interior displacement. Guarantees ≥18 vertices for any triangle+ cell —
-/// the `min_region_polygon_vertices` release gate asserts ≥16.
+/// Subdivide every polygon edge with fractal interior displacement.
+/// v4.27.0: each edge is cut into ≥max(8, ⌈46/m⌉) segments (longer edges
+/// get proportionally more, up to 36) so every region lands at ≥40–60
+/// vertices — the `min_region_polygon_vertices` release gate asserts ≥40.
 fn subdivide_polygon(poly: &[(f64, f64)]) -> Vec<(f64, f64)> {
     let m = poly.len();
     if m < 3 {
         return poly.to_vec();
     }
-    let mut out = Vec::with_capacity(m * 8);
+    // Per-edge segment floor that guarantees ≥46 total vertices.
+    let floor = ((46usize + m - 1) / m).max(8);
+    let mut out = Vec::with_capacity(m * 12);
     for i in 0..m {
         let a = poly[i];
         let b = poly[(i + 1) % m];
         out.push(a);
         let dir = (b.0 - a.0, b.1 - a.1);
         let len = (dir.0 * dir.0 + dir.1 * dir.1).sqrt();
-        // ≥6 segments per edge; longer edges get proportionally more.
-        let n = ((len / (REGION_SPACING * 0.55)).ceil() as usize).clamp(6, 24);
+        // ≥floor segments per edge; longer edges get proportionally more.
+        let n = ((len / (REGION_SPACING * 0.5)).ceil() as usize).clamp(floor, 36);
         for k in 1..n {
             let t = k as f64 / n as f64;
             let p = (a.0 + dir.0 * t, a.1 + dir.1 * t);
@@ -501,15 +768,6 @@ fn region_engine_coastal(region: &Region) -> bool {
             .any(|e| matches!(e.edge_type, EdgeType::Coastline | EdgeType::SeaLane))
 }
 
-fn edge_type_label(t: EdgeType) -> &'static str {
-    match t {
-        EdgeType::LandBorder => "land_border",
-        EdgeType::Coastline => "coastline",
-        EdgeType::SeaLane => "sea_lane",
-        EdgeType::River => "river",
-    }
-}
-
 /// Map a `RegionControl` into the DTO `(control, controller)` pair.
 fn control_label(control: Option<&RegionControl>) -> (String, String) {
     match control {
@@ -561,6 +819,9 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         continent: usize,
         radius: f64,
         anchor: (f64, f64),
+        /// v4.27.0: indices into `regions`/`sites` designated as offshore
+        /// islands — excluded from Voronoi clipping, drawn as island blobs.
+        islands: std::collections::HashSet<usize>,
     }
 
     let mut layouts: Vec<CountryLayout> = Vec::with_capacity(country_names.len());
@@ -587,6 +848,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             continent: 0,
             radius: 0.0,
             anchor: (0.0, 0.0),
+            islands: std::collections::HashSet::new(),
         });
     }
 
@@ -702,6 +964,68 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             }
         }
         layout.sites = sites;
+
+        // --------------------------------------------------------------
+        // v4.27.0: island designation + pseudo-island elimination.
+        //
+        // (a) Offshore sites previously degenerated to zero-area fallback
+        //     octagons ("pseudo-island dots") that the engine edge graph
+        //     then wired to every land region. Two fixes:
+        // (b) Deliberate islands: a deterministic subset of rim regions is
+        //     pushed OUTSIDE the boundary and rendered as a real island
+        //     blob connected by sea lanes — true archipelagos.
+        // (c) Accidentally-offshore land sites are clamped back inside so
+        //     every land region keeps a proper polygon.
+        // --------------------------------------------------------------
+        let n_regions = layout.regions.len();
+        if n_regions >= 6 {
+            // Candidate rim regions: non-capital sites farthest from the
+            // anchor (outer ring). Island quota is hash-stable per country.
+            let quota = 1 + (hash_unit(&format!("isle-n:{}", layout.name), 97)
+                < 0.45) as usize;
+            let mut rim: Vec<usize> = (0..n_regions)
+                .filter(|&i| !layout.regions[i].is_capital)
+                .collect();
+            rim.sort_by(|&a, &b| {
+                let da = (layout.sites[a].0 - layout.anchor.0).powi(2)
+                    + (layout.sites[a].1 - layout.anchor.1).powi(2);
+                let db = (layout.sites[b].0 - layout.anchor.0).powi(2)
+                    + (layout.sites[b].1 - layout.anchor.1).powi(2);
+                // Deterministic order: farthest first, id-hash tiebreak.
+                db.partial_cmp(&da)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| layout.regions[a].id.cmp(&layout.regions[b].id))
+            });
+            let mut taken = 0usize;
+            for &i in &rim {
+                if taken >= quota {
+                    break;
+                }
+                let id = &layout.regions[i].id;
+                // ~30% of rim candidates become islands.
+                if hash_unit(&format!("isle:{id}"), 97) >= 0.30 {
+                    continue;
+                }
+                let off = 0.35
+                    + hash_unit(&format!("isle-off:{id}"), 99) * 0.30;
+                layout.sites[i] = push_offshore(
+                    layout.sites[i],
+                    &layout.boundary,
+                    layout.anchor,
+                    off,
+                );
+                layout.islands.insert(i);
+                taken += 1;
+            }
+        }
+        // (c) clamp any remaining out-of-boundary sites into the interior.
+        for i in 0..layout.sites.len() {
+            if layout.islands.contains(&i) {
+                continue;
+            }
+            layout.sites[i] =
+                clamp_inside_boundary(layout.sites[i], &layout.boundary, layout.anchor);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -739,23 +1063,35 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     // Pass 4a: all region cells + cross-country adjacency bookkeeping.
     // ------------------------------------------------------------------
     let mut region_cells: Vec<Vec<Vec<(f64, f64)>>> = Vec::with_capacity(layouts.len());
-    let mut region_owner: std::collections::HashMap<String, usize> =
-        std::collections::HashMap::new();
     // One Lloyd-relaxation pass: ring-only seed layouts (capital + a single
     // ring, or legacy circular coordinates) collapse into radial wedge
     // cells that all meet at the country centre — "pizza slices". Moving
     // each site to its cell centroid breaks the shared centre vertex so
     // true interior (landlocked) and coastal cells emerge.
+    // v4.27.0: island sites are excluded from Voronoi clipping — an
+    // offshore site would bisect and steal coastal area from land cells.
+    // Each land cell clips against land sites only; islands get blobs.
     for lloyd in 0..2 {
         region_cells.clear();
         for layout in layouts.iter() {
+            let land_sites: Vec<(f64, f64)> = layout
+                .sites
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| !layout.islands.contains(i))
+                .map(|(_, s)| *s)
+                .collect();
             let mut cells = Vec::with_capacity(layout.regions.len());
             for (idx, _) in layout.regions.iter().enumerate() {
-                // Passing ALL sites (including the region's own) is fine —
-                // `voronoi_cell` skips coincident sites.
+                if layout.islands.contains(&idx) {
+                    cells.push(Vec::new()); // island — blob polygon later
+                    continue;
+                }
+                // Passing ALL land sites (including the region's own) is
+                // fine — `voronoi_cell` skips coincident sites.
                 cells.push(voronoi_cell(
                     layout.sites[idx],
-                    &layout.sites,
+                    &land_sites,
                     &layout.boundary,
                 ));
             }
@@ -764,6 +1100,9 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         if lloyd == 0 {
             for (li, layout) in layouts.iter_mut().enumerate() {
                 for (idx, _) in layout.regions.iter().enumerate() {
+                    if layout.islands.contains(&idx) {
+                        continue;
+                    }
                     let cell = &region_cells[li][idx];
                     if cell.len() >= 3 {
                         let (mut sx, mut sy) = (0.0, 0.0);
@@ -778,42 +1117,80 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             }
         }
     }
-    for (li, layout) in layouts.iter().enumerate() {
-        for region in &layout.regions {
-            region_owner.insert(region.id.clone(), li);
-        }
-    }
+    // ------------------------------------------------------------------
+    // v4.27.0: TRUE geometric adjacency — `neighbors` and `edges` are
+    // recomputed strictly from shared Voronoi cell edges (≥2 coincident
+    // vertices), replacing the engine edge graph (circular + capital-star
+    // wiring) that listed neighbours the map never shows — e.g. offshore
+    // dot regions "bordering" every land region. The text list now 100%
+    // matches rendered neighbours.
+    // ------------------------------------------------------------------
+    let mut features_out: Vec<MapFeatureDto> = Vec::new();
+    // Undirected adjacency keyed by unordered region pair.
+    let mut geo_pairs: std::collections::BTreeSet<(String, String)> =
+        std::collections::BTreeSet::new();
+    // Cross-country subset (drives shared_land_borders counting).
+    let mut cross_pairs: std::collections::BTreeSet<(String, String)> =
+        std::collections::BTreeSet::new();
+    let mut geo_neighbors: std::collections::HashMap<
+        String,
+        std::collections::BTreeSet<String>,
+    > = std::collections::HashMap::new();
+    // Epsilon for shared-vertex matching — bisector intersections coincide
+    // up to float noise; distinct vertices sit ≥0.1 spacing apart.
+    let eps_nb2 = (REGION_SPACING * 0.02).powi(2);
+    let mut add_adjacency =
+        |a: &str, b: &str, cross: bool, geo_pairs: &mut std::collections::BTreeSet<(String, String)>, cross_pairs: &mut std::collections::BTreeSet<(String, String)>, geo_neighbors: &mut std::collections::HashMap<String, std::collections::BTreeSet<String>>| {
+            let (x, y) = if a < b {
+                (a.to_string(), b.to_string())
+            } else {
+                (b.to_string(), a.to_string())
+            };
+            if geo_pairs.insert((x.clone(), y.clone())) {
+                geo_neighbors
+                    .entry(a.to_string())
+                    .or_default()
+                    .insert(b.to_string());
+                geo_neighbors
+                    .entry(b.to_string())
+                    .or_default()
+                    .insert(a.to_string());
+                if cross {
+                    cross_pairs.insert((x, y));
+                }
+            }
+        };
 
-    // Country pairs already wired in the engine graph (worldgen adds
-    // `LandBorder` edges between neighbouring countries' rim regions).
-    let mut wired_pairs: std::collections::HashSet<(usize, usize)> =
-        std::collections::HashSet::new();
+    // Same-country region adjacency — O(n²) over non-island cells.
     for (li, layout) in layouts.iter().enumerate() {
-        for region in &layout.regions {
-            for e in &region.edges {
-                if !matches!(e.edge_type, EdgeType::LandBorder | EdgeType::River) {
+        for i in 0..layout.regions.len() {
+            if layout.islands.contains(&i) {
+                continue;
+            }
+            for j in (i + 1)..layout.regions.len() {
+                if layout.islands.contains(&j) {
                     continue;
                 }
-                if let Some(&oj) = region_owner.get(&e.target_node) {
-                    if oj != li {
-                        wired_pairs.insert((li.min(oj), li.max(oj)));
-                    }
+                let (ci, cj) = (&region_cells[li][i], &region_cells[li][j]);
+                if ci.len() >= 3
+                    && cj.len() >= 3
+                    && shared_vertices(ci, cj, eps_nb2).len() >= 2
+                {
+                    add_adjacency(
+                        &layout.regions[i].id,
+                        &layout.regions[j].id,
+                        false,
+                        &mut geo_pairs,
+                        &mut cross_pairs,
+                        &mut geo_neighbors,
+                    );
                 }
             }
         }
     }
 
-    // Geometric adjacency: two country cells share a border when ≥2 of one
-    // cell's vertices lie on the other's outline (Voronoi clipping makes
-    // shared vertices bit-identical, so a hairline epsilon suffices).
-    // For adjacent pairs with no engine edge (saves predating the worldgen
-    // wiring) we synthesize one border edge between the rim regions so the
-    // map still shows real land borders; mountain ridges decorate a
-    // deterministic subset of shared borders either way.
-    let mut features_out: Vec<MapFeatureDto> = Vec::new();
-    let mut synth_neighbors: std::collections::HashMap<String, Vec<String>> =
-        std::collections::HashMap::new();
-    let mut synth_edges: Vec<(String, String)> = Vec::new();
+    // Cross-country adjacency — only for country pairs that share a
+    // continental border (cells share the duplicated boundary vertices).
     for i in 0..layouts.len() {
         for j in (i + 1)..layouts.len() {
             if layouts[i].continent != layouts[j].continent {
@@ -825,27 +1202,35 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             if shared.len() < 2 {
                 continue;
             }
-            let mid = shared.iter().fold((0.0, 0.0), |(sx, sy), p| {
-                (sx + p.0 / shared.len() as f64, sy + p.1 / shared.len() as f64)
-            });
-            if !wired_pairs.contains(&(i, j)) {
-                let ra = border_region_at(&region_cells[i], &layouts[i].regions, mid);
-                let rb = border_region_at(&region_cells[j], &layouts[j].regions, mid);
-                if let (Some(ra), Some(rb)) = (ra, rb) {
-                    let (a, b) = if ra < rb { (ra, rb) } else { (rb, ra) };
-                    synth_neighbors
-                        .entry(a.clone())
-                        .or_default()
-                        .push(b.clone());
-                    synth_neighbors
-                        .entry(b.clone())
-                        .or_default()
-                        .push(a.clone());
-                    synth_edges.push((a, b));
+            for (ri, ra) in layouts[i].regions.iter().enumerate() {
+                if layouts[i].islands.contains(&ri) {
+                    continue;
+                }
+                let ca = &region_cells[i][ri];
+                if ca.len() < 3 {
+                    continue;
+                }
+                for (rj, rb) in layouts[j].regions.iter().enumerate() {
+                    if layouts[j].islands.contains(&rj) {
+                        continue;
+                    }
+                    let cb = &region_cells[j][rj];
+                    if cb.len() < 3 {
+                        continue;
+                    }
+                    if shared_vertices(ca, cb, eps_nb2).len() >= 2 {
+                        add_adjacency(
+                            &ra.id,
+                            &rb.id,
+                            true,
+                            &mut geo_pairs,
+                            &mut cross_pairs,
+                            &mut geo_neighbors,
+                        );
+                    }
                 }
             }
             if hash_unit(&format!("mtn:{}:{}", layouts[i].name, layouts[j].name), 73) < 0.4
-                && shared.len() >= 2
             {
                 features_out.push(MapFeatureDto {
                     kind: "mountain".to_string(),
@@ -853,7 +1238,69 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                         .into_iter()
                         .map(|p| MapPoint { x: p.0, y: p.1 })
                         .collect(),
+                    region_id: String::new(),
+                    country_tag: format!("{}|{}", layouts[i].name, layouts[j].name),
                 });
+            }
+        }
+    }
+
+    // Island maritime links — sea lanes to the 2 nearest mainland cells of
+    // the same country (maritime adjacency, never land borders).
+    let mut sea_lane_pairs: Vec<(String, String)> = Vec::new();
+    for layout in layouts.iter() {
+        let land: Vec<usize> = (0..layout.regions.len())
+            .filter(|i| !layout.islands.contains(i))
+            .collect();
+        for &ii in &layout.islands {
+            let isite = layout.sites[ii];
+            let mut by_dist: Vec<usize> = land.clone();
+            by_dist.sort_by(|&a, &b| {
+                let da = (layout.sites[a].0 - isite.0).powi(2)
+                    + (layout.sites[a].1 - isite.1).powi(2);
+                let db = (layout.sites[b].0 - isite.0).powi(2)
+                    + (layout.sites[b].1 - isite.1).powi(2);
+                da.partial_cmp(&db)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| layout.regions[a].id.cmp(&layout.regions[b].id))
+            });
+            for &li in by_dist.iter().take(2) {
+                let (a, b) = (
+                    layout.regions[ii].id.clone(),
+                    layout.regions[li].id.clone(),
+                );
+                let key = if a < b { (a.clone(), b.clone()) } else { (b.clone(), a.clone()) };
+                if !sea_lane_pairs.contains(&key) {
+                    sea_lane_pairs.push(key);
+                    // Maritime adjacency also belongs in the textual
+                    // neighbours list — "connected via sea zones/straits".
+                    geo_neighbors
+                        .entry(a.clone())
+                        .or_default()
+                        .insert(b.clone());
+                    geo_neighbors
+                        .entry(b.clone())
+                        .or_default()
+                        .insert(a.clone());
+                }
+            }
+        }
+    }
+
+    // Engine `River` edges for edge-type labelling (both directions).
+    let mut river_pairs: std::collections::HashSet<(String, String)> =
+        std::collections::HashSet::new();
+    for layout in layouts.iter() {
+        for region in &layout.regions {
+            for e in &region.edges {
+                if e.edge_type == EdgeType::River {
+                    let (a, b) = if region.id < e.target_node {
+                        (region.id.clone(), e.target_node.clone())
+                    } else {
+                        (e.target_node.clone(), region.id.clone())
+                    };
+                    river_pairs.insert((a, b));
+                }
             }
         }
     }
@@ -868,6 +1315,36 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     let mut bounds = [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY];
     let mut min_poly_verts = usize::MAX;
     let mut shared_land_borders: u32 = 0;
+    let mut degenerate_regions: u32 = 0;
+
+    // v4.27.0 inland-sea placement: per continent, the largest interior
+    // (non-coastal) cell — picked deterministically by area.
+    let mut inland_sea_pick: std::collections::HashSet<(usize, usize)> =
+        std::collections::HashSet::new();
+    for (li, layout) in layouts.iter().enumerate() {
+        let mut best: Option<(usize, f64)> = None;
+        for (idx, cell) in region_cells[li].iter().enumerate() {
+            if layout.islands.contains(&idx) || cell.len() < 3 {
+                continue;
+            }
+            let coastal = region_engine_coastal(&layout.regions[idx])
+                || cell_touches_boundary(
+                    cell,
+                    &layout.continent_boundary,
+                    (layout.radius * 1e-3).powi(2),
+                );
+            if coastal {
+                continue;
+            }
+            let area = polygon_area(cell);
+            if best.map(|(_, a)| area > a).unwrap_or(true) {
+                best = Some((idx, area));
+            }
+        }
+        if let Some((idx, _)) = best {
+            inland_sea_pick.insert((li, idx));
+        }
+    }
 
     for (color_index, layout) in layouts.iter().enumerate() {
         let country = &state.countries[layout.name.as_str()];
@@ -897,50 +1374,32 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         };
         for (idx, region) in layout.regions.iter().enumerate() {
             let site = layout.sites[idx];
+            let is_island = layout.islands.contains(&idx);
             let cell = &region_cells[color_index][idx];
-            let sub = subdivide_polygon(cell);
+            // Islands draw their own blob polygon; land regions use the
+            // Voronoi cell. Zero-area degenerate cells are counted for the
+            // pseudo-island release gate (should stay 0 post-clamping).
+            let raw = if is_island {
+                island_blob(site, &region.id)
+            } else {
+                if cell.len() < 3
+                    || polygon_area(cell) < (REGION_SPACING * 0.45).powi(2)
+                {
+                    degenerate_regions += 1;
+                }
+                cell.clone()
+            };
+            let sub = subdivide_polygon(&raw);
             min_poly_verts = min_poly_verts.min(sub.len());
             let polygon: Vec<MapPoint> =
                 sub.iter().map(|p| MapPoint { x: p.0, y: p.1 }).collect();
 
-            // Land-border neighbours from the engine edge graph, merged with
-            // any geometric cross-country border synthesized above.
-            let mut neighbors: Vec<String> = region
-                .edges
-                .iter()
-                .filter(|e| matches!(e.edge_type, EdgeType::LandBorder | EdgeType::River))
-                .map(|e| e.target_node.clone())
-                .collect();
-            if let Some(extra) = synth_neighbors.get(&region.id) {
-                neighbors.extend(extra.iter().cloned());
-            }
-            neighbors.sort();
-            neighbors.dedup();
-            for e in &region.edges {
-                if !matches!(e.edge_type, EdgeType::LandBorder | EdgeType::River) {
-                    continue;
-                }
-                // Dedup undirected pair (store lexicographic order once).
-                let (a, b) = if region.id < e.target_node {
-                    (region.id.clone(), e.target_node.clone())
-                } else {
-                    (e.target_node.clone(), region.id.clone())
-                };
-                if edge_seen.insert((a.clone(), b.clone())) {
-                    if e.edge_type == EdgeType::LandBorder {
-                        if let Some(&oj) = region_owner.get(&e.target_node) {
-                            if oj != color_index {
-                                shared_land_borders += 1;
-                            }
-                        }
-                    }
-                    edges_out.push(MapEdgeDto {
-                        from_region: a,
-                        to_region: b,
-                        edge_type: edge_type_label(e.edge_type).to_string(),
-                    });
-                }
-            }
+            // v4.27.0: neighbours strictly from shared Voronoi cell edges —
+            // deduplicated, symmetric, 100% matching the rendered map.
+            let neighbors: Vec<String> = geo_neighbors
+                .get(&region.id)
+                .map(|s| s.iter().cloned().collect())
+                .unwrap_or_default();
 
             // Megaregion membership for the Megaregions map mode.
             let (megaregion_index, megaregion_name) = country
@@ -960,17 +1419,49 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 capital_anchor = MapPoint { x: site.0, y: site.1 };
             }
 
-            let is_coastal = region_engine_coastal(region)
+            let is_coastal = is_island
+                || region_engine_coastal(region)
                 || cell_touches_boundary(cell, &layout.continent_boundary, eps2);
 
-            // Inland lake on a deterministic subset of roomy interior cells.
-            if !is_coastal && hash_unit(&format!("lake:{}", region.id), 71) < 0.16 {
-                if let Some(lake) = lake_feature(cell, &region.id) {
+            // Inland lake on a deterministic subset of roomy interior
+            // cells (v4.27.0: raised coverage 16%→24%).
+            if !is_island
+                && !is_coastal
+                && hash_unit(&format!("lake:{}", region.id), 71) < 0.24
+            {
+                if let Some(lake) =
+                    lake_feature(cell, &region.id, &layout.name, 0.18, "lake")
+                {
                     features_out.push(lake);
+                }
+            }
+            // Navigable-river polyline through cells that carry one.
+            if !is_island && region.geographic_traits.has_navigable_river {
+                if let Some(river) = river_feature(cell, &region.id, &layout.name) {
+                    features_out.push(river);
+                }
+            }
+            // Inland sea: one grand basin per continent on its largest
+            // interior cell (deterministic pick by area).
+            if !is_island
+                && !is_coastal
+                && inland_sea_pick.get(&(color_index, idx)).is_some()
+            {
+                if let Some(sea) =
+                    lake_feature(cell, &region.id, &layout.name, 0.33, "inland_sea")
+                {
+                    features_out.push(sea);
                 }
             }
 
             let (control, controller) = control_label(region_control.get(&region.id));
+            let (dominant_party, party_share) = dominant_faction(region);
+            let urban_population: i64 = region
+                .class_demographics
+                .urban_classes
+                .values()
+                .map(|c| c.population.max(0))
+                .sum();
             regions_out.push(MapRegionDto {
                 id: region.id.clone(),
                 country: layout.name.clone(),
@@ -997,7 +1488,88 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 neighbors,
                 megaregion_index,
                 megaregion_name,
+                is_island,
+                biome: biome_of(region, is_coastal).to_string(),
+                dominant_party,
+                party_share,
+                net_migration: region_net_migration(region),
+                urban_population,
             });
+        }
+
+        // v4.27.0: cities + transport arteries for the Political &
+        // Infrastructure mode. Cities = top regions by urban population
+        // (capital always included), anchored at their centroid.
+        let mut by_urban: Vec<usize> = (0..regions_out.len()).collect();
+        by_urban.sort_by(|&a, &b| {
+            regions_out[b]
+                .urban_population
+                .cmp(&regions_out[a].urban_population)
+        });
+        let mut cities = Vec::new();
+        for &i in by_urban.iter().take(12) {
+            let r = &regions_out[i];
+            if r.urban_population <= 0 && !r.is_capital_district {
+                continue;
+            }
+            cities.push(MapCityDto {
+                region_id: r.id.clone(),
+                name: r.name.clone(),
+                point: r.centroid.clone(),
+                population: r.urban_population,
+                is_capital: r.is_capital_district,
+            });
+        }
+        // Arteries: centroid→centroid polylines between geometric
+        // neighbours — through polygon interiors by construction. Roads
+        // link every adjacent pair where at least one endpoint is a major
+        // hub; rails connect the capital to the top hubs.
+        let city_set: std::collections::HashSet<&str> =
+            cities.iter().map(|c| c.region_id.as_str()).collect();
+        let centroid_of = |rid: &str| -> Option<MapPoint> {
+            regions_out
+                .iter()
+                .find(|r| r.id == rid)
+                .map(|r| r.centroid.clone())
+        };
+        let mut routes: Vec<MapRouteDto> = Vec::new();
+        let mut route_seen: std::collections::HashSet<(String, String)> =
+            std::collections::HashSet::new();
+        for (a, b) in &geo_pairs {
+            let (ra, rb) = (centroid_of(a), centroid_of(b));
+            let (Some(pa), Some(pb)) = (ra, rb) else {
+                continue;
+            };
+            let is_hub = |rid: &str| city_set.contains(rid);
+            let mut emit = |kind: &str, routes: &mut Vec<MapRouteDto>, route_seen: &mut std::collections::HashSet<(String, String)>| {
+                if !route_seen.insert((a.clone(), b.clone())) {
+                    return;
+                }
+                let mid = MapPoint {
+                    x: (pa.x + pb.x) * 0.5,
+                    y: (pa.y + pb.y) * 0.5,
+                };
+                routes.push(MapRouteDto {
+                    kind: kind.to_string(),
+                    points: vec![pa, mid, pb],
+                });
+            };
+            if is_hub(a) || is_hub(b) {
+                emit("road", &mut routes, &mut route_seen);
+            }
+        }
+        // Rail: capital ↔ three largest urban hubs.
+        if let Some(cap) = cities.iter().find(|c| c.is_capital) {
+            for c in cities.iter().filter(|c| !c.is_capital).take(3) {
+                let mid = MapPoint {
+                    x: (cap.point.x + c.point.x) * 0.5,
+                    y: (cap.point.y + c.point.y) * 0.5,
+                };
+                routes.push(MapRouteDto {
+                    kind: "rail".to_string(),
+                    points: vec![cap.point.clone(), mid, c.point.clone()],
+                });
+            }
         }
 
         countries_out.push(CountryMapDto {
@@ -1008,22 +1580,41 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             anchor: capital_anchor,
             boundary: boundary_pts,
             regions: regions_out,
+            cities,
+            routes,
+            flows: Vec::new(),
         });
     }
 
-    // Synthesized cross-country borders (geometric adjacency the engine
-    // graph predates) — emitted as land_border edges and counted in the
-    // shared-border release gate.
-    for (a, b) in synth_edges {
+    // Emit deduplicated adjacency edges — geometric land borders (labelled
+    // `river` where an engine river runs along the border) + island sea
+    // lanes. Text neighbours and rendered edges share this one source of
+    // truth.
+    for (a, b) in &geo_pairs {
+        if !edge_seen.insert((a.clone(), b.clone())) {
+            continue;
+        }
+        let kind = if river_pairs.contains(&(a.clone(), b.clone())) {
+            "river"
+        } else {
+            "land_border"
+        };
+        edges_out.push(MapEdgeDto {
+            from_region: a.clone(),
+            to_region: b.clone(),
+            edge_type: kind.to_string(),
+        });
+    }
+    for (a, b) in &sea_lane_pairs {
         if edge_seen.insert((a.clone(), b.clone())) {
-            shared_land_borders += 1;
             edges_out.push(MapEdgeDto {
-                from_region: a,
-                to_region: b,
-                edge_type: "land_border".to_string(),
+                from_region: a.clone(),
+                to_region: b.clone(),
+                edge_type: "sea_lane".to_string(),
             });
         }
     }
+    shared_land_borders += cross_pairs.len() as u32;
 
     if !bounds[0].is_finite() {
         bounds = [0.0, 0.0, 1.0, 1.0];
@@ -1046,6 +1637,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         } else {
             min_poly_verts as u32
         },
+        degenerate_region_count: degenerate_regions,
     }
 }
 
@@ -1070,25 +1662,6 @@ fn shared_vertices(
         }
     }
     out
-}
-
-/// Region whose cell has a vertex closest to `mid` — the rim region a
-/// synthesized cross-border edge should attach to.
-fn border_region_at(
-    cells: &[Vec<(f64, f64)>],
-    regions: &[Region],
-    mid: (f64, f64),
-) -> Option<String> {
-    let mut best: Option<(f64, usize)> = None;
-    for (idx, cell) in cells.iter().enumerate() {
-        for v in cell {
-            let d2 = (v.0 - mid.0).powi(2) + (v.1 - mid.1).powi(2);
-            if best.map(|(b, _)| d2 < b).unwrap_or(true) {
-                best = Some((d2, idx));
-            }
-        }
-    }
-    best.map(|(_, idx)| regions[idx].id.clone())
 }
 
 /// Jagged polyline along a shared country border → mountain ridge.
@@ -1121,8 +1694,16 @@ fn mountain_ridge(shared: &[(f64, f64)], salt: u64) -> Vec<(f64, f64)> {
     out
 }
 
-/// Small noise-jittered blob → inland lake inside a roomy interior cell.
-fn lake_feature(cell: &[(f64, f64)], region_id: &str) -> Option<MapFeatureDto> {
+/// Small noise-jittered blob → inland lake or inland sea inside a roomy
+/// interior cell. `scale` is the radius fraction of the cell's smallest
+/// dimension; `kind` is `lake` or `inland_sea` (deeper water render).
+fn lake_feature(
+    cell: &[(f64, f64)],
+    region_id: &str,
+    country_tag: &str,
+    scale: f64,
+    kind: &str,
+) -> Option<MapFeatureDto> {
     if cell.is_empty() {
         return None;
     }
@@ -1141,10 +1722,11 @@ fn lake_feature(cell: &[(f64, f64)], region_id: &str) -> Option<MapFeatureDto> {
     if w < REGION_SPACING * 2.0 || h < REGION_SPACING * 2.0 {
         return None;
     }
-    let r = w.min(h) * 0.18;
-    let mut pts = Vec::with_capacity(9);
-    for i in 0..9 {
-        let a = (i as f64 / 9.0) * std::f64::consts::TAU + hash_unit(region_id, 77);
+    let r = w.min(h) * scale;
+    let n = if kind == "inland_sea" { 14 } else { 9 };
+    let mut pts = Vec::with_capacity(n);
+    for i in 0..n {
+        let a = (i as f64 / n as f64) * std::f64::consts::TAU + hash_unit(region_id, 77);
         let jr = 1.0 + (hash_unit(&format!("{region_id}-lk{i}"), 79) - 0.5) * 0.45;
         pts.push(MapPoint {
             x: sx + r * jr * a.cos(),
@@ -1152,9 +1734,57 @@ fn lake_feature(cell: &[(f64, f64)], region_id: &str) -> Option<MapFeatureDto> {
         });
     }
     Some(MapFeatureDto {
-        kind: "lake".to_string(),
+        kind: kind.to_string(),
         points: pts,
+        region_id: region_id.to_string(),
+        country_tag: country_tag.to_string(),
     })
+}
+
+/// v4.27.0: river polyline through a cell — enters and exits through two
+/// rim vertices with a noise-displaced midline. Rendered as a water course.
+fn river_feature(
+    cell: &[(f64, f64)],
+    region_id: &str,
+    country_tag: &str,
+) -> Option<MapFeatureDto> {
+    if cell.len() < 3 {
+        return None;
+    }
+    // Two rim vertices picked deterministically far apart.
+    let n = cell.len();
+    let i0 = (hash_unit(&format!("rv0:{region_id}"), 83) * n as f64) as usize % n;
+    let i1 = (i0 + n / 2) % n;
+    let (a, b) = (cell[i0], cell[i1]);
+    let mut pts = Vec::with_capacity(5);
+    for k in 0..5 {
+        let t = k as f64 / 4.0;
+        let bx = a.0 + (b.0 - a.0) * t;
+        let by = a.1 + (b.1 - a.1) * t;
+        let wob = (value_noise_2d(bx * 0.4, by * 0.4, 89) - 0.5)
+            * REGION_SPACING
+            * 0.35
+            * (t * (1.0 - t) * 4.0); // taper at the ends
+        let dir = (b.0 - a.0, b.1 - a.1);
+        let len = (dir.0 * dir.0 + dir.1 * dir.1).sqrt().max(1e-9);
+        pts.push(MapPoint {
+            x: bx + (-dir.1 / len) * wob,
+            y: by + (dir.0 / len) * wob,
+        });
+    }
+    Some(MapFeatureDto {
+        kind: "river".to_string(),
+        points: pts,
+        region_id: region_id.to_string(),
+        country_tag: country_tag.to_string(),
+    })
+}
+
+/// v4.27.0: per-region net migration (persons/turn) — wired to the real
+/// regional flow ledger added by TASK-006
+/// (`Region.migration.last_turn_net`); 0 for saves that predate it.
+fn region_net_migration(region: &Region) -> i64 {
+    region.migration.last_turn_net
 }
 
 // ============================================================================
@@ -1192,6 +1822,9 @@ pub struct MapParcelDto {
     pub is_border_zone: bool,
     /// Phase 61.4 endowment tag (`forest_district`, `PrivateEstate`, …).
     pub land_use_tag: String,
+    /// v4.27.0: real parcel topography (`river` | `lake` | `sea` | `none`)
+    /// — water parcels render as rivers/lakes on the cadastral map.
+    pub water_access: String,
 }
 
 /// A region's cadastral parcel layout for the Regions-page drill-down map.
@@ -1218,6 +1851,17 @@ fn zoning_label(z: ZoningDesignation) -> &'static str {
         ZoningDesignation::Mixed => "mixed",
         ZoningDesignation::ProtectedNatural => "protected_natural",
         ZoningDesignation::StrategicMilitary => "strategic_military",
+    }
+}
+
+/// `WaterAccessType` → stable snake_case label for the parcel map.
+fn water_access_label(t: crate::society::cadastre::WaterAccessType) -> &'static str {
+    use crate::society::cadastre::WaterAccessType as W;
+    match t {
+        W::None => "none",
+        W::River => "river",
+        W::Lake => "lake",
+        W::Sea => "sea",
     }
 }
 
@@ -1303,6 +1947,10 @@ pub fn build_region_parcel_map(
         ];
         let use_class = if p.devastation_index >= 0.3 {
             "devastated"
+        } else if p.topography.water_access != crate::society::cadastre::WaterAccessType::None {
+            // v4.27.0: real topographic water parcels — rivers/lakes/sea
+            // frontage render as water on the cadastral map.
+            "water"
         } else if p.zoning == ZoningDesignation::Industrial && has_extraction {
             "resource_mines"
         } else {
@@ -1322,6 +1970,7 @@ pub fn build_region_parcel_map(
             is_frozen: p.is_frozen,
             is_border_zone: p.is_border_zone,
             land_use_tag: p.land_use_tag.clone(),
+            water_access: water_access_label(p.topography.water_access).to_string(),
         });
     }
 
@@ -1487,6 +2136,160 @@ mod tests {
         assert!(cell.len() >= 3);
         for v in &cell {
             assert!(v.0 <= 1e-9, "cell vertex {:?} crosses bisector", v);
+        }
+    }
+
+    // ==================================================================
+    // v4.27.0 TASK-005 — geometry invariants
+    // ==================================================================
+
+    fn shoelace(pts: &[MapPoint]) -> f64 {
+        let mut s = 0.0;
+        for i in 0..pts.len() {
+            let (a, b) = (&pts[i], &pts[(i + 1) % pts.len()]);
+            s += a.x * b.y - b.x * a.y;
+        }
+        s.abs() / 2.0
+    }
+
+    fn multi_country_state() -> GameState {
+        let mut state = GameState::new();
+        for (i, n) in [9usize, 9, 7, 12, 6, 8].iter().enumerate() {
+            let name = format!("Ctry{i}");
+            state
+                .countries
+                .insert(name.clone(), test_country(&name, *n));
+        }
+        state
+    }
+
+    #[test]
+    fn v4270_no_zero_area_pseudo_islands() {
+        let snap = build_world_map(&multi_country_state());
+        assert_eq!(
+            snap.degenerate_region_count, 0,
+            "degenerate fallback blobs still emitted"
+        );
+        for c in &snap.countries {
+            for r in &c.regions {
+                assert!(
+                    shoelace(&r.polygon) > 1.0,
+                    "region {} polygon area ~0",
+                    r.id
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn v4270_adjacency_symmetric_deduplicated_and_matches_edges() {
+        let snap = build_world_map(&multi_country_state());
+        let mut listed: std::collections::HashMap<&str, std::collections::BTreeSet<&str>> =
+            std::collections::HashMap::new();
+        for c in &snap.countries {
+            for r in &c.regions {
+                // No self-loop, no duplicates inside a single list.
+                let set: std::collections::BTreeSet<&str> =
+                    r.neighbors.iter().map(|s| s.as_str()).collect();
+                assert_eq!(
+                    set.len(),
+                    r.neighbors.len(),
+                    "duplicate neighbours in {}: {:?}",
+                    r.id,
+                    r.neighbors
+                );
+                assert!(!set.contains(r.id.as_str()), "self-adjacency {}", r.id);
+                listed.insert(r.id.as_str(), set);
+            }
+        }
+        // Symmetry: a ∈ nb(b) ⇔ b ∈ nb(a).
+        for (a, nbs) in &listed {
+            for b in nbs {
+                assert!(
+                    listed
+                        .get(b)
+                        .map(|s| s.contains(*a))
+                        .unwrap_or(false),
+                    "asymmetric adjacency {} -> {}",
+                    a,
+                    b
+                );
+            }
+        }
+        // The rendered edge set and the text lists share one source: every
+        // undirected edge appears in both endpoints' neighbour lists.
+        for e in &snap.edges {
+            assert!(
+                listed[e.from_region.as_str()].contains(e.to_region.as_str()),
+                "edge {}—{} missing from neighbour list",
+                e.from_region,
+                e.to_region
+            );
+        }
+        // And every text neighbour is backed by a real edge.
+        let edge_set: std::collections::BTreeSet<(&str, &str)> = snap
+            .edges
+            .iter()
+            .map(|e| (e.from_region.as_str(), e.to_region.as_str()))
+            .collect();
+        for (a, nbs) in &listed {
+            for b in nbs {
+                let key = if a < b { (*a, *b) } else { (*b, *a) };
+                assert!(
+                    edge_set.contains(&key),
+                    "neighbour {}—{} has no rendered edge",
+                    a,
+                    b
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn v4270_fractal_subdivision_guarantees_40_vertices() {
+        let snap = build_world_map(&multi_country_state());
+        assert!(
+            snap.min_region_polygon_vertices >= 40,
+            "min polygon verts {} < 40",
+            snap.min_region_polygon_vertices
+        );
+    }
+
+    #[test]
+    fn v4270_islands_are_maritime_never_land_adjacent() {
+        let snap = build_world_map(&multi_country_state());
+        let islands: Vec<&MapRegionDto> = snap
+            .countries
+            .iter()
+            .flat_map(|c| c.regions.iter())
+            .filter(|r| r.is_island)
+            .collect();
+        for isl in &islands {
+            // Real offshore polygon — a blob with nonzero area, not a dot.
+            assert!(
+                shoelace(&isl.polygon) > 1.0,
+                "island {} polygon is degenerate",
+                isl.id
+            );
+            // Every rendered edge touching an island is a sea lane —
+            // never a land border.
+            for e in snap
+                .edges
+                .iter()
+                .filter(|e| e.from_region == isl.id || e.to_region == isl.id)
+            {
+                assert_eq!(
+                    e.edge_type, "sea_lane",
+                    "island {} has non-maritime edge {:?}",
+                    isl.id, e.edge_type
+                );
+            }
+            // Its neighbours exist (maritime links to the mainland).
+            assert!(
+                !isl.neighbors.is_empty(),
+                "island {} has no maritime neighbours",
+                isl.id
+            );
         }
     }
 }

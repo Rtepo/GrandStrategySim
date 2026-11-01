@@ -22,7 +22,6 @@ import { fmt, num } from "../lib/format";
 import {
   WorldMapSvg,
   countryColor,
-  megaregionColor,
   type MapMode,
 } from "../components/map/WorldMapSvg";
 import type { CountryMapDto, MapRegionDto } from "../types/api";
@@ -34,7 +33,8 @@ const MODES: { value: MapMode; label: string }[] = [
   { value: "military", label: "Military Fronts" },
   { value: "gdp", label: "GDP per Capita" },
   { value: "population", label: "Population / Urbanization" },
-  { value: "megaregions", label: "Megaregions" },
+  // v4.27.0: the Megaregions mode moved to the Regions tab's country map
+  // switcher (TASK-005) — it never made sense at world scale.
 ];
 
 const ZOOM_STEPS = [1, 1.5, 2.2, 3.2, 4.5];
@@ -96,20 +96,9 @@ export function MapPage() {
           { color: "#9876be", label: "Mixed" },
           { color: "#3e2270", label: "Dense / urban" },
         ];
-      case "megaregions": {
-        // One legend entry per distinct megaregion, keyed by its color index.
-        const seen = new Map<number, string>();
-        for (const c of snapshot?.countries ?? []) {
-          for (const r of c.regions) {
-            const idx = Number(r.megaregion_index);
-            if (idx >= 0 && r.megaregion_name) seen.set(idx, r.megaregion_name);
-          }
-        }
-        return [...seen.entries()].map(([idx, name]) => ({
-          color: megaregionColor(idx),
-          label: name,
-        }));
-      }
+      default:
+        // Megaregions / biome / party / migration live on the Regions tab.
+        return [];
     }
   }, [mode, snapshot]);
 

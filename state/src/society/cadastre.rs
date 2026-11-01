@@ -1041,9 +1041,12 @@ pub fn generate_cadastre(
             continue;
         }
 
-        // Determine number of parcels based on region size
+        // Determine number of parcels based on region size.
+        // v4.27.0: cadastral map requires 36–60 parcels per region — the
+        // clamp floor rose 5→36 (total arable is conserved; parcels are
+        // simply surveyed finer).
         let population = region.population.max(10_000_i64) as f64;
-        let num_parcels = (population / 50_000.0).clamp(5.0_f64, 20.0_f64) as usize;
+        let num_parcels = (population / 50_000.0).clamp(36.0_f64, 60.0_f64) as usize;
 
         // Estimate total arable land for this region
         let total_arable = (population * rng.gen_range(0.15..0.45)).max(1_000.0);

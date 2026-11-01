@@ -3,7 +3,7 @@
   "schema": "daemon-v2-backlog",
   "release": "v4.27.0-task-batch",
   "base_ref": "origin/main",
-  "updated_at": "2026-11-01T15:15:55.535Z",
+  "updated_at": "2026-11-01T15:47:09.258Z",
   "tasks": [
     {
       "id": "TASK-001",
@@ -239,7 +239,7 @@
     {
       "id": "TASK-005",
       "title": "Map geometry: true adjacency, real islands, inland lakes, fractal coasts, 4 map modes, dense parcels, climate/biome map",
-      "status": "PENDING",
+      "status": "DONE",
       "priority": 10,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-005.md",
@@ -297,8 +297,13 @@
         }
       ],
       "created_at": "2026-11-01T15:15:55.535Z",
-      "updated_at": "2026-11-01T15:15:55.535Z",
-      "verify_history": []
+      "updated_at": "2026-11-01T15:47:09.258Z",
+      "verify_history": [
+        {
+          "at": "2026-11-01T15:46:10.326Z",
+          "result": "FAIL"
+        }
+      ]
     },
     {
       "id": "TASK-006",

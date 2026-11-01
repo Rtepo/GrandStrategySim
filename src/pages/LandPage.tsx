@@ -9,7 +9,9 @@ import {
   getMinistryLandReport,
   getRegions,
   getRegionDetail,
+  getWorldMap,
 } from "../hooks/useTauriCommand";
+import { WorldMapSvg, BIOME_COLORS } from "../components/map/WorldMapSvg";
 import {
   Card, CardHeader, CardTitle, CardContent, Badge,
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty,
@@ -517,6 +519,14 @@ function ClimateTab({ country }: { country: string }) {
     queryKey: ['regions-climate', country],
     queryFn: () => getRegions(country),
   });
+  // v4.27.0 TASK-005: interactive Topography & Biome map — regions are
+  // classified server-side (Mountains / Highlands / Steppe / Plains /
+  // Forest / Wetlands / Coast) on the world-map snapshot.
+  const { data: worldMap } = useQuery({
+    queryKey: ["world-map"],
+    queryFn: getWorldMap,
+  });
+  const [biomeRegion, setBiomeRegion] = useState<string | null>(null);
 
   if (isLoading) return <div className="text-muted-foreground">Loading regions...</div>;
   if (!regions || regions.length === 0) return <div className="text-muted-foreground">No regions found.</div>;
@@ -524,6 +534,46 @@ function ClimateTab({ country }: { country: string }) {
   // Fetch details for all regions to get climate data
   return (
     <div className="space-y-4">
+      {worldMap && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Topography &amp; Biome Map</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-0 space-y-2">
+            <div className="h-64 rounded-md overflow-hidden border border-border bg-[#0f2739]">
+              <WorldMapSvg
+                snapshot={worldMap}
+                mode="biome"
+                onlyCountry={country}
+                selectedRegionId={biomeRegion}
+                onRegionClick={(r) => setBiomeRegion(r.id === biomeRegion ? null : r.id)}
+                className="w-full h-full block"
+              />
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {Object.entries(BIOME_COLORS).map(([biome, color]) => (
+                <span key={biome} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="inline-block w-3 h-3 rounded-sm border border-border" style={{ backgroundColor: color }} />
+                  {biome}
+                </span>
+              ))}
+            </div>
+            {biomeRegion && (
+              <div className="text-xs text-muted-foreground">
+                Selected: <span className="text-foreground font-medium">
+                  {worldMap.countries
+                    .find((c) => c.country === country)
+                    ?.regions.find((r) => r.id === biomeRegion)?.name ?? biomeRegion}
+                </span>
+                {" — "}
+                {worldMap.countries
+                  .find((c) => c.country === country)
+                  ?.regions.find((r) => r.id === biomeRegion)?.biome ?? ""}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
       <p className="text-sm text-muted-foreground">
         Climate profiles and arable land usage across all regions.
       </p>

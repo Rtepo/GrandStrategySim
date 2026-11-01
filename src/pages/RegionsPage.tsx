@@ -11,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, Ta
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { MiniMap } from "../components/map/MiniMap";
+import type { MapMode } from "../components/map/WorldMapSvg";
 import { fmt, num, humanize } from "../lib/format";
 import type { CouncilResolutionRow, CouncilRollCallRow, MapParcelDto, RegionParcelMapDto } from "../types/api";
 import type {
@@ -97,6 +98,18 @@ export function RegionsPage() {
   });
   const [selectedParcel, setSelectedParcel] = useState<MapParcelDto | null>(null);
 
+  // v4.27.0 TASK-005: country-map mode switcher — Political &
+  // Infrastructure / Megaregions / Internal Migration / Party Support.
+  // (Moved off the World Map: megaregions/migration/party are
+  // intra-country views.)
+  const [countryMapMode, setCountryMapMode] = useState<MapMode>("infrastructure");
+  const COUNTRY_MAP_MODES: { value: MapMode; label: string }[] = [
+    { value: "infrastructure", label: "Political & Infrastructure" },
+    { value: "megaregions", label: "Megaregions" },
+    { value: "migration", label: "Internal Migration" },
+    { value: "party", label: "Party / Faction" },
+  ];
+
   if (!selectedCountry) return <div className="p-6 text-muted-foreground">Select a country from the sidebar.</div>;
 
   // Build a lookup from megaregion name to megaregion id for clickable headers.
@@ -119,6 +132,48 @@ export function RegionsPage() {
           default, cadastral parcel grid while a region is selected. */}
       <Card>
         <CardContent className="p-3">
+          {/* v4.27.0 TASK-005: map-mode switcher for the country map. */}
+          {!(selectedRegionId && parcelMap) && (
+            <div className="flex items-center gap-1 mb-2 flex-wrap">
+              {COUNTRY_MAP_MODES.map((m) => (
+                <button
+                  key={m.value}
+                  onClick={() => setCountryMapMode(m.value)}
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                    countryMapMode === m.value
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* v4.27.0: legend for the active country map mode — cities and
+              road/rail transport arteries in Infrastructure mode, net
+              migration coloring + flow arrows in Migration mode, dominant
+              faction hues in Party mode. */}
+          {!(selectedRegionId && parcelMap) && (
+            <div className="flex flex-wrap gap-x-4 gap-y-0.5 mb-1 text-[11px] text-muted-foreground">
+              {countryMapMode === "infrastructure" && (
+                <>
+                  <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-[#f8fafc] border border-border" /> City (scaled by urban pop)</span>
+                  <span>┅ road artery</span>
+                  <span>━ rail artery</span>
+                </>
+              )}
+              {countryMapMode === "megaregions" && (
+                <span>One color per megaregion; unassigned regions keep country tint</span>
+              )}
+              {countryMapMode === "migration" && (
+                <span>Green = net in-migration · red = net out-migration · arrows = inter-region migrant flows</span>
+              )}
+              {countryMapMode === "party" && (
+                <span>Region colored by dominant council faction / party</span>
+              )}
+            </div>
+          )}
           {selectedRegionId && parcelMap ? (
             <RegionParcelGrid
               parcelMap={parcelMap}
@@ -130,7 +185,7 @@ export function RegionsPage() {
               }}
             />
           ) : (
-            <MiniMap onlyCountry={selectedCountry} mode="governance" heightClass="h-64" />
+            <MiniMap onlyCountry={selectedCountry} mode={countryMapMode} heightClass="h-64" />
           )}
         </CardContent>
       </Card>
@@ -951,6 +1006,8 @@ const PARCEL_USE_COLORS: Record<string, string> = {
   resource_mines: "#6e4a8f",
   devastated: "#8f1d1d",
   unplanned: "#3d4757",
+  // v4.27.0: real topographic water parcels (river / lake / sea frontage).
+  water: "#1d6fa8",
 };
 
 const PARCEL_USE_LABELS: Record<string, string> = {
@@ -964,6 +1021,7 @@ const PARCEL_USE_LABELS: Record<string, string> = {
   resource_mines: "Resource Mines",
   devastated: "Damaged",
   unplanned: "Unplanned",
+  water: "Water (River / Lake)",
 };
 
 function parcelColor(p: MapParcelDto): string {
@@ -1051,6 +1109,9 @@ function RegionParcelGrid({
           <div><span className="text-muted-foreground">Devastation:</span> {(selectedParcel.devastation * 100).toFixed(0)}%</div>
           <div><span className="text-muted-foreground">Survey:</span> {(selectedParcel.legal_certainty * 100).toFixed(0)}%</div>
           <div><span className="text-muted-foreground">Infra access:</span> {(selectedParcel.infrastructure_access * 100).toFixed(0)}%</div>
+          {selectedParcel.water_access && selectedParcel.water_access !== "none" && (
+            <div><span className="text-muted-foreground">Water:</span> {selectedParcel.water_access}</div>
+          )}
           {selectedParcel.is_frozen && <Badge variant="destructive">Frozen</Badge>}
           {selectedParcel.is_border_zone && <Badge variant="outline">Border Zone</Badge>}
         </div>

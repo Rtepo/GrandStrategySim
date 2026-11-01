@@ -757,6 +757,10 @@ pub struct Region {
     /// next turn's works program and commuter routing must see.
     #[serde(default)]
     pub labor_private_allocated_last_turn: f64,
+    /// v4.27.0 (TASK-006): per-region migration ledger — populated by the
+    /// internal migration engine each turn.
+    #[serde(default)]
+    pub migration: RegionalMigrationStats,
 }
 
 /// Phase 47: Default development level for old saves (conservative mid-low).
@@ -772,6 +776,41 @@ pub fn default_aquifer_quality() -> f64 {
 /// Phase 81: Default elevation difference (0.0 = flat terrain).
 fn default_elevation_difference() -> f64 {
     0.0
+}
+
+/// v4.27.0 (TASK-006): per-region migration ledger — internal (domestic
+/// region↔region) and international flows recorded each turn by the
+/// migration engine so the map/society UI can show real in/out/net stats.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct RegionalMigrationStats {
+    /// Persons who moved INTO this region from other regions of the same
+    /// country last turn (internal in-migration).
+    #[serde(default)]
+    pub last_turn_in_internal: i64,
+    /// Persons who moved OUT of this region to other regions of the same
+    /// country last turn (internal out-migration).
+    #[serde(default)]
+    pub last_turn_out_internal: i64,
+    /// Persons who immigrated INTO this region from foreign countries.
+    #[serde(default)]
+    pub last_turn_in_international: i64,
+    /// Persons who emigrated OUT of this region to foreign countries.
+    #[serde(default)]
+    pub last_turn_out_international: i64,
+    /// Net migration last turn (in − out, both kinds).
+    #[serde(default)]
+    pub last_turn_net: i64,
+    /// Top source region ids by in-flow (display aid).
+    #[serde(default)]
+    pub top_sources: Vec<(String, i64)>,
+    /// Top destination region ids by out-flow (display aid).
+    #[serde(default)]
+    pub top_destinations: Vec<(String, i64)>,
+    /// Lifetime accumulated in/out totals.
+    #[serde(default)]
+    pub cumulative_in: i64,
+    #[serde(default)]
+    pub cumulative_out: i64,
 }
 
 /// Holy site associated with a specific religion.
@@ -2827,6 +2866,7 @@ pub fn generate_regional_topology(
             parcel_ids: Vec::new(),
             is_autonomous_republic: false,
             elevation_difference_m: 0.0,
+            migration: Default::default(),
             thermal_grid: Default::default(),
             local_pollution: Default::default(),
             water_reserves: Default::default(),
@@ -3518,6 +3558,7 @@ pub fn generate_maritime_nodes(
         parcel_ids: Vec::new(),
         is_autonomous_republic: false,
         elevation_difference_m: 0.0,
+        migration: Default::default(),
         thermal_grid: Default::default(),
         local_pollution: Default::default(),
         water_reserves: Default::default(),
@@ -3574,6 +3615,7 @@ pub fn generate_maritime_nodes(
         parcel_ids: Vec::new(),
         is_autonomous_republic: false,
         elevation_difference_m: 0.0,
+        migration: Default::default(),
         thermal_grid: Default::default(),
         local_pollution: Default::default(),
         water_reserves: Default::default(),
@@ -5024,6 +5066,7 @@ mod phase30_tests {
             parcel_ids: Vec::new(),
             is_autonomous_republic: false,
             elevation_difference_m: 0.0,
+            migration: Default::default(),
             thermal_grid: Default::default(),
             local_pollution: Default::default(),
             water_reserves: Default::default(),

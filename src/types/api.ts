@@ -1150,7 +1150,20 @@ anchor: MapPoint,
 /**
  * Outer boundary polygon the region cells tile (sea frontier).
  */
-boundary: Array<MapPoint>, regions: Array<MapRegionDto>, };
+boundary: Array<MapPoint>, regions: Array<MapRegionDto>, 
+/**
+ * v4.27.0: Major cities (dots scaled by urban population).
+ */
+cities: Array<MapCityDto>, 
+/**
+ * v4.27.0: Primary road/rail transport arteries between regional hubs.
+ */
+routes: Array<MapRouteDto>, 
+/**
+ * v4.27.0: Directed inter-region migrant flows for the Internal
+ * Migration map mode.
+ */
+flows: Array<MapFlowDto>, };
 
 /**
  * v4.23 WS4: Per-country trade treemap — REAL settled trade legs this
@@ -2390,6 +2403,12 @@ progress: number,
 per_turn_disbursement: number, };
 
 /**
+ * v4.27.0: A major city marker — dot scaled by urban population, rendered
+ * by the Political & Infrastructure map mode.
+ */
+export type MapCityDto = { region_id: string, name: string, point: MapPoint, population: bigint, is_capital: boolean, };
+
+/**
  * One land-border adjacency edge between two regions (deduplicated).
  */
 export type MapEdgeDto = { from_region: string, to_region: string, 
@@ -2399,18 +2418,40 @@ export type MapEdgeDto = { from_region: string, to_region: string,
 edge_type: string, };
 
 /**
- * A decorative map feature (inland lake or mountain range) — pure
- * presentation geometry derived from the same deterministic layout.
+ * A decorative map feature (inland lake, inland sea, river, or mountain
+ * range) — pure presentation geometry derived from the same
+ * deterministic layout.
  */
 export type MapFeatureDto = { 
 /**
- * `lake` | `mountain`.
+ * `lake` | `inland_sea` | `river` | `mountain`.
  */
 kind: string, 
 /**
  * `lake`: closed polygon vertices. `mountain`: ridge polyline points.
  */
-points: Array<MapPoint>, };
+points: Array<MapPoint>, 
+/**
+ * Owning region id for cell-local features (`lake`, `inland_sea`,
+ * `river`); empty for `mountain` (spans a country border — see
+ * `country_tag`).
+ */
+region_id: string, 
+/**
+ * Owning country for cell features; `A|B` (sorted, pipe-joined) for
+ * border mountains so `onlyCountry` views can include them.
+ */
+country_tag: string, };
+
+/**
+ * v4.27.0: A directed migrant flow between two regions — rendered as a
+ * scaled directional arrow in the Internal Migration map mode.
+ */
+export type MapFlowDto = { from_region: string, to_region: string, 
+/**
+ * Persons per turn moving from → to.
+ */
+amount: bigint, };
 
 /**
  * One parcel cell on a region's cadastral map.
@@ -2459,7 +2500,12 @@ infrastructure_access: number, is_frozen: boolean, is_border_zone: boolean,
 /**
  * Phase 61.4 endowment tag (`forest_district`, `PrivateEstate`, …).
  */
-land_use_tag: string, };
+land_use_tag: string, 
+/**
+ * v4.27.0: real parcel topography (`river` | `lake` | `sea` | `none`)
+ * — water parcels render as rivers/lakes on the cadastral map.
+ */
+water_access: string, };
 
 /**
  * A single 2D point in world-map space (procedural units, not lat/lon).
@@ -2552,7 +2598,49 @@ megaregion_index: bigint,
 /**
  * v4.25.0 WS1: Megaregion display name (empty when unassigned).
  */
-megaregion_name: string, };
+megaregion_name: string, 
+/**
+ * v4.27.0: True offshore island/archipelago region — its polygon is a
+ * real island blob OUTSIDE the country boundary, connected to the
+ * mainland only by `sea_lane` edges (never land adjacency).
+ */
+is_island: boolean, 
+/**
+ * v4.27.0: Climate/terrain classification driving the Topography &
+ * Biome map (`Mountains` | `Highlands` | `Steppe` | `Plains` |
+ * `Forest` | `Wetlands` | `Coast`).
+ */
+biome: string, 
+/**
+ * v4.27.0: Dominant local-council faction for the Party map mode
+ * (empty when the region has no seated council).
+ */
+dominant_party: string, 
+/**
+ * v4.27.0: Seat share (0–1) of the dominant faction.
+ */
+party_share: number, 
+/**
+ * v4.27.0: Net internal+international migration balance (persons/turn)
+ * — negative = net emigration, positive = net immigration.
+ */
+net_migration: bigint, 
+/**
+ * v4.27.0: Urban-class population — drives city-dot scaling in the
+ * Political & Infrastructure mode.
+ */
+urban_population: bigint, };
+
+/**
+ * v4.27.0: A primary transport artery between regional hubs. Points run
+ * centroid-to-centroid, so the polyline always crosses polygon interiors
+ * (never the outer country border).
+ */
+export type MapRouteDto = { 
+/**
+ * `road` | `rail`.
+ */
+kind: string, points: Array<MapPoint>, };
 
 /**
  * Phase 56: Market index snapshot for the stock exchange UI.
@@ -4591,9 +4679,16 @@ features: Array<MapFeatureDto>,
 shared_land_borders_count: number, 
 /**
  * v4.25.0 WS1 release gate: smallest region-polygon vertex count in the
- * snapshot (fractal subdivision guarantees ≥16).
+ * snapshot (fractal subdivision guarantees ≥40).
  */
-min_region_polygon_vertices: number, };
+min_region_polygon_vertices: number, 
+/**
+ * v4.27.0 release gate: regions whose Voronoi cell degenerated into a
+ * zero-area fallback blob — the "pseudo-island dots" defect. Must
+ * stay 0 (sites are clamped inside the country boundary; deliberate
+ * islands get real blob polygons instead).
+ */
+degenerate_region_count: number, };
 
 /**
  * Phase 60: Zoning plan row (public data).

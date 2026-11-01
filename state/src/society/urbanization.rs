@@ -305,6 +305,7 @@ pub fn execute_emancipation(
             labor_unfilled_last_turn: 0.0,
             labor_allocated_last_turn: 0.0,
             labor_private_allocated_last_turn: 0.0,
+            migration: Default::default(),
     };
 
     // Financial settlement: domain budget → city treasury (double-entry, exact).
