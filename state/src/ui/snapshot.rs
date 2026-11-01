@@ -9483,6 +9483,26 @@ pub struct WarBattleRow {
     pub defender_captured: i64,
     /// Deterministic tactical phases (Contact → Exchange → Decision).
     pub phases: Vec<BattlePhaseRow>,
+    /// v4.27.0 (TASK-007): resolved regimental names for engaged
+    /// attacker units (replaces raw `UNIT-*` ids in the UI).
+    #[serde(default)]
+    pub attacker_unit_names: Vec<String>,
+    /// v4.27.0 (TASK-007): resolved regimental names, defender side.
+    #[serde(default)]
+    pub defender_unit_names: Vec<String>,
+    /// v4.27.0 (TASK-007): commanding VIPs on the attacker side.
+    #[serde(default)]
+    pub attacker_commanders: Vec<CommanderRow>,
+    /// v4.27.0 (TASK-007): commanding VIPs on the defender side.
+    #[serde(default)]
+    pub defender_commanders: Vec<CommanderRow>,
+    /// v4.27.0 (TASK-007): tactical doctrine employed by the attacker
+    /// (derived deterministically from the engaged force mix).
+    #[serde(default)]
+    pub attacker_doctrine: String,
+    /// v4.27.0 (TASK-007): tactical doctrine employed by the defender.
+    #[serde(default)]
+    pub defender_doctrine: String,
 }
 
 /// One deterministic tactical phase of a battle (v4.24.0).
@@ -9497,6 +9517,16 @@ pub struct BattlePhaseRow {
     pub defender_power: f64,
     /// Outcome note.
     pub note: String,
+    /// v4.27.0 (TASK-007): units engaged at this phase, each side.
+    #[serde(default)]
+    pub attacker_units: i64,
+    #[serde(default)]
+    pub defender_units: i64,
+    /// v4.27.0 (TASK-007): cumulative casualties at this phase.
+    #[serde(default)]
+    pub attacker_casualties: i64,
+    #[serde(default)]
+    pub defender_casualties: i64,
 }
 
 /// A concluded war for the Historical Wars sub-tab (v4.24.0).
@@ -9527,6 +9557,16 @@ pub struct EndedWarRow {
     pub defender_casualties: i64,
     /// Whether POW repatriation was part of the settlement.
     pub pows_repatriated: bool,
+    /// v4.27.0 (TASK-007): coalition members on both sides (one row per
+    /// war, not one row per belligerent pair).
+    #[serde(default)]
+    pub participants: Vec<String>,
+    /// v4.27.0 (TASK-007): estimated material destruction ($).
+    #[serde(default)]
+    pub material_destruction: f64,
+    /// v4.27.0 (TASK-007): civilian lives lost in war-touched regions.
+    #[serde(default)]
+    pub civilian_casualties: i64,
 }
 
 /// A single battle row for the Military dashboard.
@@ -9634,6 +9674,23 @@ pub struct ArmyRow {
     pub avg_experience: f64,
     /// Assigned command VIPs (Generals/Admirals by dominant branch).
     pub commanders: Vec<CommanderRow>,
+    /// v4.27.0 (TASK-007): operational readiness — mean equipment
+    /// quality weighted by unit fill, clamped to 0–100 (fixes the
+    /// 100× "Readiness 5000%" scaling defect).
+    #[serde(default)]
+    pub avg_readiness: f64,
+    /// v4.27.0 (TASK-007): mean drill/training level (0–100).
+    #[serde(default)]
+    pub avg_training: f64,
+    /// v4.27.0 (TASK-007): land-force manpower by arm
+    /// ("Line Infantry", "Hussars", "Field Artillery",
+    /// "Combat Engineers", "Militia Battalion").
+    #[serde(default)]
+    pub land_breakdown: Vec<(String, i64)>,
+    /// v4.27.0 (TASK-007): naval manpower by ship class
+    /// ("Battleship", "Cruiser", "Destroyer", "Transport").
+    #[serde(default)]
+    pub naval_breakdown: Vec<(String, i64)>,
 }
 
 /// A resolved command VIP on an army (v4.24.0).
@@ -9764,6 +9821,21 @@ pub struct PowCampRow {
     pub rations_per_turn: f64,
     /// v4.24.0: POWs by internment region.
     pub prisoners_by_region: Vec<(String, i64)>,
+    /// v4.27.0 (TASK-007): per-turn camp maintenance cost in fiat —
+    /// ration draw priced at the country's average wage.
+    #[serde(default)]
+    pub maintenance_cost: f64,
+    /// v4.27.0 (TASK-007): per-turn forced-labor output in fiat
+    /// (interned POWs × lease fee at camp productivity).
+    #[serde(default)]
+    pub labor_output: f64,
+    /// v4.27.0 (TASK-007): escapes during the most recent turn.
+    #[serde(default)]
+    pub escaped_this_turn: i64,
+    /// v4.27.0 (TASK-007): deaths in captivity during the most recent
+    /// turn.
+    #[serde(default)]
+    pub died_this_turn: i64,
 }
 
 /// Full military dashboard response.
@@ -9905,6 +9977,85 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     &front.regions,
                 )
                 .unwrap_or_default();
+                // v4.27.0 (TASK-007): resolve engaged unit ids to their
+                // display names via each belligerent's live OOB —
+                // regimental names, never raw `UNIT-*` tokens.
+                let unit_display = |country_nm: &str, uid: &str| -> String {
+                    state
+                        .countries
+                        .get(country_nm)
+                        .and_then(|c| {
+                            c.order_of_battle.armies.iter().find_map(|a| {
+                                a.divisions.iter().find_map(|d| {
+                                    d.regiments.iter().find_map(|r| {
+                                        r.units.iter().find(|u| u.id == uid).map(|u| {
+                                            if u.name.is_empty() {
+                                                r.name.clone()
+                                            } else {
+                                                u.name.clone()
+                                            }
+                                        })
+                                    })
+                                })
+                            })
+                        })
+                        .unwrap_or_else(|| uid.to_string())
+                };
+                let vip_name_of = |vid: &str| -> String {
+                    state
+                        .countries
+                        .values()
+                        .find_map(|c| {
+                            c.politics
+                                .vip_registry
+                                .as_ref()
+                                .and_then(|reg| reg.vips.get(vid))
+                                .map(|v| v.full_name.clone())
+                        })
+                        .unwrap_or_else(|| vid.to_string())
+                };
+                let cmd_rows = |pairs: &[(String, String)]| -> Vec<CommanderRow> {
+                    pairs
+                        .iter()
+                        .map(|(vid, echelon)| CommanderRow {
+                            vip_id: vid.clone(),
+                            name: vip_name_of(vid),
+                            rank: match echelon.as_str() {
+                                "Army" => "General",
+                                "Division" => "Lieutenant General",
+                                _ => "Colonel",
+                            }
+                            .to_string(),
+                            echelon: echelon.clone(),
+                        })
+                        .collect()
+                };
+                // v4.27.0 (TASK-007): tactical doctrine derived from the
+                // engaged force mix — deterministic, no RNG.
+                let doctrine_of = |forces: &[crate::military::fronts::BattleForceLine],
+                                   attacking: bool|
+                 -> String {
+                    let dominant = forces
+                        .iter()
+                        .max_by_key(|f| f.initial_manpower)
+                        .map(|f| f.branch.as_str())
+                        .unwrap_or("Infantry");
+                    match dominant {
+                        "Artillery" => "Artillery Barrage",
+                        "Armor" => "Flanking Envelopment",
+                        "Naval" => "Naval Bombardment",
+                        "Air" => "Air Superiority",
+                        "Militia" => "Guerrilla Resistance",
+                        _ => {
+                            if attacking {
+                                "Frontal Assault"
+                            } else {
+                                "Trench Defense"
+                            }
+                        }
+                    }
+                    .to_string()
+                };
                 let battles: Vec<WarBattleRow> = front
                     .battles
                     .iter()
@@ -9931,8 +10082,26 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                                 attacker_power: p.attacker_power,
                                 defender_power: p.defender_power,
                                 note: p.note.clone(),
+                                attacker_units: p.attacker_units as i64,
+                                defender_units: p.defender_units as i64,
+                                attacker_casualties: p.attacker_casualties,
+                                defender_casualties: p.defender_casualties,
                             })
                             .collect(),
+                        attacker_unit_names: b
+                            .attacker_units
+                            .iter()
+                            .map(|u| unit_display(&b.attacker, u))
+                            .collect(),
+                        defender_unit_names: b
+                            .defender_units
+                            .iter()
+                            .map(|u| unit_display(&b.defender, u))
+                            .collect(),
+                        attacker_commanders: cmd_rows(&b.attacker_commanders),
+                        defender_commanders: cmd_rows(&b.defender_commanders),
+                        attacker_doctrine: doctrine_of(&b.attacker_forces, true),
+                        defender_doctrine: doctrine_of(&b.defender_forces, false),
                     })
                     .collect();
                 WarRow {
@@ -10088,6 +10257,13 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             let mut eq_sum = 0.0;
             let mut xp_sum = 0.0;
             let mut regiments = 0usize;
+            // v4.27.0 (TASK-007): drill level + arm/ship-class manpower
+            // splits for the OOB breakdown panel.
+            let mut tr_sum = 0.0;
+            let mut land_breakdown: std::collections::BTreeMap<String, i64> =
+                std::collections::BTreeMap::new();
+            let mut naval_breakdown: std::collections::BTreeMap<String, i64> =
+                std::collections::BTreeMap::new();
             for div in &army.divisions {
                 for reg in &div.regiments {
                     regiments += 1;
@@ -10096,6 +10272,13 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                         mp += u.manpower;
                         eq_sum += u.equipment_quality;
                         xp_sum += u.experience;
+                        tr_sum += u.training;
+                        let sub = u.subtype_label();
+                        if u.unit_type == crate::military::units::UnitType::Naval {
+                            *naval_breakdown.entry(sub).or_insert(0) += u.manpower;
+                        } else {
+                            *land_breakdown.entry(sub).or_insert(0) += u.manpower;
+                        }
                     }
                 }
             }
@@ -10144,6 +10327,21 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     0.0
                 },
                 commanders,
+                // v4.27.0 (TASK-007): readiness = mean equipment quality,
+                // stored on its native 0–100 scale and clamped — the old
+                // UI multiplied by 100 a second time (5000% defect).
+                avg_readiness: if n_units > 0 {
+                    (eq_sum / n_units as f64).clamp(0.0, 100.0)
+                } else {
+                    0.0
+                },
+                avg_training: if n_units > 0 {
+                    (tr_sum / n_units as f64).clamp(0.0, 100.0)
+                } else {
+                    0.0
+                },
+                land_breakdown: land_breakdown.into_iter().collect(),
+                naval_breakdown: naval_breakdown.into_iter().collect(),
             });
         }
 
@@ -10323,6 +10521,17 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         let held = pow_camp.current_count();
         let rations_per_turn =
             held as f64 / 1000.0 * country.military_config.food_upkeep_per_1000;
+        // v4.27.0 (TASK-007): camp economics priced at the country's own
+        // average wage — rations cost a fixed share of a worker's wage
+        // per head-turn; forced labor yields the same lease fee the
+        // factory-lease market pays.
+        let avg_wage = country.macro_indicators.average_wage.max(1.0);
+        let maintenance_cost = held as f64 * avg_wage * 0.02;
+        let labor_output = forced_labor_assigned as f64
+            * crate::military::pows::calculate_lease_fee_per_pow(
+                avg_wage,
+                average_health.max(0.1),
+            );
         if total_prisoners > 0 || pow_camp.total_ever_captured > 0 {
             pow_camps.push(PowCampRow {
                 country: country_name.clone(),
@@ -10339,6 +10548,10 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 camp_qol: average_health,
                 rations_per_turn,
                 prisoners_by_region,
+                maintenance_cost,
+                labor_output,
+                escaped_this_turn: pow_camp.escaped_last_turn,
+                died_this_turn: pow_camp.deceased_last_turn,
             });
         }
     }
@@ -10359,6 +10572,9 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 aggressor_casualties: 0,
                 defender_casualties: 0,
                 pows_repatriated: false,
+                participants: Vec::new(),
+                material_destruction: 0.0,
+                civilian_casualties: 0,
             });
             EndedWarRow {
                 aggressor: ws.aggressor.clone(),
@@ -10373,6 +10589,9 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 aggressor_casualties: o.aggressor_casualties,
                 defender_casualties: o.defender_casualties,
                 pows_repatriated: o.pows_repatriated,
+                participants: o.participants,
+                material_destruction: o.material_destruction,
+                civilian_casualties: o.civilian_casualties,
             }
         })
         .collect();

@@ -199,7 +199,28 @@ avg_experience: number,
 /**
  * Assigned command VIPs (Generals/Admirals by dominant branch).
  */
-commanders: Array<CommanderRow>, };
+commanders: Array<CommanderRow>, 
+/**
+ * v4.27.0 (TASK-007): operational readiness — mean equipment
+ * quality weighted by unit fill, clamped to 0–100 (fixes the
+ * 100× "Readiness 5000%" scaling defect).
+ */
+avg_readiness: number, 
+/**
+ * v4.27.0 (TASK-007): mean drill/training level (0–100).
+ */
+avg_training: number, 
+/**
+ * v4.27.0 (TASK-007): land-force manpower by arm
+ * ("Line Infantry", "Hussars", "Field Artillery",
+ * "Combat Engineers", "Militia Battalion").
+ */
+land_breakdown: Array<[string, bigint]>, 
+/**
+ * v4.27.0 (TASK-007): naval manpower by ship class
+ * ("Battleship", "Cruiser", "Destroyer", "Transport").
+ */
+naval_breakdown: Array<[string, bigint]>, };
 
 /**
  * v4.19 WS2: Full bank detail for the expandable row panel — balance-sheet
@@ -260,7 +281,15 @@ defender_power: number,
 /**
  * Outcome note.
  */
-note: string, };
+note: string, 
+/**
+ * v4.27.0 (TASK-007): units engaged at this phase, each side.
+ */
+attacker_units: bigint, defender_units: bigint, 
+/**
+ * v4.27.0 (TASK-007): cumulative casualties at this phase.
+ */
+attacker_casualties: bigint, defender_casualties: bigint, };
 
 /**
  * A single battle row for the Military dashboard.
@@ -1637,7 +1666,20 @@ defender_casualties: bigint,
 /**
  * Whether POW repatriation was part of the settlement.
  */
-pows_repatriated: boolean, };
+pows_repatriated: boolean, 
+/**
+ * v4.27.0 (TASK-007): coalition members on both sides (one row per
+ * war, not one row per belligerent pair).
+ */
+participants: Array<string>, 
+/**
+ * v4.27.0 (TASK-007): estimated material destruction ($).
+ */
+material_destruction: number, 
+/**
+ * v4.27.0 (TASK-007): civilian lives lost in war-touched regions.
+ */
+civilian_casualties: bigint, };
 
 /**
  * Role-gated: foreign observers see only public aggregate data (national
@@ -3190,7 +3232,26 @@ rations_per_turn: number,
 /**
  * v4.24.0: POWs by internment region.
  */
-prisoners_by_region: Array<[string, bigint]>, };
+prisoners_by_region: Array<[string, bigint]>, 
+/**
+ * v4.27.0 (TASK-007): per-turn camp maintenance cost in fiat —
+ * ration draw priced at the country's average wage.
+ */
+maintenance_cost: number, 
+/**
+ * v4.27.0 (TASK-007): per-turn forced-labor output in fiat
+ * (interned POWs × lease fee at camp productivity).
+ */
+labor_output: number, 
+/**
+ * v4.27.0 (TASK-007): escapes during the most recent turn.
+ */
+escaped_this_turn: bigint, 
+/**
+ * v4.27.0 (TASK-007): deaths in captivity during the most recent
+ * turn.
+ */
+died_this_turn: bigint, };
 
 /**
  * Phase 81 Wave 2: PPA summary info.
@@ -4514,7 +4575,33 @@ defender_captured: bigint,
 /**
  * Deterministic tactical phases (Contact → Exchange → Decision).
  */
-phases: Array<BattlePhaseRow>, };
+phases: Array<BattlePhaseRow>, 
+/**
+ * v4.27.0 (TASK-007): resolved regimental names for engaged
+ * attacker units (replaces raw `UNIT-*` ids in the UI).
+ */
+attacker_unit_names: Array<string>, 
+/**
+ * v4.27.0 (TASK-007): resolved regimental names, defender side.
+ */
+defender_unit_names: Array<string>, 
+/**
+ * v4.27.0 (TASK-007): commanding VIPs on the attacker side.
+ */
+attacker_commanders: Array<CommanderRow>, 
+/**
+ * v4.27.0 (TASK-007): commanding VIPs on the defender side.
+ */
+defender_commanders: Array<CommanderRow>, 
+/**
+ * v4.27.0 (TASK-007): tactical doctrine employed by the attacker
+ * (derived deterministically from the engaged force mix).
+ */
+attacker_doctrine: string, 
+/**
+ * v4.27.0 (TASK-007): tactical doctrine employed by the defender.
+ */
+defender_doctrine: string, };
 
 /**
  * A single active war/front row for the Military dashboard.

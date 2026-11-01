@@ -535,7 +535,20 @@ pub fn generate_oob(config: &OobGenerationConfig) -> OrderOfBattle {
                     div_idx + 1,
                     reg_idx + 1
                 );
-                let reg_name = format!("{} Regiment", ordinal(reg_idx + 1));
+                // v4.27.0 (TASK-007): each regiment is a single arm so its
+                // cultural name is honest. The %4 rotation preserves the
+                // historical overall mix (50% infantry, 25% artillery,
+                // 25% cavalry/armor) at division scale.
+                let reg_arm = match reg_idx % 4 {
+                    1 => UnitType::Artillery,
+                    2 => UnitType::Tanks,
+                    _ => UnitType::Infantry,
+                };
+                let reg_name = regiment_name(
+                    &config.country_name,
+                    reg_idx + 1,
+                    reg_arm,
+                );
                 let mut regiment = Regiment::new(reg_id, reg_name, home_region.clone());
 
                 for unit_idx in 0..config.units_per_regiment {
@@ -548,28 +561,42 @@ pub fn generate_oob(config: &OobGenerationConfig) -> OrderOfBattle {
                         unit_idx + 1
                     );
 
-                    // Distribute unit types: first unit is infantry, second is artillery,
-                    // third is tanks (if available), rest are infantry.
-                    let unit_type = match unit_idx % 4 {
-                        0 => UnitType::Infantry,
-                        1 => UnitType::Artillery,
-                        2 => UnitType::Tanks,
-                        _ => UnitType::Infantry,
-                    };
-
                     let mut manpower_origin = std::collections::HashMap::default();
                     manpower_origin.insert(
                         crate::society::geography::RuralClass::FreePeasant,
                         config.base_unit_manpower,
                     );
 
-                    let unit = MilitaryUnit::new(
+                    let mut unit = MilitaryUnit::new(
                         unit_id,
-                        unit_type,
+                        reg_arm,
                         config.base_unit_manpower,
                         manpower_origin,
                         home_region.clone(),
                     );
+                    // v4.27.0 (TASK-007): battalion-level name + subtype so
+                    // battle ledgers display "2nd Anatolian Hussars" style
+                    // strings instead of raw `UNIT-*` ids. Combat
+                    // engineers ride inside infantry regiments.
+                    let global_ordinal =
+                        reg_idx * config.units_per_regiment + unit_idx + 1;
+                    let (unit_arm, unit_subtype) = if reg_arm == UnitType::Infantry
+                        && unit_idx + 1 == config.units_per_regiment
+                        && config.units_per_regiment >= 3
+                    {
+                        (reg_arm, "Combat Engineers")
+                    } else {
+                        (reg_arm, land_arm_name(reg_arm))
+                    };
+                    unit.name = format!(
+                        "{} {} {}",
+                        ordinal(global_ordinal),
+                        country_adjective(&config.country_name),
+                        unit_subtype
+                    );
+                    unit.subtype = unit_subtype.to_string();
+                    unit.unit_type = unit_arm;
+                    unit.stats = unit_arm.base_stats();
 
                     regiment.add_unit(unit);
                 }
@@ -743,6 +770,137 @@ pub fn generate_asymmetric_oob(
     oob
 }
 
+// ============================================================================
+// v4.27.0 (TASK-007): CULTURAL UNIT NAMING + NAVAL FLEETS
+// ============================================================================
+
+/// Derives a national adjective from a country name for unit naming
+/// ("Anatolia" → "Anatolian", "Dacia" → "Dacian", "Anglia" → "Anglian").
+/// Deterministic — pure suffix morphology, no hash.
+pub fn country_adjective(country_name: &str) -> String {
+    let n = country_name.trim();
+    if n.ends_with("ia") {
+        // Anatolia→Anatolian, Dacia→Dacian, Gallia→Gallian, Lechia→Lechian
+        format!("{}n", n)
+    } else if n.ends_with('a') {
+        format!("{}n", n)
+    } else if n.ends_with('y') {
+        format!("{}ian", &n[..n.len() - 1])
+    } else if n.ends_with('s') || n.ends_with("es") {
+        n.to_string()
+    } else {
+        format!("{}ian", n)
+    }
+}
+
+/// Land-arm regimental designation for a homogeneous regiment
+/// (1900-era flavour: armor units read as cavalry).
+fn land_arm_name(unit_type: UnitType) -> &'static str {
+    match unit_type {
+        UnitType::Infantry => "Line Infantry",
+        UnitType::Artillery => "Field Artillery",
+        UnitType::Tanks => "Hussars",
+        UnitType::AirForce => "Aviation Section",
+        UnitType::Naval => "Marine Guard",
+        UnitType::PeasantBattalion => "Militia Battalion",
+    }
+}
+
+/// Generates a cultural regimental name:
+/// `regiment_name("Anatolia", 1, UnitType::Infantry)` →
+/// `"1st Anatolian Line Infantry"`.
+pub fn regiment_name(country_name: &str, n: usize, unit_type: UnitType) -> String {
+    format!(
+        "{} {} {}",
+        ordinal(n),
+        country_adjective(country_name),
+        land_arm_name(unit_type)
+    )
+}
+
+/// Ship-class subtype names for a naval squadron (deterministic cycle).
+const SHIP_CLASSES: &[&str] = &["Battleship", "Cruiser", "Destroyer", "Transport"];
+
+/// Squadron designation by index — gives each naval regiment a distinct
+/// era-appropriate title.
+fn squadron_name(n: usize) -> String {
+    let cls = match n % 4 {
+        0 => "Battle Squadron",
+        1 => "Cruiser Squadron",
+        2 => "Destroyer Flotilla",
+        _ => "Transport Flotilla",
+    };
+    format!("{} {}", ordinal(n), cls)
+}
+
+/// Builds a standing naval fleet for a coastal country (v4.27.0 TASK-007):
+/// a dedicated `Army`-echelon fleet with `squadron_count` squadrons of
+/// `ships_per_squadron` naval units, each named and sub-typed by class
+/// (Battleship / Cruiser / Destroyer / Transport).
+///
+/// `naval_manpower` is split evenly across ships; `home_port` is the
+/// fleet's basing region.
+pub fn generate_fleet(
+    country_name: &str,
+    squadron_count: usize,
+    ships_per_squadron: usize,
+    naval_manpower: i64,
+    home_port: &str,
+    manpower_origin: HashMap<crate::society::geography::RuralClass, i64>,
+) -> Army {
+    let adj = country_adjective(country_name);
+    let mut fleet = Army::new(
+        format!("FLEET-{}", country_name),
+        format!("{} Home Fleet", adj),
+        home_port.to_string(),
+    );
+    let mut division = Division::new(
+        format!("SQD-{}-001", country_name),
+        format!("{} Naval Command", adj),
+        home_port.to_string(),
+    );
+    let ship_count = (squadron_count * ships_per_squadron).max(1) as i64;
+    let per_ship = (naval_manpower / ship_count).max(10);
+    // Per-ship demographic share — scale the fleet-wide origin map so each
+    // ship's `manpower_origin` sums to its own `manpower` (not the
+    // fleet's total).
+    let origin_total: i64 = manpower_origin.values().sum();
+    let ship_origin: HashMap<_, _> = manpower_origin
+        .iter()
+        .map(|(k, v)| {
+            let scaled = if origin_total > 0 {
+                (*v as f64 * per_ship as f64 / origin_total as f64) as i64
+            } else {
+                0
+            };
+            (*k, scaled.max(1))
+        })
+        .collect();
+    for sq in 0..squadron_count.max(1) {
+        let mut regiment = Regiment::new(
+            format!("SQD-{}-{:03}", country_name, sq + 1),
+            squadron_name(sq + 1),
+            home_port.to_string(),
+        );
+        for ship in 0..ships_per_squadron.max(1) {
+            let class = SHIP_CLASSES[(sq + ship) % SHIP_CLASSES.len()];
+            let mut unit = MilitaryUnit::new(
+                format!("SHIP-{}-{:03}-{:03}", country_name, sq + 1, ship + 1),
+                UnitType::Naval,
+                per_ship,
+                ship_origin.clone(),
+                home_port.to_string(),
+            );
+            unit.name = format!("{} {} {}", adj, class, ordinal(ship + 1));
+            unit.subtype = class.to_string();
+            regiment.add_unit(unit);
+        }
+        division.add_regiment(regiment);
+    }
+    fleet.add_division(division);
+    fleet
+}
+
 /// Returns the ordinal suffix for a number (1st, 2nd, 3rd, 4th, etc.).
 fn ordinal(n: usize) -> String {
     let suffix = match n % 10 {
@@ -782,6 +940,61 @@ mod tests {
         assert_eq!(oob.armies[0].divisions.len(), 2);
         assert_eq!(oob.armies[0].divisions[0].regiments.len(), 2);
         assert_eq!(oob.armies[0].divisions[0].regiments[0].units.len(), 2);
+    }
+
+    // v4.27.0 (TASK-007): release-gate assertions — regimental names
+    // replace `UNIT-*` strings, fleets carry ship classes, readiness
+    // stays on the 0–100 scale.
+    #[test]
+    fn test_v4270_regimental_names_are_cultural_not_ids() {
+        let oob = make_test_oob();
+        for regiment in oob
+            .armies
+            .iter()
+            .flat_map(|a| a.divisions.iter())
+            .flat_map(|d| d.regiments.iter())
+        {
+            assert!(
+                !regiment.name.starts_with("UNIT-") && !regiment.name.is_empty(),
+                "regiment name must be a cultural designation: {}",
+                regiment.name
+            );
+            for unit in &regiment.units {
+                assert!(
+                    !unit.name.starts_with("UNIT-") && !unit.name.is_empty(),
+                    "unit must carry a display name, got {:?}",
+                    unit.name
+                );
+                assert!(!unit.subtype.is_empty(), "unit subtype must be set");
+            }
+        }
+        assert_eq!(
+            regiment_name("Anatolia", 1, UnitType::Infantry),
+            "1st Anatolian Line Infantry"
+        );
+        assert_eq!(
+            regiment_name("Dacia", 2, UnitType::Artillery),
+            "2nd Dacian Field Artillery"
+        );
+    }
+
+    #[test]
+    fn test_v4270_fleet_has_ship_classes() {
+        let mut origin = HashMap::default();
+        origin.insert(crate::society::geography::RuralClass::FreePeasant, 2000);
+        let fleet = generate_fleet("Anglia", 2, 3, 6000, "Port", origin);
+        let ships: Vec<&MilitaryUnit> = fleet
+            .divisions
+            .iter()
+            .flat_map(|d| d.regiments.iter())
+            .flat_map(|r| r.units.iter())
+            .collect();
+        assert_eq!(ships.len(), 6);
+        assert!(ships
+            .iter()
+            .all(|s| s.unit_type == UnitType::Naval
+                && matches!(s.subtype.as_str(), "Battleship" | "Cruiser" | "Destroyer" | "Transport")
+                && !s.name.is_empty()));
     }
 
     #[test]

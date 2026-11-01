@@ -129,6 +129,15 @@ pub fn resolve_battle(
     // battle: Contact (committed strengths), Exchange (effective power
     // after supply burn — the figures the result was computed from),
     // Decision (result + casualty totals).
+    // v4.27.0 (TASK-007): per-phase unit counts + cumulative casualty
+    // attribution. Casualties mount across the three phases — skirmish
+    // losses at Contact, the bulk in the Exchange, pursuit/stragglers at
+    // Decision — always summing to the battle's real totals.
+    let (a_total, d_total) = (attacker_casualties.total(), defender_casualties.total());
+    let a_contact = a_total / 5;
+    let d_contact = d_total / 5;
+    let a_exchange = a_total * 4 / 5;
+    let d_exchange = d_total * 4 / 5;
     let phases = vec![
         crate::military::fronts::BattlePhase {
             name: "Contact".to_string(),
@@ -139,6 +148,10 @@ pub fn resolve_battle(
                 attacker_units.len(),
                 defender_units.len()
             ),
+            attacker_units: attacker_units.len(),
+            defender_units: defender_units.len(),
+            attacker_casualties: a_contact,
+            defender_casualties: d_contact,
         },
         crate::military::fronts::BattlePhase {
             name: "Exchange".to_string(),
@@ -148,6 +161,10 @@ pub fn resolve_battle(
                 "Power ratio {:.2}:1 after supply burn",
                 attacker_power / defender_power.max(1.0)
             ),
+            attacker_units: attacker_units.len(),
+            defender_units: defender_units.len(),
+            attacker_casualties: a_exchange,
+            defender_casualties: d_exchange,
         },
         crate::military::fronts::BattlePhase {
             name: "Decision".to_string(),
@@ -155,10 +172,12 @@ pub fn resolve_battle(
             defender_power,
             note: format!(
                 "{:?} — {} vs {} casualties",
-                result,
-                attacker_casualties.total(),
-                defender_casualties.total()
+                result, a_total, d_total
             ),
+            attacker_units: attacker_units.len(),
+            defender_units: defender_units.len(),
+            attacker_casualties: a_total,
+            defender_casualties: d_total,
         },
     ];
 
