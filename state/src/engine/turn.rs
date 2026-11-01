@@ -610,6 +610,32 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             process_demographics_and_labor(&mut task.ctx);
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
+
+        // v4.27.0 (TASK-009): the education/health capacity sync was only
+        // reachable via the orphaned `run_economic_turn` entry point —
+        // the "School seats: 0.00" defect. Wire it into the real loop so
+        // capacity_pool reflects live buildings every turn, then apply
+        // infrastructure effects on top (their original ordering).
+        let _saved_rng_state = crate::engine::seeded_rng::save_stream();
+        tasks.par_iter_mut().for_each(|task| {
+            crate::engine::seed_propagation::ensure_worker_seeded();
+            crate::infrastructure::sync_education_capacity_pool(
+                &task.ctx.buildings,
+                &mut task.ctx.country.regions,
+            );
+            for region in &mut task.ctx.country.regions {
+                crate::infrastructure::effects::apply_infrastructure_effects(
+                    region, task.ctx.year,
+                );
+            }
+            // v4.27.0 (TASK-009): `social_unrest` accumulated without any
+            // decay — every producer only added, so it pinned at 100%
+            // forever ("universal 100% discontent"). Decay toward 0 at
+            // 3%/turn and clamp to the 0–100 scale the KPIs present.
+            let unrest = &mut task.ctx.country.macro_indicators.social_unrest;
+            *unrest = (*unrest * 0.97).clamp(0.0, 100.0);
+        });
+        crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
         if true {
             bsr_dump(&tasks, turn, "dm");

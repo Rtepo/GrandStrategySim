@@ -4217,6 +4217,17 @@ pub struct CourtIntrigueRow {
     pub kind: String,
     pub description: String,
     pub severity: f64,
+    /// v4.27.0 (TASK-009): what the plot aims at — "Depose the monarch",
+    /// "Seize the regency", "Claim the throne".
+    #[serde(default)]
+    pub goal: String,
+    /// v4.27.0 (TASK-009): named co-conspirators / backing factions the
+    /// court knows are involved — VIP names and faction labels.
+    #[serde(default)]
+    pub conspirators: Vec<String>,
+    /// v4.27.0 (TASK-009): backing factions lending the plot weight.
+    #[serde(default)]
+    pub backers: Vec<String>,
 }
 
 /// v4.23.0 WS2: A living claimant in the succession line behind the heir
@@ -4259,6 +4270,11 @@ pub struct DynastyMemberRow {
     /// the tree card show "reigns since T{n}".
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reign_start_turn: Option<u32>,
+    /// v4.27.0 (TASK-009): Turn this member's reign ended — death turn for
+    /// dead monarchs, the member's recorded `reign_end_turn` for living
+    /// abdicated/deposed monarchs. Lets the badge close ("reign T109–T135").
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reign_end_turn: Option<u32>,
 }
 
 /// Phase 86: A royal marriage event row for UI display.
@@ -7192,6 +7208,17 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                 gender: vip.map(|v| v.gender.clone()).unwrap_or_default(),
                 portrait_seed: vip.map(|v| v.portrait_seed.clone()).unwrap_or_default(),
                 reign_start_turn: m.reign_start_turn,
+                // v4.27.0 (TASK-009): closed reign badge — abdication turn
+                // for living former monarchs, death turn for dead ones.
+                reign_end_turn: m.reign_end_turn.or_else(|| {
+                    if member_dead(m) {
+                        m.death_turn.or_else(|| {
+                            vip.and_then(|v| v.death_turn)
+                        })
+                    } else {
+                        None
+                    }
+                }),
             }
         })
         .collect();
@@ -7318,6 +7345,15 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
     let mut intrigues: Vec<CourtIntrigueRow> = Vec::new();
     if let Some(ref council) = country.politics.advisory_council {
         for m in council.disloyal_members() {
+            // Fellow council members who share the faction and trend
+            // disloyal are the known co-conspirators; the faction itself
+            // is the backing bloc.
+            let conspirators: Vec<String> = council
+                .members
+                .iter()
+                .filter(|o| o.vip_id != m.vip_id && o.faction == m.faction && o.loyalty < 0.5)
+                .map(|o| resolve_name_full(&o.vip_id))
+                .collect();
             intrigues.push(CourtIntrigueRow {
                 vip_id: m.vip_id.clone(),
                 name: resolve_name_full(&m.vip_id),
@@ -7329,6 +7365,9 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                     m.loyalty
                 ),
                 severity: ((0.2 - m.loyalty) / 0.2).clamp(0.0, 1.0),
+                goal: format!("Depose the monarch in favor of {} interests", m.faction),
+                conspirators,
+                backers: vec![m.faction.clone()],
             });
         }
     }
@@ -7336,13 +7375,14 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
         if let Some(ref regent_id) = dynasty.current_regent_id {
             if let Some(regent_vip) = registry.as_ref().and_then(|r| r.get(regent_id)) {
                 use crate::politics::succession::{regent_behavior, RegentBehavior};
-                let (description, severity) = match regent_behavior(regent_vip) {
+                let (description, severity, goal) = match regent_behavior(regent_vip) {
                     RegentBehavior::PowerGrab => (
                         format!(
                             "Regent {} delays the handover of power to the heir.",
                             resolve_name_full(regent_id)
                         ),
                         0.65,
+                        "Retain the regency beyond the heir's majority".to_string(),
                     ),
                     RegentBehavior::Usurpation => (
                         format!(
@@ -7350,8 +7390,9 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                             resolve_name_full(regent_id)
                         ),
                         0.95,
+                        "Seize the throne outright".to_string(),
                     ),
-                    RegentBehavior::Stewardship => (String::new(), 0.0),
+                    RegentBehavior::Stewardship => (String::new(), 0.0, String::new()),
                 };
                 if severity > 0.0 {
                     intrigues.push(CourtIntrigueRow {
@@ -7360,6 +7401,9 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                         kind: "Regent Ambition".to_string(),
                         description,
                         severity,
+                        goal,
+                        conspirators: Vec::new(),
+                        backers: vec!["Regency Council".to_string()],
                     });
                 }
             }
@@ -7383,6 +7427,9 @@ fn build_royal_dynasty_snapshot(country: &Country) -> Option<RoyalDynastySnapsho
                     p.relation
                 ),
                 severity: p.claim_strength.clamp(0.0, 1.0),
+                goal: "Press a hereditary claim to the throne".to_string(),
+                conspirators: Vec::new(),
+                backers: vec![format!("{} legitimists", p.relation)],
             });
         }
     }

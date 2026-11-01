@@ -2209,6 +2209,7 @@ pub fn bootstrap_politics(
                 death_cause: None,
                 // Founding monarch's reign counts from the simulation start.
                 reign_start_turn: Some(0),
+reign_end_turn: None,
             });
 
         // Generate a royal consort (spouse for the monarch).
@@ -2268,6 +2269,7 @@ pub fn bootstrap_politics(
                 marriage_turn: Some(0),
                 death_turn: None,
                 death_cause: None,
+reign_end_turn: None,
                 reign_start_turn: None,
             });
 
@@ -2286,10 +2288,19 @@ pub fn bootstrap_politics(
             );
             let heir_full_name = royalize(&heir_vip_name, &mut used_names);
             let (heir_traits, heir_main_trait) = assign_core_traits(rng);
-            let heir_age = if monarch_age > 30 {
-                rng.gen_range(5..25)
-            } else {
-                rng.gen_range(1..10)
+            // v4.27.0 (TASK-009): parents must be older than their children —
+            // the previous `gen_range(5..25)` let a 31-year-old monarch (or
+            // an 18-year-old consort) parent a 25-year-old heir. Cap the
+            // heir's age at `youngest_parent - 16` so both parents were of
+            // childbearing age at the birth.
+            let consort_age = registry
+                .get(&consort_vip_id)
+                .map(|v| v.age)
+                .unwrap_or(18);
+            let youngest_parent = monarch_age.min(consort_age);
+            let heir_age = {
+                let max_heir = youngest_parent.saturating_sub(16).clamp(1, 25);
+                rng.gen_range(1..=max_heir)
             };
             let heir_vip_id = registry.register_new(Vip {
                 full_name: heir_full_name,
@@ -2334,6 +2345,7 @@ pub fn bootstrap_politics(
                     children_vip_ids: Vec::new(),
                     marriage_turn: None,
                     death_turn: None,
+reign_end_turn: None,
                     death_cause: None,
                     reign_start_turn: None,
                 });
@@ -2408,6 +2420,7 @@ pub fn bootstrap_politics(
                     spouse_vip_id: None,
                     children_vip_ids: Vec::new(),
                     marriage_turn: None,
+reign_end_turn: None,
                     death_turn: None,
                     death_cause: None,
                     reign_start_turn: None,
@@ -2467,6 +2480,7 @@ pub fn bootstrap_politics(
                     mother_vip_id: None,
                     spouse_vip_id: None,
                     children_vip_ids: Vec::new(),
+reign_end_turn: None,
                     marriage_turn: None,
                     death_turn: None,
                     death_cause: None,
@@ -2538,6 +2552,7 @@ pub fn bootstrap_politics(
                         None
                     },
                     spouse_vip_id: None,
+reign_end_turn: None,
                     children_vip_ids: Vec::new(),
                     marriage_turn: None,
                     death_turn: None,

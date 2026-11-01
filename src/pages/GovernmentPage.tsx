@@ -391,7 +391,12 @@ export function GovernmentPage() {
     tabs.push({
       label: "Dynasty Tree",
       value: "dynasty-tree",
-      content: <DynastyTree dynasty={gov.royal_dynasty} />,
+      content: (
+        <DynastyTree
+          dynasty={gov.royal_dynasty}
+          conflicts={gov.internal_conflicts}
+        />
+      ),
     });
   }
 

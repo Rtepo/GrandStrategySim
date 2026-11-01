@@ -598,6 +598,9 @@ fn abdicate_monarch(country: &mut Country, turn: u32, messages: &mut Vec<String>
     {
         m.relation = RoyalRelation::FormerMonarch; // off the throne
         m.is_heir_apparent = false;
+        // v4.27.0 (TASK-009): close the reign badge — an abdicated monarch's
+        // reign ends this turn even though they live on.
+        m.reign_end_turn = Some(turn);
     }
     dynasty.current_monarch_id = Some(heir_id.clone());
     dynasty.regency_active = false;

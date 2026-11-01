@@ -847,17 +847,72 @@ pub fn calculate_budget_needs(country: &mut Country) {
         .unwrap_or(Ideology::SocialLiberalism);
     let priorities = ideology.budget_priorities();
 
-    // Compute total weight across all ministries for normalization
-    let total_weight: f64 = config
-        .ministries
-        .iter()
-        .map(|m| {
-            m.competencies
-                .iter()
-                .map(|c| priorities.weight_for(*c))
-                .sum::<f64>()
-        })
-        .sum();
+    // v4.27.0 (TASK-009): blend ideology weights with real sector demand —
+    // each competency maps to the economic sectors it governs, and the
+    // measured GDP share of those sectors scales the ministry's claim.
+    // Pure-ideology allocation produced cloned budgets (1.94B / 1.55B /
+    // 3.10B) because ministries with equal competency weights landed on
+    // identical shares. Demand uses `budget.sectors[..].gdp_share` — real
+    // measured output, not a constant.
+    use crate::registries::enums::Sector;
+    fn demand_sectors(c: GovernmentCompetency) -> &'static [Sector] {
+        match c {
+            GovernmentCompetency::HeavyIndustry => {
+                &[Sector::HeavyIndustry, Sector::Mining, Sector::ArmamentsIndustry]
+            }
+            GovernmentCompetency::LightIndustry => &[Sector::LightIndustry],
+            GovernmentCompetency::Agriculture => &[Sector::Agriculture],
+            GovernmentCompetency::Infrastructure => {
+                &[Sector::Construction, Sector::MaintenanceWorkshops]
+            }
+            GovernmentCompetency::InternalSecurity => &[Sector::PublicServices],
+            GovernmentCompetency::ForeignAffairs => &[Sector::ExportServices],
+            GovernmentCompetency::Defense => &[Sector::ArmamentsIndustry],
+            GovernmentCompetency::Education => &[Sector::EducationalServices],
+            GovernmentCompetency::Healthcare => &[Sector::MedicalServices],
+            GovernmentCompetency::SocialWelfare => &[Sector::PublicServices],
+            GovernmentCompetency::Justice => &[Sector::PublicAdministration],
+            GovernmentCompetency::Treasury => &[Sector::Banking, Sector::Government],
+            GovernmentCompetency::Science => &[Sector::EducationalServices],
+            GovernmentCompetency::Energy => &[Sector::Energy],
+            GovernmentCompetency::Transport => &[Sector::TransportLogistics],
+            GovernmentCompetency::Housing => &[Sector::Construction],
+            GovernmentCompetency::Culture => {
+                &[Sector::MediaAndEntertainment, Sector::SportsRecreation]
+            }
+            GovernmentCompetency::Labor => &[Sector::LocalServices],
+            GovernmentCompetency::Environment => &[Sector::WasteManagement],
+            GovernmentCompetency::StateAssets => &[Sector::Government],
+        }
+    }
+    let sector_gdp_share = |c: GovernmentCompetency| -> f64 {
+        demand_sectors(c)
+            .iter()
+            .map(|s| {
+                country
+                    .budget
+                    .sectors
+                    .get(s)
+                    .map(|sh| sh.gdp_share)
+                    .unwrap_or(0.0)
+            })
+            .sum()
+    };
+
+    // Effective weight = ideology weight × (1 + sector demand share).
+    // Ideology remains the dominant term; demand bends allocations toward
+    // the sectors the economy actually carries.
+    let effective_weight = |m: &Ministry| -> f64 {
+        let ideology_w: f64 = m
+            .competencies
+            .iter()
+            .map(|c| priorities.weight_for(*c))
+            .sum();
+        let demand: f64 = m.competencies.iter().map(|c| sector_gdp_share(*c)).sum();
+        ideology_w * (1.0 + demand)
+    };
+
+    let total_weight: f64 = config.ministries.iter().map(|m| effective_weight(m)).sum();
 
     if total_weight <= 0.0 {
         // Fallback: equal distribution
@@ -869,12 +924,8 @@ pub fn calculate_budget_needs(country: &mut Country) {
     }
 
     for ministry in &mut config.ministries {
-        let ministry_weight: f64 = ministry
-            .competencies
-            .iter()
-            .map(|c| priorities.weight_for(*c))
-            .sum();
-        let share = ministry_weight / total_weight;
+        let weight = effective_weight(ministry);
+        let share = weight / total_weight;
         ministry.allocated_cash = (base_budget * share).max(10_000.0);
     }
 }

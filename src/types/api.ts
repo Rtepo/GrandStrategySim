@@ -1350,7 +1350,21 @@ export type CourtIntrigueRow = { vip_id: string, name: string,
 /**
  * "Faction Conspiracy" | "Regent Ambition" | "Rival Claimant".
  */
-kind: string, description: string, severity: number, };
+kind: string, description: string, severity: number, 
+/**
+ * v4.27.0 (TASK-009): what the plot aims at — "Depose the monarch",
+ * "Seize the regency", "Claim the throne".
+ */
+goal: string, 
+/**
+ * v4.27.0 (TASK-009): named co-conspirators / backing factions the
+ * court knows are involved — VIP names and faction labels.
+ */
+conspirators: Array<string>, 
+/**
+ * v4.27.0 (TASK-009): backing factions lending the plot weight.
+ */
+backers: Array<string>, };
 
 /**
  * v4.25.0 WS7: one foreign covert operation in the Intelligence &
@@ -1493,7 +1507,13 @@ portrait_seed: string,
  * v4.23.0 WS2: Turn this member's reign began (monarchs only) — lets
  * the tree card show "reigns since T{n}".
  */
-reign_start_turn: number | null, };
+reign_start_turn: number | null, 
+/**
+ * v4.27.0 (TASK-009): Turn this member's reign ended — death turn for
+ * dead monarchs, the member's recorded `reign_end_turn` for living
+ * abdicated/deposed monarchs. Lets the badge close ("reign T109–T135").
+ */
+reign_end_turn: number | null, };
 
 /**
  * One education-level row of the national education distribution.

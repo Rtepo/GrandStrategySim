@@ -49,6 +49,10 @@ epic-tests = []
 name = "determinism_fingerprint_test"
 path = "tests/determinism_fingerprint_test.rs"
 
+[[test]]
+name = "v4270_release_gates"
+path = "tests/v4270_release_gates.rs"
+
 # ============================================================================
 # v4: Epic test targets — only compiled with --features epic-tests
 # ============================================================================
