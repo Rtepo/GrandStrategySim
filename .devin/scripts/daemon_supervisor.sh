@@ -16,10 +16,157 @@
 # Usage:
 #   bash .devin/scripts/daemon_supervisor.sh <TASK-ID> <agent-N> <worktree> \
 #        [--cmd "cmd with {CTX} placeholder"]
-# Env: SUP_WORKER_CMD, SUP_POLL_SLEEP=10, SUP_RATE_SLEEP=300,
+#   bash .devin/scripts/daemon_supervisor.sh dispatch <TASK-ID> [...] \
+#        [--wt TASK-ID=worktree-path ...]
+#
+# Env: SUP_WORKER_CMD (verbatim worker command; bypasses CLI probing),
+#      SUP_RUNNER_CLI (explicit CLI path), SUP_RUNNER_ORDER (default
+#      "devin claude codex"), SUP_MODEL (optional model flag for devin),
+#      SUP_WORKTREES (space-separated worktree paths for dispatch mode),
+#      SUP_MAX_PARALLEL (cap concurrent workers, default = #worktrees),
+#      SUP_POLL_SLEEP=10, SUP_RATE_SLEEP=300,
 #      SUP_MAX_RESTARTS=10, SUP_LOG_MAX_MB=50, SUP_KEEP_LOGS=5
 set -uo pipefail
 cd "$(dirname "$0")/../.." || exit 1
+
+# ─── v4.27.0: CLI runner probing — no hard dependency on one binary ────────
+# Priority: SUP_WORKER_CMD verbatim > SUP_RUNNER_CLI explicit path >
+# PATH probe over SUP_RUNNER_ORDER > known install locations.
+probe_worker_cli() {
+    if [ -n "${SUP_RUNNER_CLI:-}" ] && [ -x "$SUP_RUNNER_CLI" ]; then
+        echo "$SUP_RUNNER_CLI"; return 0
+    fi
+    local cli c
+    for cli in ${SUP_RUNNER_ORDER:-devin claude codex}; do
+        c=$(command -v "$cli" 2>/dev/null || true)
+        [ -n "$c" ] && { echo "$c"; return 0; }
+    done
+    local -a candidates=(
+        "${DEVIN_CLI_PATH:-}"
+        "${LOCALAPPDATA:-}/Programs/Devin/resources/app/extensions/windsurf/devin/bin/devin.exe"
+        "$HOME/AppData/Local/Programs/Devin/resources/app/extensions/windsurf/devin/bin/devin.exe"
+        "$HOME/.local/bin/claude" "$HOME/.local/bin/codex"
+        "/usr/local/bin/devin" "/usr/local/bin/claude" "/usr/local/bin/codex"
+    )
+    for c in "${candidates[@]}"; do
+        [ -n "$c" ] && [ -x "$c" ] && { echo "$c"; return 0; }
+    done
+    return 1
+}
+
+# Map a runner binary to a non-interactive print-mode command template.
+# "{CTX}" is replaced with the context file path downstream.
+build_runner_cmd() {
+    local cli="$1" base
+    base=$(basename "$cli" | tr 'A-Z' 'a-z')
+    case "$base" in
+        devin|devin.exe)
+            echo "\"$cli\" -p ${SUP_MODEL:+--model \"$SUP_MODEL\" }--permission-mode dangerous --respect-workspace-trust false -- \"\$(cat '{CTX}')\""
+            ;;
+        claude|claude.exe)
+            echo "\"$cli\" -p --dangerously-skip-permissions \"\$(cat '{CTX}')\""
+            ;;
+        codex|codex.exe)
+            echo "\"$cli\" exec --full-auto \"\$(cat '{CTX}')\""
+            ;;
+        *)  # Unknown runner — assume -p print-mode convention
+            echo "\"$cli\" -p \"\$(cat '{CTX}')\""
+            ;;
+    esac
+}
+
+# ─── v4.27.0: dispatch mode — parallel workers across worktrees ────────────
+# Fans out tasks to isolated git worktrees, spawning one supervisor per task
+# as a background subshell with PID tracking, so file transforms, cargo
+# builds and verify gates run concurrently across cores.
+if [ "${1:-}" = "dispatch" ]; then
+    shift
+    POLL_SLEEP="${SUP_POLL_SLEEP:-10}"
+    RATE_SLEEP="${SUP_RATE_SLEEP:-300}"
+    MAX_RESTARTS="${SUP_MAX_RESTARTS:-10}"
+    declare -a TASKS=()
+    declare -A WT_MAP=()
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --wt) WT_MAP["${2%%=*}"]="${2#*=}"; shift 2 ;;
+            *) TASKS+=("$1"); shift ;;
+        esac
+    done
+    [ "${#TASKS[@]}" -gt 0 ] || { echo "Usage: daemon_supervisor.sh dispatch <TASK-ID>... [--wt TASK=path ...]" >&2; exit 2; }
+
+    # Worktree pool: explicit --wt targets > SUP_WORKTREES > auto-scan.
+    declare -a WTS=()
+    if [ "${#WT_MAP[@]}" -gt 0 ]; then
+        for k in "${!WT_MAP[@]}"; do WTS+=("${WT_MAP[$k]}"); done
+    elif [ -n "${SUP_WORKTREES:-}" ]; then
+        read -r -a WTS <<< "$SUP_WORKTREES"
+    else
+        for d in .devin/worktrees/agent-*/ .devin/worktrees/v4270-ws*/; do
+            [ -d "$d" ] && WTS+=("${d%/}")
+        done
+    fi
+    # Dedupe worktree pool
+    if [ "${#WTS[@]}" -gt 0 ]; then
+        read -r -a WTS <<< "$(printf '%s\n' "${WTS[@]}" | sort -u | tr '\n' ' ')"
+    fi
+    MAXPAR="${SUP_MAX_PARALLEL:-${#WTS[@]}}"
+    [ "$MAXPAR" -lt 1 ] && MAXPAR=1
+    [ "${#WTS[@]}" -eq 0 ] && WTS=(".")
+
+    DISPATCH_DIR=".devin/daemon/dispatch"
+    mkdir -p "$DISPATCH_DIR"
+    PID_FILE="$DISPATCH_DIR/dispatch.pids"
+    : > "$PID_FILE"
+    say_d() { echo "[$(date -u +%H:%M:%S)] dispatch: $*"; }
+
+    say_d "fan-out: ${#TASKS[@]} task(s), ${#WTS[@]} worktree(s), max parallel=$MAXPAR"
+    declare -A PID_TASK=()
+    declare -A TASK_RC=()
+    NEXT=0; RUNNING=0; FAILED=0
+
+    launch_next() {
+        local tid="${TASKS[$NEXT]}"
+        local wt="${WT_MAP[$tid]:-${WTS[$((NEXT % ${#WTS[@]}))]}}"
+        local agent="sup-$(basename "$wt" | tr -cd '[:alnum:]-')"
+        say_d "launch $tid → $wt (agent=$agent)"
+        (
+            SUP_POLL_SLEEP="$POLL_SLEEP" SUP_RATE_SLEEP="$RATE_SLEEP" \
+            SUP_MAX_RESTARTS="$MAX_RESTARTS" \
+            bash .devin/scripts/daemon_supervisor.sh "$tid" "$agent" "$wt"
+        ) &
+        local pid=$!
+        PID_TASK[$pid]="$tid"
+        echo "$pid $tid $wt" >> "$PID_FILE"
+        say_d "  pid=$pid"
+        NEXT=$((NEXT+1)); RUNNING=$((RUNNING+1))
+    }
+
+    while [ "$NEXT" -lt "${#TASKS[@]}" ] || [ "$RUNNING" -gt 0 ]; do
+        while [ "$NEXT" -lt "${#TASKS[@]}" ] && [ "$RUNNING" -lt "$MAXPAR" ]; do
+            launch_next
+        done
+        sleep "$POLL_SLEEP"
+        # Reap finished workers (kill -0 is portable; wait -n isn't everywhere)
+        for pid in "${!PID_TASK[@]}"; do
+            if ! kill -0 "$pid" 2>/dev/null; then
+                wait "$pid" 2>/dev/null; rc=$?
+                tid="${PID_TASK[$pid]}"
+                TASK_RC[$tid]=$rc
+                unset "PID_TASK[$pid]"
+                RUNNING=$((RUNNING-1))
+                say_d "reaped $tid (pid $pid) rc=$rc"
+                [ "$rc" != "0" ] && FAILED=$((FAILED+1))
+            fi
+        done
+    done
+
+    say_d "dispatch complete: ${#TASKS[@]} task(s), $FAILED failed"
+    for tid in "${TASKS[@]}"; do
+        say_d "  $tid → rc=${TASK_RC[$tid]:-killed}"
+    done
+    [ "$FAILED" -eq 0 ]
+    exit $?
+fi
 
 TID="${1:?task id required}"
 AGENT="${2:?agent id required}"
@@ -122,10 +269,25 @@ attempt_oom_or_crash() {
 ATTEMPT=0
 say "starting — agent=$AGENT worktree=$WORKTREE"
 
+# v4.27.0: resolve the worker CLI ONCE up-front. A missing binary previously
+# produced 11 silent respawn-loop failures; now we exit fast with a reason.
+WORKER_CLI=""
+if [ -z "$USER_CMD" ] && [ -z "${SUP_WORKER_CMD:-}" ]; then
+    WORKER_CLI=$(probe_worker_cli || true)
+    if [ -z "$WORKER_CLI" ]; then
+        say "✗ no worker CLI found (probed: ${SUP_RUNNER_ORDER:-devin claude codex} + known paths)."
+        say "  Set SUP_RUNNER_CLI=<path> or pass --cmd / SUP_WORKER_CMD."
+        bash .devin/scripts/task_ctl.sh block "$TID" "supervisor: no worker CLI installed" 2>/dev/null || true
+        exit 2
+    fi
+    say "worker CLI: $WORKER_CLI"
+fi
+
 while [ "$ATTEMPT" -le "$MAX_RESTARTS" ]; do
     ATTEMPT=$((ATTEMPT+1))
     build_context
-    CMD="${USER_CMD:-${SUP_WORKER_CMD:-devin -p \"\$(cat '{CTX}')\"}}"
+    CMD="${USER_CMD:-${SUP_WORKER_CMD:-}}"
+    [ -z "$CMD" ] && CMD=$(build_runner_cmd "$WORKER_CLI")
     CMD="${CMD//\{CTX\}/$CTX_FILE}"
     RUN_LOG="$LOG_DIR/run-$ATTEMPT.log"
     say "launch attempt $ATTEMPT: $CMD"
