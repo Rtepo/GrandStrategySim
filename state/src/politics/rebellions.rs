@@ -196,6 +196,8 @@ pub fn spawn_rebel_proto_state(
         tax_rates: mother_country.tax_rates.clone(), // Inherit tax system
         trade_policy: mother_country.trade_policy.clone(), // Inherit trade policy
         politics: mother_country.politics.clone(), // Inherit political structure
+        annexed_by: None,
+        capitulated_turn: None,
         regions: vec![rebel_region],           // Only the rebel region
         megaregions: Vec::new(),               // No megaregions initially
         last_migration_flows: Vec::new(),

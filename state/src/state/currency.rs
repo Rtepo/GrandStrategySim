@@ -52,6 +52,46 @@ fn default_exchange_rate() -> f64 {
     1.0
 }
 
+impl Currency {
+    /// v4.28.0 (TASK-015): in-game currency unit name — "Marka", "Crown",
+    /// "Dukat", … — keyed by the issuing country (first member). Replaces
+    /// real-world currency labels in the FX reserve table.
+    pub fn unit_name(&self) -> &'static str {
+        match self.members.first().map(|s| s.as_str()).unwrap_or("") {
+            "Sarmatia" => "Dukat",
+            "Illyria" => "Dinar",
+            "Helvetia" => "Franken",
+            "Nordia" => "Krone",
+            "Bactria" => "Dirham",
+            "Persia" => "Toman",
+            "Lechia" => "Marka",
+            "Eldoria" => "Crown",
+            "Venedia" => "Soldo",
+            "Occitania" => "Florin",
+            "Gallia" => "Franc",
+            "Dacia" => "Leu",
+            "Krasnovia" => "Rubel",
+            "Anatolia" => "Lira",
+            "Iberia" => "Peseta",
+            "Anglia" => "Sovereign",
+            _ => "Mark",
+        }
+    }
+
+    /// v4.28.0 (TASK-015): full display name — "Lechian Marka",
+    /// "Eldorian Crown". Adjective = country name minus the Latin `-ia`
+    /// suffix plus `-ian` (all sixteen genesis countries match).
+    pub fn display_name(&self) -> String {
+        let country = self.members.first().cloned().unwrap_or_default();
+        let adj = if let Some(stem) = country.strip_suffix("ia") {
+            format!("{stem}ian")
+        } else {
+            format!("{country}ian")
+        };
+        format!("{adj} {}", self.unit_name())
+    }
+}
+
 /// Calculate cross rate between two currencies via IEU.
 ///
 /// # Arguments

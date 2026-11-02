@@ -3,7 +3,7 @@
   "schema": "daemon-v2-backlog",
   "release": "v4.27.0-task-batch",
   "base_ref": "origin/main",
-  "updated_at": "2026-11-01T17:32:56.200Z",
+  "updated_at": "2026-11-02T10:33:11.605Z",
   "tasks": [
     {
       "id": "TASK-001",
@@ -542,6 +542,204 @@
       ],
       "created_at": "2026-11-01T15:15:55.535Z",
       "updated_at": "2026-11-01T17:32:56.200Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-011",
+      "title": "Immutable region geometry on conquest, zombie-state elimination & clickable water bodies",
+      "status": "DONE",
+      "priority": 8,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-011.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/ui/snapshot_map.rs",
+        "state/src/engine/turn.rs",
+        "state/src/society/geography.rs"
+      ],
+      "required_ui_files": [
+        "src/components/map/WorldMapSvg.tsx",
+        "src/pages/MapPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "water|Water|lake|Lake|sea|Sea|ocean|Ocean",
+          "desc": "water body rendering"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "front|Front|frontline|Frontline|battle.?front",
+          "desc": "frontline markers"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "dash|Dashed|swords|Swords|crossed",
+          "desc": "dashed battle-front style"
+        },
+        {
+          "file": "src/App.tsx",
+          "pattern": "Annexed|annexed|Capitulated|capitulated",
+          "desc": "annexed country badge (country selector lives in App.tsx)"
+        },
+        {
+          "file": "src/pages/MapPage.tsx",
+          "pattern": "water|Water|depth|navigab|area_km|surface",
+          "desc": "water body click/details"
+        }
+      ],
+      "created_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:32:45.633Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-012",
+      "title": "Contiguous megaregions, parcel-level industrial/party/climate maps & focused migration arrows",
+      "status": "DONE",
+      "priority": 9,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-012.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/society/geography.rs",
+        "state/src/ui/snapshot_map.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/RegionsPage.tsx",
+        "src/pages/LandPage.tsx",
+        "src/components/map/WorldMapSvg.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "parcel|Parcel|cadastr|Cadastr",
+          "desc": "parcel map"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "industrial|Industrial|#f97316|orange|amber",
+          "desc": "industrial parcels"
+        },
+        {
+          "file": "src/pages/RegionsPage.tsx",
+          "pattern": "party|Party|faction|Faction|precinct|polling",
+          "desc": "parcel-level party mode"
+        },
+        {
+          "file": "src/pages/LandPage.tsx",
+          "pattern": "topograph|Topograph|biome|Biome|terrain|Terrain",
+          "desc": "parcel biome map"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "selected|hover|Selected|Hover",
+          "desc": "focused migration arrows"
+        }
+      ],
+      "created_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:32:54.088Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-013",
+      "title": "Two-column battle line UI, aggressor/defender badges & no naval units on land",
+      "status": "DONE",
+      "priority": 10,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-013.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/military/turn.rs",
+        "state/src/ui/snapshot.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/MilitaryPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "Aggressor|aggressor|Initiator|initiator|Defender|defender",
+          "desc": "aggressor/defender badges"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "battle.?line|Battle.?Line|lineup|Lineup|two.?col|grid-cols-2|Attacker Line|Defender Line",
+          "desc": "two-column battle line"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "INF|ART|CAV|ENG|NAV|badge|Badge",
+          "desc": "unit type badges"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "morale|Morale|doctrine|Doctrine|commander|Commander|General",
+          "desc": "side header stats"
+        }
+      ],
+      "created_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:33:02.182Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-014",
+      "title": "Realistic social unrest & ministry capacity KPIs",
+      "status": "DONE",
+      "priority": 11,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-014.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/engine/turn.rs",
+        "state/src/ui/snapshot.rs"
+      ],
+      "required_ui_files": [],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/GovernmentPage.tsx",
+          "pattern": "policy_kpis|Policy KPIs",
+          "desc": "KPI cards render policy_kpis rows"
+        }
+      ],
+      "created_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:33:03.805Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-015",
+      "title": "CB rate smoothing, game-world FX currencies & expandable MPC votes",
+      "status": "DONE",
+      "priority": 12,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-015.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/state/central_bank.rs",
+        "state/src/engine/generator/mod.rs",
+        "state/src/ui/snapshot.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/BankingPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "expand|Expand|open|detail|briefing|Briefing",
+          "desc": "expandable MPC rows"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "currency|Currency|Marka|Crown|exchange|fx|FX",
+          "desc": "game-world FX table"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "smoothing|step|bps|cap",
+          "desc": "rate smoothing display"
+        }
+      ],
+      "created_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:33:11.605Z",
       "verify_history": []
     }
   ]

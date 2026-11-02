@@ -389,6 +389,15 @@ pub struct Country {
     pub war_economy: crate::military::war_economy::WarEconomyState,
     /// Phase 70: Countries this nation is currently at war with.
     pub at_war_with: Vec<String>,
+    /// v4.28.0 (TASK-011): the country that annexed this state's last
+    /// region. `Some(..)` marks a capitulated "annexed" ledger shell —
+    /// legislature, GDP and economy ticks halt, and the UI badges it
+    /// "(Annexed)" in selectors instead of simulating a zombie state.
+    #[serde(default)]
+    pub annexed_by: Option<String>,
+    /// Turn the state capitulated (its final region transferred).
+    #[serde(default)]
+    pub capitulated_turn: Option<u32>,
     /// Phase 3: Pending B2B buy orders from Ministry of Defense.
     /// Created in Phase 8, merged into global OrderBook at start of next turn's Phase 6.4.
     #[serde(default)]
@@ -822,6 +831,8 @@ impl Country {
             guild_config: crate::economy::guild_system::GuildConfig::default(),
             war_economy: crate::military::war_economy::WarEconomyState::default(),
             at_war_with: Vec::new(),
+            annexed_by: None,
+            capitulated_turn: None,
             pending_defense_orders: Vec::new(),
             rationing_system: RationingSystem::default(),
             emergency_powers: EmergencyPowers::default(),
@@ -1261,6 +1272,8 @@ impl CountryBuilder {
             guild_config: crate::economy::guild_system::GuildConfig::default(),
             war_economy: crate::military::war_economy::WarEconomyState::default(),
             at_war_with: Vec::new(),
+            annexed_by: None,
+            capitulated_turn: None,
             pending_defense_orders: Vec::new(),
             rationing_system: RationingSystem::default(),
             emergency_powers: EmergencyPowers::default(),

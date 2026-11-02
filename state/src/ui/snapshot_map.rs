@@ -60,8 +60,13 @@ pub struct MapPoint {
 pub struct MapRegionDto {
     /// Region id (`"{country}-Region{N}"`), globally unique.
     pub id: String,
-    /// Owning country name.
+    /// Owning country name (current sovereign — follows `owner_country`
+    /// through annexations; the layout position never moves).
     pub country: String,
+    /// v4.28.0 (TASK-011): palette index of the CURRENT owner (the country
+    /// ordering index of `owner_country`). The fill uses this so annexed
+    /// land repaints without moving a vertex.
+    pub owner_color_index: i64,
     /// Display name (`display_name` with `id` fallback).
     pub name: String,
     /// Ordered polygon vertices (world-map units, y-down for SVG).
@@ -237,6 +242,59 @@ pub struct WorldMapSnapshot {
     /// stay 0 (sites are clamped inside the country boundary; deliberate
     /// islands get real blob polygons instead).
     pub degenerate_region_count: u32,
+    /// v4.28.0 (TASK-011): named, clickable water bodies — continental
+    /// seas, shared oceans, inland seas and lakes.
+    pub water_bodies: Vec<WaterBodyDto>,
+    /// v4.28.0 (TASK-011): active war frontlines — polylines along shared
+    /// enemy borders rendered as thick dashed markers.
+    pub frontlines: Vec<FrontlineDto>,
+}
+
+/// v4.28.0 (TASK-011): a named, clickable water body on the world map.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct WaterBodyDto {
+    /// Stable id (`"sea-{continent}"`, `"lake-{region_id}"`).
+    pub id: String,
+    /// Display name ("Gallian Sea", "Lake Marholm").
+    pub name: String,
+    /// `"sea"` | `"ocean"` | `"inland_sea"` | `"lake"`.
+    pub kind: String,
+    /// Polygon outline (world-map units) — rendered + clickable.
+    pub boundary: Vec<MapPoint>,
+    /// Label anchor.
+    pub center: MapPoint,
+    /// Surface area in km².
+    pub area_km2: f64,
+    /// Mean depth in metres.
+    pub depth_m: f64,
+    /// Navigable by ocean-going shipping.
+    pub navigable: bool,
+    /// Region ids whose polygons border this water body.
+    pub bordering_regions: Vec<String>,
+    /// Owning continent index (-1 for shared ocean).
+    pub continent: i64,
+}
+
+/// v4.28.0 (TASK-011): an active war frontline — the shared border between
+/// two belligerents' regions plus recent battle points.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct FrontlineDto {
+    /// Front id.
+    pub id: String,
+    /// Front display name.
+    pub name: String,
+    /// Aggressor country name.
+    pub attacker: String,
+    /// Defender country name.
+    pub defender: String,
+    /// Shared-border polylines (world-map units) — thick dashed render.
+    pub segments: Vec<Vec<MapPoint>>,
+    /// Regions currently contested on this front.
+    pub regions: Vec<String>,
+    /// Recent battle locations (crossed-swords markers).
+    pub battle_points: Vec<MapPoint>,
 }
 
 // ============================================================================
@@ -274,6 +332,16 @@ const CONTINENT_BOUNDARY_VERTICES: usize = 26;
 /// natural coastlines with bays and peninsulas once subdivided.
 fn continent_blob(continent: usize, center: (f64, f64), r: f64) -> Vec<(f64, f64)> {
     let lobe_phase = hash_unit(&format!("continent-lobe-{continent}"), 61) * std::f64::consts::TAU;
+    // v4.28.0 (TASK-011): per-continent silhouette variety — hash-picked
+    // shape mode so the world isn't N identical round blobs:
+    //   0 = round (classic), 1 = elongated landmass, 2 = crescent/bite bay,
+    //   3 = twin-lobe (narrow waist).
+    let shape_mode = (hash_unit(&format!("continent-shape-{continent}"), 97) * 4.0) as u32;
+    let bite_angle =
+        hash_unit(&format!("continent-bite-{continent}"), 98) * std::f64::consts::TAU;
+    let squash = 0.55 + hash_unit(&format!("continent-squash-{continent}"), 99) * 0.25;
+    let elong_angle =
+        hash_unit(&format!("continent-elong-{continent}"), 100) * std::f64::consts::PI;
     let mut pts = Vec::with_capacity(CONTINENT_BOUNDARY_VERTICES);
     for i in 0..CONTINENT_BOUNDARY_VERTICES {
         let frac = i as f64 / CONTINENT_BOUNDARY_VERTICES as f64;
@@ -281,10 +349,42 @@ fn continent_blob(continent: usize, center: (f64, f64), r: f64) -> Vec<(f64, f64
             + hash_unit(&format!("continent-{continent}"), 7) * std::f64::consts::TAU
                 / CONTINENT_BOUNDARY_VERTICES as f64;
         // ±20% vertex jitter + 8% slow wobble → organic continent outline.
-        let jr = 1.0
+        let mut jr = 1.0
             + (hash_unit(&format!("continent-{continent}-{i}"), 83) - 0.5) * 0.40
             + 0.08 * (angle * 3.0 + lobe_phase).sin();
-        pts.push((center.0 + r * jr * angle.cos(), center.1 + r * jr * angle.sin()));
+        match shape_mode {
+            2 => {
+                // Crescent: a deep bay bite carved around `bite_angle`.
+                let d = ((angle - bite_angle + std::f64::consts::PI)
+                    .rem_euclid(std::f64::consts::TAU)
+                    - std::f64::consts::PI)
+                    .abs();
+                let bite = (-(d * d) / 0.18).exp() * 0.55;
+                jr *= 1.0 - bite;
+            }
+            3 => {
+                // Twin-lobe: two bites ~180° apart leave a narrow waist.
+                for k in 0..2 {
+                    let b = bite_angle + k as f64 * std::f64::consts::PI;
+                    let d = ((angle - b + std::f64::consts::PI)
+                        .rem_euclid(std::f64::consts::TAU)
+                        - std::f64::consts::PI)
+                        .abs();
+                    jr *= 1.0 - (-(d * d) / 0.14).exp() * 0.42;
+                }
+            }
+            _ => {}
+        }
+        let (mut x, mut y) = (r * jr * angle.cos(), r * jr * angle.sin());
+        if shape_mode == 1 {
+            // Elongated: squash the short axis then rotate the landmass.
+            y *= squash;
+            let (ca, sa) = (elong_angle.cos(), elong_angle.sin());
+            let (rx, ry) = (x * ca - y * sa, x * sa + y * ca);
+            x = rx;
+            y = ry;
+        }
+        pts.push((center.0 + x, center.1 + y));
     }
     pts
 }
@@ -824,20 +924,49 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         islands: std::collections::HashSet<usize>,
     }
 
-    let mut layouts: Vec<CountryLayout> = Vec::with_capacity(country_names.len());
-    let mut continent_entries: Vec<(String, usize)> = Vec::with_capacity(country_names.len());
+    // v4.28.0 (TASK-011): IMMUTABLE GEOMETRY. Regions are laid out under
+    // their GENESIS country — the `"{Country}-Region{N}"` id prefix minted at
+    // world generation — not under whoever currently holds them. War
+    // annexations move `Region` structs between `country.regions` vectors and
+    // rewrite `owner_country`, but the layout here must see the turn-0
+    // grouping forever: identical `continent_entries`, identical ring plans,
+    // identical vertices. Only the DTO `country` field (fill color) follows
+    // `owner_country`.
+    let mut genesis_pool: std::collections::BTreeMap<String, Vec<Region>> =
+        std::collections::BTreeMap::new();
     for name in &country_names {
         let country = &state.countries[*name];
-        // Land regions only, in creation order — maritime nodes are never
-        // loaded into `country.regions`, but filter defensively anyway.
-        let mut regions: Vec<Region> = country
+        for r in country
             .regions
             .iter()
             .filter(|r| r.node_type == NodeType::LandRegion)
-            .cloned()
-            .collect();
-        regions.sort_by_key(|r| region_sort_key(&r.id));
+        {
+            let genesis = r
+                .id
+                .rsplit_once("-Region")
+                .map(|(prefix, _)| prefix.to_string())
+                .unwrap_or_else(|| r.owner_country.clone());
+            // If the genesis owner no longer exists as a country (never in
+            // `state.countries`), fall back to the current holder's slot so
+            // the region still renders somewhere sane.
+            let key = if state.countries.contains_key(&genesis) {
+                genesis
+            } else if state.countries.contains_key(&r.owner_country) {
+                r.owner_country.clone()
+            } else {
+                (*name).clone()
+            };
+            genesis_pool.entry(key).or_default().push(r.clone());
+        }
+    }
+    for pool in genesis_pool.values_mut() {
+        pool.sort_by_key(|r| region_sort_key(&r.id));
+    }
 
+    let mut layouts: Vec<CountryLayout> = Vec::with_capacity(country_names.len());
+    let mut continent_entries: Vec<(String, usize)> = Vec::with_capacity(country_names.len());
+    for name in &country_names {
+        let regions = genesis_pool.remove(*name).unwrap_or_default();
         continent_entries.push(((*name).clone(), regions.len()));
         layouts.push(CountryLayout {
             name: (*name).clone(),
@@ -1008,12 +1137,41 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 }
                 let off = 0.35
                     + hash_unit(&format!("isle-off:{id}"), 99) * 0.30;
-                layout.sites[i] = push_offshore(
+                let mut site_out = push_offshore(
                     layout.sites[i],
                     &layout.boundary,
                     layout.anchor,
                     off,
                 );
+                // v4.28.0 (TASK-011): an island must sit strictly in OPEN
+                // SEA — outside the CONTINENT blob, not merely outside its
+                // country's cell. A rim site pushed only past the cell edge
+                // could land inside a neighbouring country cell (the
+                // landlocked-interior island bug). March the
+                // continent-centre→site ray until it clears the blob, then
+                // add the seaward offset.
+                if point_in_polygon(site_out, &layout.continent_boundary) {
+                    let cc = polygon_centroid(&layout.continent_boundary);
+                    let dx = site_out.0 - cc.0;
+                    let dy = site_out.1 - cc.1;
+                    let len = (dx * dx + dy * dy).sqrt().max(1e-9);
+                    let (ux, uy) = (dx / len, dy / len);
+                    let cr = layout.continent_boundary.iter().fold(0.0_f64, |m, p| {
+                        m.max(((p.0 - cc.0).powi(2) + (p.1 - cc.1).powi(2)).sqrt())
+                    });
+                    let mut t = len;
+                    let limit = len + cr * 2.5 + off;
+                    while t < limit {
+                        t += cr * 0.04;
+                        let cand = (cc.0 + ux * t, cc.1 + uy * t);
+                        if !point_in_polygon(cand, &layout.continent_boundary) {
+                            let step = off.max(cr * 0.06);
+                            site_out = (cand.0 + ux * step, cand.1 + uy * step);
+                            break;
+                        }
+                    }
+                }
+                layout.sites[i] = site_out;
                 layout.islands.insert(i);
                 taken += 1;
             }
@@ -1309,6 +1467,10 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     // Pass 4b: fractal subdivision + DTO assembly.
     // ------------------------------------------------------------------
     let mut countries_out = Vec::with_capacity(layouts.len());
+    // v4.28.0 (TASK-011): per-continent coastal-region collector for the
+    // named-sea `bordering_regions` lists.
+    let mut coastal_by_continent: std::collections::BTreeMap<usize, Vec<String>> =
+        std::collections::BTreeMap::new();
     let mut edges_out: Vec<MapEdgeDto> = Vec::new();
     let mut edge_seen: std::collections::HashSet<(String, String)> =
         std::collections::HashSet::new();
@@ -1422,6 +1584,12 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             let is_coastal = is_island
                 || region_engine_coastal(region)
                 || cell_touches_boundary(cell, &layout.continent_boundary, eps2);
+            if is_coastal {
+                coastal_by_continent
+                    .entry(layout.continent)
+                    .or_default()
+                    .push(region.id.clone());
+            }
 
             // Inland lake on a deterministic subset of roomy interior
             // cells (v4.27.0: raised coverage 16%→24%).
@@ -1462,9 +1630,22 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 .values()
                 .map(|c| c.population.max(0))
                 .sum();
+            // v4.28.0 (TASK-011): geometry group = `layout.name` (genesis
+            // owner), but the fill color follows `owner_country` — ceded
+            // land renders in the occupier's palette without moving a vertex.
+            let holder = state
+                .countries
+                .get(&region.owner_country)
+                .unwrap_or(country);
+            let owner_ci = country_names
+                .iter()
+                .position(|n| *n == &region.owner_country)
+                .map(|i| i as i64)
+                .unwrap_or(color_index as i64);
             regions_out.push(MapRegionDto {
                 id: region.id.clone(),
-                country: layout.name.clone(),
+                country: region.owner_country.clone(),
+                owner_color_index: owner_ci,
                 name: if region.display_name.is_empty() {
                     region.id.clone()
                 } else {
@@ -1478,7 +1659,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 population: region.population,
                 gdp: region.gdp,
                 gdp_per_capita: region.gdp_pc,
-                devastation: region_devastation(country, region),
+                devastation: region_devastation(holder, region),
                 urbanization: region_urbanization(region),
                 development_level: region.development_level,
                 control,
@@ -1626,6 +1807,285 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     }
     shared_land_borders += cross_pairs.len() as u32;
 
+    // ------------------------------------------------------------------
+    // v4.28.0 (TASK-011): named water bodies — per-continent sea ring,
+    // inter-continent ocean zones, and every inland lake/sea feature as
+    // an explicit clickable entity.
+    // ------------------------------------------------------------------
+    let mut water_bodies: Vec<WaterBodyDto> = Vec::new();
+    {
+        // 1 world-map unit ≈ 20 km — a ~10-unit region cell reads as a
+        // ~200 km province; seas land in the 100–400k km² band.
+        const KM2_PER_UNIT2: f64 = 400.0;
+        let mut centers: std::collections::BTreeMap<usize, (f64, f64)> =
+            std::collections::BTreeMap::new();
+        let mut radii: std::collections::BTreeMap<usize, f64> =
+            std::collections::BTreeMap::new();
+        let mut hubs: std::collections::BTreeMap<usize, String> =
+            std::collections::BTreeMap::new();
+        for layout in &layouts {
+            if hubs.contains_key(&layout.continent) {
+                continue;
+            }
+            // Continent blob centre/radius — mean + max distance of the
+            // boundary vertices (every member layout shares the same blob).
+            let n = layout.continent_boundary.len().max(1) as f64;
+            let (sx, sy) = layout
+                .continent_boundary
+                .iter()
+                .fold((0.0, 0.0), |(ax, ay), p| (ax + p.0, ay + p.1));
+            centers.insert(layout.continent, (sx / n, sy / n));
+            radii.insert(
+                layout.continent,
+                layout.continent_boundary.iter().fold(0.0_f64, |m, p| {
+                    let dx = p.0 - sx / n;
+                    let dy = p.1 - sy / n;
+                    m.max((dx * dx + dy * dy).sqrt())
+                }),
+            );
+            hubs.insert(layout.continent, layout.name.clone());
+        }
+        for layout in &layouts {
+            let c = layout.continent;
+            // Per-continent sea = the continent blob dilated ~28% — drawn
+            // UNDER the land silhouette, the visible band is the sea.
+            // Only the first (hub) layout of each continent emits it.
+            if hubs.get(&c) != Some(&layout.name) {
+                continue;
+            }
+            let hub = hubs[&c].clone();
+            let (cx, cy) = centers[&c];
+            let mut sea_boundary: Vec<MapPoint> = layout
+                .continent_boundary
+                .iter()
+                .map(|p| MapPoint {
+                    x: cx + (p.0 - cx) * 1.28,
+                    y: cy + (p.1 - cy) * 1.28,
+                })
+                .collect();
+            if sea_boundary.len() < 3 {
+                continue;
+            }
+            // Deterministic naming: adjective of the continent's hub
+            // country — "Gallian Sea", "Anatolian Sea", …
+            let name = format!("{} Sea", crate::military::oob::country_adjective(&hub));
+            let depth = 350.0 + hash_unit(&format!("sea-depth-{c}"), 41) * 2600.0;
+            let mut bordering = coastal_by_continent
+                .get(&c)
+                .cloned()
+                .unwrap_or_default();
+            bordering.sort();
+            bordering.dedup();
+            let boundary_raw: Vec<(f64, f64)> =
+                sea_boundary.iter().map(|p| (p.x, p.y)).collect();
+            water_bodies.push(WaterBodyDto {
+                id: format!("sea-{c}"),
+                name,
+                kind: "sea".to_string(),
+                center: MapPoint { x: cx, y: cy },
+                area_km2: polygon_area(&boundary_raw).abs() * KM2_PER_UNIT2,
+                depth_m: depth,
+                navigable: true,
+                bordering_regions: bordering,
+                continent: c as i64,
+                boundary: std::mem::take(&mut sea_boundary),
+            });
+        }
+        // Inter-continent ocean zones: an ellipse in the gap between
+        // consecutive continent centres (sorted by x).
+        let mut sorted_cs: Vec<usize> = centers.keys().cloned().collect();
+        sorted_cs.sort_by(|a, b| {
+            centers[a]
+                .0
+                .partial_cmp(&centers[b].0)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        for w in sorted_cs.windows(2) {
+            let (c0, c1) = (w[0], w[1]);
+            let (x0, y0) = centers[&c0];
+            let (x1, y1) = centers[&c1];
+            let (mx, my) = ((x0 + x1) * 0.5, (y0 + y1) * 0.5);
+            let gap = ((x1 - x0).powi(2) + (y1 - y0).powi(2)).sqrt()
+                - radii[&c0]
+                - radii[&c1];
+            if gap <= 0.0 {
+                continue;
+            }
+            let rx = gap * 0.42;
+            let ry = (gap * 0.30).max(radii[&c0].min(radii[&c1]) * 0.5);
+            let mut boundary = Vec::with_capacity(24);
+            for i in 0..24 {
+                let a = i as f64 / 24.0 * std::f64::consts::TAU;
+                boundary.push(MapPoint {
+                    x: mx + rx * a.cos(),
+                    y: my + ry * a.sin(),
+                });
+            }
+            let raw: Vec<(f64, f64)> = boundary.iter().map(|p| (p.x, p.y)).collect();
+            water_bodies.push(WaterBodyDto {
+                id: format!("ocean-{c0}-{c1}"),
+                name: format!("{} Ocean", hubs[&c0]),
+                kind: "ocean".to_string(),
+                center: MapPoint { x: mx, y: my },
+                area_km2: polygon_area(&raw).abs() * KM2_PER_UNIT2,
+                depth_m: 3200.0 + hash_unit(&format!("ocean-depth-{c0}-{c1}"), 43) * 2200.0,
+                navigable: true,
+                bordering_regions: Vec::new(),
+                continent: -1,
+                boundary,
+            });
+        }
+        // Inland water: mirror every lake/inland_sea feature as a
+        // clickable water body (rivers stay polyline features).
+        for f in &features_out {
+            if f.kind != "lake" && f.kind != "inland_sea" {
+                continue;
+            }
+            if f.points.len() < 3 {
+                continue;
+            }
+            let raw: Vec<(f64, f64)> = f.points.iter().map(|p| (p.x, p.y)).collect();
+            let n = f.points.len() as f64;
+            let (cx, cy) = f
+                .points
+                .iter()
+                .fold((0.0, 0.0), |(ax, ay), p| (ax + p.x, ay + p.y));
+            let is_sea = f.kind == "inland_sea";
+            water_bodies.push(WaterBodyDto {
+                id: format!("{}-{}", f.kind, f.region_id),
+                name: if is_sea {
+                    format!("{} Sea", crate::military::oob::country_adjective(&f.country_tag))
+                } else {
+                    format!("Lake {}", f.region_id.replace("-Region", " "))
+                },
+                kind: f.kind.clone(),
+                boundary: f.points.clone(),
+                center: MapPoint {
+                    x: cx / n,
+                    y: cy / n,
+                },
+                area_km2: polygon_area(&raw).abs() * KM2_PER_UNIT2,
+                depth_m: if is_sea {
+                    60.0 + hash_unit(&format!("d-{}", f.region_id), 47) * 340.0
+                } else {
+                    8.0 + hash_unit(&format!("d-{}", f.region_id), 47) * 110.0
+                },
+                navigable: is_sea,
+                bordering_regions: vec![f.region_id.clone()],
+                continent: -1,
+            });
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // v4.28.0 (TASK-011): frontlines — shared-border segments between
+    // belligerents' regions + recent battle points.
+    // ------------------------------------------------------------------
+    let mut frontlines: Vec<FrontlineDto> = Vec::new();
+    {
+        // Region lookups for polygon/owner across all layout groups.
+        let mut poly_of: std::collections::HashMap<String, Vec<(f64, f64)>> =
+            std::collections::HashMap::new();
+        let mut centroid_of: std::collections::HashMap<String, MapPoint> =
+            std::collections::HashMap::new();
+        let mut owner_of: std::collections::HashMap<String, String> =
+            std::collections::HashMap::new();
+        for c in &countries_out {
+            for r in &c.regions {
+                poly_of.insert(
+                    r.id.clone(),
+                    r.polygon.iter().map(|p| (p.x, p.y)).collect(),
+                );
+                centroid_of.insert(r.id.clone(), r.centroid.clone());
+                owner_of.insert(r.id.clone(), r.country.clone());
+            }
+        }
+        let mut fronts_seen: std::collections::HashSet<String> =
+            std::collections::HashSet::new();
+        for name in &country_names {
+            for front in &state.countries[*name].military_fronts {
+                if !front.is_active(turn, ACTIVE_FRONT_TURNS)
+                    || !fronts_seen.insert(front.id.clone())
+                {
+                    continue;
+                }
+                let involved: std::collections::HashSet<&String> =
+                    front.involved_countries.iter().collect();
+                // Voronoi clipping makes shared vertices bit-identical —
+                // epsilon only absorbs float noise at triple junctions.
+                let eps2 = (REGION_SPACING * 1e-3).powi(2);
+                let mut segments: Vec<Vec<MapPoint>> = Vec::new();
+                for (a, b) in &cross_pairs {
+                    let (oa, ob) = match (owner_of.get(a), owner_of.get(b)) {
+                        (Some(x), Some(y)) => (x, y),
+                        _ => continue,
+                    };
+                    if oa == ob || !involved.contains(oa) || !involved.contains(ob) {
+                        continue;
+                    }
+                    let (pa, pb) = match (poly_of.get(a), poly_of.get(b)) {
+                        (Some(x), Some(y)) => (x, y),
+                        _ => continue,
+                    };
+                    let mut shared = shared_vertices(pa, pb, eps2);
+                    if shared.is_empty() {
+                        shared = shared_vertices(pb, pa, eps2);
+                    }
+                    if shared.len() >= 2 {
+                        // Order shared points along the border by angle
+                        // around their own centroid.
+                        let n = shared.len() as f64;
+                        let (sx, sy) = shared
+                            .iter()
+                            .fold((0.0, 0.0), |(ax, ay), p| (ax + p.0, ay + p.1));
+                        let (cx, cy) = (sx / n, sy / n);
+                        shared.sort_by(|p, q| {
+                            (p.1 - cy)
+                                .atan2(p.0 - cx)
+                                .partial_cmp(&(q.1 - cy).atan2(q.0 - cx))
+                                .unwrap_or(std::cmp::Ordering::Equal)
+                        });
+                        segments.push(
+                            shared
+                                .iter()
+                                .map(|p| MapPoint { x: p.0, y: p.1 })
+                                .collect(),
+                        );
+                    }
+                }
+                let mut regions: Vec<String> = front.regions.clone();
+                regions.sort();
+                regions.dedup();
+                let battle_points: Vec<MapPoint> = front
+                    .battles
+                    .iter()
+                    .filter(|b| turn.saturating_sub(b.turn) <= ACTIVE_BATTLE_TURNS)
+                    .filter_map(|b| centroid_of.get(&b.location).cloned())
+                    .collect();
+                if segments.is_empty() && battle_points.is_empty() {
+                    continue;
+                }
+                frontlines.push(FrontlineDto {
+                    id: front.id.clone(),
+                    name: front.name.clone(),
+                    attacker: front
+                        .involved_countries
+                        .first()
+                        .cloned()
+                        .unwrap_or_default(),
+                    defender: front
+                        .involved_countries
+                        .get(1)
+                        .cloned()
+                        .unwrap_or_default(),
+                    segments,
+                    regions,
+                    battle_points,
+                });
+            }
+        }
+    }
+
     if !bounds[0].is_finite() {
         bounds = [0.0, 0.0, 1.0, 1.0];
     }
@@ -1648,6 +2108,8 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             min_poly_verts as u32
         },
         degenerate_region_count: degenerate_regions,
+        water_bodies,
+        frontlines,
     }
 }
 
@@ -1835,6 +2297,18 @@ pub struct MapParcelDto {
     /// v4.27.0: real parcel topography (`river` | `lake` | `sea` | `none`)
     /// — water parcels render as rivers/lakes on the cadastral map.
     pub water_access: String,
+    /// v4.28.0 (TASK-012): parcel-level terrain for the Topography map —
+    /// `mountains` | `highlands` | `forest` | `plains` | `steppe` |
+    /// `wetlands` | `coast` | `river` | `lake`. Water parcels always map to
+    /// their water class; land parcels inherit a deterministic mix around
+    /// the region biome.
+    pub terrain: String,
+    /// v4.28.0 (TASK-012): precinct-level dominant faction — the parcel's
+    /// local council ward winner (region seat shares + deterministic
+    /// neighbourhood noise).
+    pub dominant_party: String,
+    /// Winning faction's precinct share (0–1).
+    pub party_share: f64,
 }
 
 /// A region's cadastral parcel layout for the Regions-page drill-down map.
@@ -1931,6 +2405,28 @@ pub fn build_region_parcel_map(
     // Industrial parcels in an extraction region render as resource mines.
     let has_extraction = region.extraction_limits.values().any(|v| *v > 0);
 
+    // v4.28.0 (TASK-012): region-level biome + council faction shares —
+    // the per-parcel terrain and precinct polling derive from these.
+    let region_biome = biome_of(region, region.geographic_traits.has_coastline);
+    let faction_shares: Vec<(String, f64)> = region
+        .governance
+        .as_ref()
+        .map(|gov| {
+            let fd = &gov.council.faction_distribution;
+            let total =
+                (fd.populares_count + fd.moderates_count + fd.optimates_count) as f64;
+            if total <= 0.0 {
+                Vec::new()
+            } else {
+                vec![
+                    ("Populares".to_string(), fd.populares_count as f64 / total),
+                    ("Moderates".to_string(), fd.moderates_count as f64 / total),
+                    ("Optimates".to_string(), fd.optimates_count as f64 / total),
+                ]
+            }
+        })
+        .unwrap_or_default();
+
     let mut parcels = Vec::with_capacity(n);
     for (i, pid) in pids.iter().enumerate() {
         let Some(p) = country.cadastre.get(*pid) else {
@@ -1961,10 +2457,86 @@ pub fn build_region_parcel_map(
             // v4.27.0: real topographic water parcels — rivers/lakes/sea
             // frontage render as water on the cadastral map.
             "water"
-        } else if p.zoning == ZoningDesignation::Industrial && has_extraction {
+        } else if p.zoning == ZoningDesignation::Industrial
+            && has_extraction
+            && hash_unit(&format!("mine:{region_id}:{pid:?}"), 199) < 0.3
+        {
+            // v4.28.0 (TASK-012): extraction regions used to paint EVERY
+            // industrial parcel a mine — industrial zoning vanished from
+            // the map. Only ~30% of industrial parcels carry a mine head;
+            // the rest render as regular industry.
             "resource_mines"
         } else {
             zoning_label(p.zoning)
+        };
+        // v4.28.0 (TASK-012): per-parcel terrain — water parcels keep their
+        // water class; land parcels take a deterministic mix around the
+        // region biome so the topography map shows real neighbourhood
+        // variation instead of one flat colour.
+        let parcel_salt = format!("ter:{region_id}:{pid:?}");
+        let h = hash_unit(&parcel_salt, 211);
+        let terrain: &str = match p.topography.water_access {
+            crate::society::cadastre::WaterAccessType::River => "river",
+            crate::society::cadastre::WaterAccessType::Lake => "lake",
+            crate::society::cadastre::WaterAccessType::Sea => "coast",
+            crate::society::cadastre::WaterAccessType::None => {
+                if p.topography.is_forest {
+                    "forest"
+                } else if p.topography.is_natural_wonder {
+                    "highlands"
+                } else {
+                    match region_biome {
+                        "Mountains" => {
+                            if h < 0.55 { "mountains" } else { "highlands" }
+                        }
+                        "Highlands" => {
+                            if h < 0.15 {
+                                "mountains"
+                            } else if h < 0.6 {
+                                "highlands"
+                            } else {
+                                "plains"
+                            }
+                        }
+                        "Wetlands" => {
+                            if h < 0.5 { "wetlands" } else { "plains" }
+                        }
+                        "Forest" => {
+                            if h < 0.5 { "forest" } else { "plains" }
+                        }
+                        "Steppe" => {
+                            if h < 0.75 { "steppe" } else { "plains" }
+                        }
+                        "Coast" => {
+                            if h < 0.1 { "coast" } else { "plains" }
+                        }
+                        _ => {
+                            if h < 0.12 { "forest" } else { "plains" }
+                        }
+                    }
+                }
+            }
+        };
+        // Precinct polling: region council shares + deterministic
+        // neighbourhood noise → varied political wards on the parcel map.
+        let (dominant_party, party_share) = if faction_shares.is_empty() {
+            (String::new(), 0.0)
+        } else {
+            let roll = hash_unit(&format!("poll:{region_id}:{pid:?}"), 223);
+            let noise = |i: usize| {
+                (hash_unit(&format!("pn:{region_id}:{pid:?}:{i}"), 227) - 0.5) * 0.24
+            };
+            let mut acc = 0.0;
+            let mut pick = (String::new(), 0.0_f64);
+            for (i, (name, share)) in faction_shares.iter().enumerate() {
+                let w = (*share + noise(i)).max(0.02);
+                acc += w;
+                if roll <= acc || i == faction_shares.len() - 1 {
+                    pick = (name.clone(), *share);
+                    break;
+                }
+            }
+            pick
         };
         parcels.push(MapParcelDto {
             id: format!("{pid:?}"),
@@ -1981,6 +2553,9 @@ pub fn build_region_parcel_map(
             is_border_zone: p.is_border_zone,
             land_use_tag: p.land_use_tag.clone(),
             water_access: water_access_label(p.topography.water_access).to_string(),
+            terrain: terrain.to_string(),
+            dominant_party,
+            party_share,
         });
     }
 

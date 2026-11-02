@@ -162,7 +162,10 @@ pub async fn get_banking_aggregates(
             cb_fx_reserves_total: finance.cb_fx_reserves_total,
             cb_gold_reserves: finance.cb_gold_reserves,
             // v4.27.0 (TASK-010): Central Bank sub-tab payload.
-            central_bank: build_central_bank_dto(country_ref),
+            central_bank: build_central_bank_dto(
+                country_ref,
+                &engine_state.game_state.currencies,
+            ),
         })
     })
     .await

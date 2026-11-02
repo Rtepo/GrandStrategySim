@@ -3434,9 +3434,29 @@ pub fn process_banking_turn(
     };
     // Phase 36: target_inflation is now read from self.target_inflation inside
     // update_reference_rate. The signature no longer takes target_inflation.
+    // v4.28.0 (TASK-015): credit growth — M3 expansion rate from telemetry —
+    // joins the MPC briefing record.
+    let credit_growth = {
+        let hist = &country.macro_indicators.telemetry_history;
+        if hist.samples.len() >= 2 {
+            let prev = hist.samples[hist.samples.len() - 2].m3.max(1.0);
+            let cur = country
+                .macro_indicators
+                .money_supply
+                .m3
+                .max(0.0);
+            if cur > 0.0 {
+                cur / prev - 1.0
+            } else {
+                0.0
+            }
+        } else {
+            0.0
+        }
+    };
     country
         .central_bank
-        .update_reference_rate(inflation, gdp_growth, current_turn);
+        .update_reference_rate(inflation, gdp_growth, current_turn, credit_growth);
 
     
 // Step 2: Pre-clearing OMO â€” CB adjusts aggregate reserves to steer XIBOR toward target.

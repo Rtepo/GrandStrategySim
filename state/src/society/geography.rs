@@ -4262,12 +4262,25 @@ pub fn generate_megaregions(
         }];
     }
 
-    // Larger countries: cluster into groups of ~4 regions
+    // Larger countries: cluster into groups of ~4 regions.
+    //
+    // v4.28.0 (TASK-012): CONTIGUOUS megaregions. The old code chunked the
+    // lexically-sorted id list (`Region1, Region10, Region11, Region2, …`),
+    // which produced megaregions spanning disconnected cells on the
+    // rendered map. Instead we flood-fill on the same geometric adjacency
+    // the map layout uses: deterministic ring-plan sites (the exact
+    // `map_ring_layout` + hash-jitter formula in `ui::snapshot_map`), with
+    // region adjacency = mutual 3-nearest-neighbour graph on those sites.
+    // BFS growth bounded at `cluster_size` guarantees every megaregion is a
+    // single connected component — geographically contiguous by
+    // construction.
     let cluster_size = 4;
-    let _num_clusters = region_ids.len().div_ceil(cluster_size);
-    let mut megaregions = Vec::new();
+    let sites = megaregion_sites(region_ids);
+    let adj = knn_adjacency(&sites, 3);
+    let clusters = flood_fill_clusters(region_ids, &sites, &adj, cluster_size);
 
-    for (i, chunk) in region_ids.chunks(cluster_size).enumerate() {
+    let mut megaregions = Vec::new();
+    for (i, chunk) in clusters.iter().enumerate() {
         let megaregion_idx = i + 1;
         let meg_id = format!("MEG-{country}-{megaregion_idx:02}");
         megaregions.push(Megaregion {
@@ -4287,6 +4300,121 @@ pub fn generate_megaregions(
     }
 
     megaregions
+}
+
+/// v4.28.0 (TASK-012): deterministic unit-space sites for a country's
+/// regions — replicates the `ui::snapshot_map` ring-plan layout (capital at
+/// the anchor, non-capitals fill `map_ring_layout` slots in
+/// `map_region_sort_key` order with the same ±9% radius / ±4° angle hash
+/// jitter). Only relative positions matter, so the anchor is the origin
+/// and the blob radius is 1.
+pub fn megaregion_sites(region_ids: &[String]) -> Vec<(f64, f64)> {
+    let ring_plan = map_ring_layout(region_ids.len().saturating_sub(1));
+    let max_ring = ring_plan.last().map(|l| l.0).unwrap_or(1) as f64 + 0.55;
+    let mut sites = Vec::with_capacity(region_ids.len());
+    let mut non_capital = 0usize;
+    for (i, id) in region_ids.iter().enumerate() {
+        // First region in sort-key order is the capital cell (matches the
+        // map's `is_capital → anchor` branch).
+        if i == 0 || non_capital >= ring_plan.len() {
+            sites.push((0.0, 0.0));
+        } else {
+            let (ring, pos, cap) = ring_plan[non_capital];
+            non_capital += 1;
+            let phase =
+                if ring % 2 == 0 { std::f64::consts::PI / cap as f64 } else { 0.0 };
+            let angle = (pos as f64 / cap as f64) * std::f64::consts::TAU + phase;
+            let rr = ring as f64 / max_ring;
+            let jr = 1.0 + (map_hash_unit(id, 41) - 0.5) * 0.18;
+            let ja = (map_hash_unit(id, 43) - 0.5) * 0.07;
+            sites.push((rr * jr * (angle + ja).cos(), rr * jr * (angle + ja).sin()));
+        }
+    }
+    sites
+}
+
+/// Mutual k-nearest-neighbour adjacency on 2-D sites: `a` and `b` are
+/// adjacent when either is within the other's `k` nearest sites — mirrors
+/// Voronoi shared-edge adjacency on the same point set.
+pub fn knn_adjacency(
+    sites: &[(f64, f64)],
+    k: usize,
+) -> std::collections::HashMap<usize, Vec<usize>> {
+    let mut adj: std::collections::HashMap<usize, Vec<usize>> =
+        std::collections::HashMap::new();
+    for i in 0..sites.len() {
+        let mut by_dist: Vec<usize> = (0..sites.len()).filter(|&j| j != i).collect();
+        by_dist.sort_by(|&a, &b| {
+            let da = (sites[a].0 - sites[i].0).powi(2) + (sites[a].1 - sites[i].1).powi(2);
+            let db = (sites[b].0 - sites[i].0).powi(2) + (sites[b].1 - sites[i].1).powi(2);
+            da.partial_cmp(&db)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.cmp(&b))
+        });
+        for &j in by_dist.iter().take(k) {
+            adj.entry(i).or_default().push(j);
+            let entry = adj.entry(j).or_default();
+            if !entry.contains(&i) {
+                entry.push(i);
+            }
+        }
+    }
+    for v in adj.values_mut() {
+        v.sort_unstable();
+    }
+    adj
+}
+
+/// Greedy BFS flood-fill partition: seeds are taken in `region_ids` order;
+/// each cluster absorbs the frontier-adjacent unvisited region closest to
+/// its seed until `cluster_size` is reached. Any region unreachable from a
+/// seed's frontier seeds a new cluster — every output cluster is a single
+/// connected component, so megaregions are contiguous by construction.
+pub fn flood_fill_clusters(
+    region_ids: &[String],
+    sites: &[(f64, f64)],
+    adj: &std::collections::HashMap<usize, Vec<usize>>,
+    cluster_size: usize,
+) -> Vec<Vec<String>> {
+    let n = region_ids.len();
+    let mut visited = vec![false; n];
+    let mut clusters: Vec<Vec<String>> = Vec::new();
+    for seed in 0..n {
+        if visited[seed] {
+            continue;
+        }
+        visited[seed] = true;
+        let mut members = vec![seed];
+        while members.len() < cluster_size {
+            // Frontier: unvisited regions adjacent to any member, closest
+            // to the seed first.
+            let mut best: Option<(f64, usize)> = None;
+            for &m in &members {
+                for &j in adj.get(&m).into_iter().flatten() {
+                    if visited[j] {
+                        continue;
+                    }
+                    let d2 = (sites[j].0 - sites[seed].0).powi(2)
+                        + (sites[j].1 - sites[seed].1).powi(2);
+                    if best.map(|(bd, _)| d2 < bd).unwrap_or(true) {
+                        best = Some((d2, j));
+                    }
+                }
+            }
+            match best {
+                Some((_, j)) => {
+                    visited[j] = true;
+                    members.push(j);
+                }
+                None => break,
+            }
+        }
+        let mut ids: Vec<String> =
+            members.into_iter().map(|i| region_ids[i].clone()).collect();
+        ids.sort();
+        clusters.push(ids);
+    }
+    clusters
 }
 
 /// Phase 36: Generate a human-readable megaregion name.
@@ -4435,8 +4563,14 @@ pub fn continent_layout(countries: &[(String, usize)]) -> Vec<ContinentAnchor> {
     if n == 0 {
         return Vec::new();
     }
-    let split = if n <= 8 { n } else { n.div_ceil(2) };
-    let ranges: [std::ops::Range<usize>; 2] = [0..split, split..n];
+    // v4.28.0 (TASK-011): 3–4 varied continents/archipelagos for typical
+    // worlds instead of always 2 round blobs — ~5 countries per landmass,
+    // contiguous ranges of the sorted country list (deterministic).
+    let n_continents = n.div_ceil(5).clamp(1, 4);
+    let per = n.div_ceil(n_continents);
+    let ranges: Vec<std::ops::Range<usize>> = (0..n_continents)
+        .map(|ci| (ci * per).min(n)..((ci + 1) * per).min(n))
+        .collect();
     let mut out = Vec::with_capacity(n);
     let mut cursor_x = 0.0;
     let mut prev_blob_r = 0.0;
@@ -4534,7 +4668,8 @@ pub fn wire_international_land_borders(regions: &mut HashMap<String, Region>) {
     // snapshot builds from the same anchors.
     let mut pairs: Vec<(usize, usize)> = Vec::new();
     let mut seen: HashSet<(usize, usize)> = HashSet::new();
-    for ci in 0..2usize {
+    let max_continent = placements.iter().map(|p| p.continent).max().unwrap_or(0);
+    for ci in 0..=max_continent {
         let members: Vec<usize> = placements
             .iter()
             .enumerate()

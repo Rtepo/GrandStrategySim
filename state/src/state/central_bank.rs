@@ -46,6 +46,15 @@ pub enum MonetaryMandate {
     /// Balances both price stability and growth.
     #[default]
     Mixed,
+    /// v4.28.0: Classical gold standard — the rate defends convertibility;
+    /// inflation weight is absolute, growth ignored.
+    GoldStandard,
+    /// v4.28.0: Exchange-rate peg — monetary policy targets the FX
+    /// anchor, not domestic conditions (weak weights).
+    ExchangeRatePeg,
+    /// v4.28.0: State treasury financing — the bank monetises deficits;
+    /// growth-weighted, soft on inflation.
+    TreasuryFinancing,
 }
 
 // ============================================================================
@@ -128,6 +137,14 @@ pub struct MpcVote {
     /// "For" | "Against" — the member's position on the decided move.
     #[serde(default)]
     pub vote: String,
+    /// v4.28.0 (TASK-015): the member's policy stance (Hawk/Dove/Centrist)
+    /// — shown in the expandable vote table.
+    #[serde(default)]
+    pub stance: String,
+    /// v4.28.0 (TASK-015): dissenting opinion when the member votes
+    /// Against the decided move (empty on assent).
+    #[serde(default)]
+    pub dissent: String,
 }
 
 /// v4.27.0 (TASK-010): a structured MPC rate decision — previous/new rate,
@@ -158,6 +175,10 @@ pub struct MpcDecision {
     #[serde(default)]
     /// Roll-call votes (For/Against per member).
     pub votes: Vec<MpcVote>,
+    /// v4.28.0 (TASK-015): credit growth observed at decision time —
+    /// part of the expanded economic briefing.
+    #[serde(default)]
+    pub credit_growth: f64,
 }
 
 /// v4.27.0 (TASK-010): one recorded open-market / FX / gold operation in
@@ -211,6 +232,11 @@ pub struct CentralBank {
     /// Regional branch directors (for Federal model).
     #[serde(default)]
     pub regional_directors: Vec<String>,
+    /// v4.28.0 (TASK-015): per-country independence index (0–100) seeded
+    /// at generation from the regime hash — overrides the model-derived
+    /// default so central banks are no longer cloned at 80%.
+    #[serde(default)]
+    pub independence_override: Option<f64>,
     /// The 5 interest rates (mandatory field - rates exist regardless of independence model).
     #[serde(default)]
     pub interest_rates: RppInterestRates,
@@ -315,6 +341,7 @@ impl Default for CentralBank {
             governor_appointment_turn: 0,
             governor_term_length: 0,
             regional_directors: Vec::new(),
+            independence_override: None,
             interest_rates: RppInterestRates::default(),
             rpp: None,
             reserve_requirement_ratio: 0.0,
@@ -344,6 +371,11 @@ impl CentralBank {
     /// Federal 95 / CentralIndependent 75 / Dependent 25, ±5 for a
     /// guaranteed term of office.
     pub fn independence_index(&self) -> f64 {
+        // v4.28.0 (TASK-015): a seeded per-country index wins over the
+        // model-derived default.
+        if let Some(v) = self.independence_override {
+            return v.clamp(0.0, 100.0);
+        }
         let base = match self.independence_model {
             CentralBankIndependence::Federal => 95.0,
             CentralBankIndependence::CentralIndependent => 75.0,
@@ -360,7 +392,10 @@ impl CentralBank {
         match self.mandate {
             MonetaryMandate::Inflationary => "Price Stability",
             MonetaryMandate::Mixed => "Dual Mandate",
-            MonetaryMandate::Market => "State Credit Financing",
+            MonetaryMandate::Market => "Growth Priority",
+            MonetaryMandate::GoldStandard => "Classical Gold Standard",
+            MonetaryMandate::ExchangeRatePeg => "Exchange Rate Peg",
+            MonetaryMandate::TreasuryFinancing => "State Treasury Financing",
         }
     }
 
@@ -455,6 +490,7 @@ impl CentralBank {
         current_inflation: f64,
         gdp_growth: f64,
         current_turn: u32,
+        credit_growth: f64,
     ) {
         let target_inflation = self.target_inflation;
         let potential_growth = self.potential_growth;
@@ -468,14 +504,31 @@ impl CentralBank {
             MonetaryMandate::Inflationary => (2.0, 0.5), // Aggressive on inflation
             MonetaryMandate::Market => (0.5, 1.5),       // Growth-oriented
             MonetaryMandate::Mixed => (1.5, 0.5),        // Standard Taylor
+            // Gold standard: convertibility is absolute — maximum inflation
+            // weight, growth is irrelevant to the policy rate.
+            MonetaryMandate::GoldStandard => (2.5, 0.0),
+            // FX peg: domestic conditions barely move the rate — the peg
+            // anchor dominates (weak symmetric weights).
+            MonetaryMandate::ExchangeRatePeg => (0.4, 0.2),
+            // Treasury financing: monetise growth, soft on inflation.
+            MonetaryMandate::TreasuryFinancing => (0.8, 1.2),
         };
 
         let taylor_rate =
             neutral_rate + inflation_weight * inflation_gap + growth_weight * growth_gap;
 
-        // Smoothing: 70% new Taylor rate, 30% previous rate
+        // v4.28.0 (TASK-015): realistic rate smoothing — Taylor-rule
+        // inertia `r_t = ρ·r_{t-1} + (1−ρ)·r*_t` with ρ = 0.65, PLUS a hard
+        // per-meeting step cap. Previously the 0.30 inertia weight let a
+        // deep-deflation Taylor rate drag the policy rate from 20% to 0%
+        // in one move (−2,000 bps). Real councils move in 25–75 bps steps.
         let prev_rate = self.interest_rates.reference_rate;
-        let smoothed_rate = 0.7 * taylor_rate + 0.3 * prev_rate;
+        let rho = 0.65;
+        let inertia_rate = rho * prev_rate + (1.0 - rho) * taylor_rate;
+        // Hard step cap: ±75 bps per MPC meeting.
+        let max_step = 0.0075;
+        let smoothed_rate =
+            prev_rate + (inertia_rate - prev_rate).clamp(-max_step, max_step);
 
         // v4.20 WS3: Zero Lower Bound — no NIRP. When the Taylor rule wants a
         // negative rate (deep deflation), the CB holds at 0% and relies on
@@ -524,9 +577,30 @@ impl CentralBank {
                         "Dove" => rate_adjustment <= 0.0,
                         _ => true, // Centrist backs the council line
                     };
+                    let vote = if for_move { "For" } else { "Against" }.to_string();
+                    // v4.28.0 (TASK-015): dissenting opinion for the
+                    // expandable vote table — a member voting Against the
+                    // council line explains why.
+                    let dissent = if for_move {
+                        String::new()
+                    } else {
+                        match m.stance.as_str() {
+                            "Hawk" => format!(
+                                "Hold/tighten — sees inflation ({:.1}%) above tolerance",
+                                current_inflation * 100.0
+                            ),
+                            "Dove" => format!(
+                                "Ease further — sees output gap ({:+.1}%) as the priority",
+                                growth_gap * 100.0
+                            ),
+                            _ => "Prefers a different step size".to_string(),
+                        }
+                    };
                     MpcVote {
                         member_name: m.name.clone(),
-                        vote: if for_move { "For" } else { "Against" }.to_string(),
+                        vote,
+                        stance: m.stance.clone(),
+                        dissent,
                     }
                 })
                 .collect();
@@ -539,6 +613,7 @@ impl CentralBank {
                 output_gap: growth_gap,
                 rationale,
                 votes,
+                credit_growth,
             });
             if rpp.mpc_decisions.len() > 200 {
                 let drop = rpp.mpc_decisions.len() - 200;
@@ -1191,7 +1266,7 @@ mod tests {
         };
 
         // High inflation should raise rates (Taylor Rule: inflation 5% vs target 2%)
-        cb.update_reference_rate(0.05, 0.03, 10);
+        cb.update_reference_rate(0.05, 0.03, 10, 0.0);
         assert!(cb.interest_rates.reference_rate > 0.05); // Rate increased
         assert_eq!(cb.rpp.as_ref().unwrap().decision_log.len(), 1);
     }
@@ -1209,7 +1284,7 @@ mod tests {
         };
 
         // Weak growth should lower rates (growth 0.5% vs potential 2%)
-        cb.update_reference_rate(0.02, 0.005, 10);
+        cb.update_reference_rate(0.02, 0.005, 10, 0.0);
         assert!(cb.interest_rates.reference_rate < 0.05); // Rate decreased
     }
 
@@ -1226,7 +1301,7 @@ mod tests {
         };
 
         // Moderate inflation gap with weak growth
-        cb.update_reference_rate(0.03, 0.01, 10);
+        cb.update_reference_rate(0.03, 0.01, 10, 0.0);
         // Should lower rates due to weak growth
         assert!(cb.interest_rates.reference_rate < 0.05);
     }
@@ -1241,7 +1316,7 @@ mod tests {
             ..Default::default()
         };
 
-        cb.update_reference_rate(0.03, 0.02, 10);
+        cb.update_reference_rate(0.03, 0.02, 10, 0.0);
 
         // Verify hierarchy: Lombard > Rediscount > Reference > Discount > Deposit
         assert!(cb.interest_rates.lombard_rate > cb.interest_rates.rediscount_rate);
@@ -1340,13 +1415,13 @@ mod tests {
         };
 
         // Try to push rate above 20%
-        cb.update_reference_rate(0.10, 0.05, 10);
+        cb.update_reference_rate(0.10, 0.05, 10, 0.0);
         assert!(cb.interest_rates.reference_rate <= 0.20);
 
         // v4.20 WS3: Zero Lower Bound — the Taylor rule may want a negative
         // rate under deflation, but nominal administered rates floor at 0%.
         cb.interest_rates.reference_rate = 0.01;
-        cb.update_reference_rate(-0.05, 0.0, 10);
+        cb.update_reference_rate(-0.05, 0.0, 10, 0.0);
         assert!(cb.interest_rates.reference_rate >= 0.0);
         // The whole administered corridor respects the floor too.
         assert!(cb.interest_rates.deposit_rate >= 0.0);

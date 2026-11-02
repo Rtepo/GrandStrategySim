@@ -19,7 +19,7 @@ import { fmt, num } from "../lib/format";
 import { MiniMap } from "../components/map/MiniMap";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { getWorldMap } from "../hooks/useTauriCommand";
-import type { MilitaryDashboardResponse } from "../types/api";
+import type { BattleUnitRow, CommanderRow, MilitaryDashboardResponse } from "../types/api";
 
 // ============================================================================
 // HELPERS
@@ -79,8 +79,13 @@ function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
                     <span className="font-medium text-sm">
                       {open ? "▾" : "▸"} {w.front_name}
                       <span className="ml-2 text-xs text-muted-foreground">
-                        {w.aggressor} vs {w.defender} · {w.regions.length} regions ·{" "}
-                        {w.battle_count} battles
+                        {/* v4.28.0 TASK-013: explicit initiator/defender
+                            badges instead of an ambiguous "A vs B". */}
+                        <span className="text-red-400 font-medium">⚔ {w.aggressor}</span>
+                        <span className="text-muted-foreground"> (Aggressor) vs </span>
+                        <span className="text-sky-300 font-medium">{w.defender}</span>
+                        <span className="text-muted-foreground"> (Defender) · {w.regions.length} regions ·{" "}
+                        {w.battle_count} battles</span>
                       </span>
                     </span>
                     <Badge variant="outline">{w.last_battle_result}</Badge>
@@ -126,58 +131,35 @@ function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
                                   </button>
                                   {bOpen && (
                                     <div className="px-3 pb-2 pt-1 text-xs space-y-1 border-t border-border/60">
-                                      {/* v4.27.0 TASK-007: regimental names + commanders + doctrine —
-                                          no raw UNIT-* ids. */}
-                                      <div>
-                                        <span className="text-muted-foreground">Attackers:</span>{" "}
-                                        {(b.attacker_unit_names.length > 0
-                                          ? b.attacker_unit_names
-                                          : b.attacker_units
-                                        ).join(", ")}
-                                        {b.attacker_doctrine && (
-                                          <span className="text-muted-foreground"> — {b.attacker_doctrine}</span>
-                                        )}
+                                      {/* v4.28.0 TASK-013: two-column side-by-side
+                                          Battle Line — per-side command header +
+                                          per-unit badge rows. No raw UNIT-* ids. */}
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <BattleLineSide
+                                          title="Attacker Line"
+                                          country={b.attacker}
+                                          commanders={b.attacker_commanders}
+                                          doctrine={b.attacker_doctrine}
+                                          morale={b.attacker_morale}
+                                          combined={b.attacker_combined_arms}
+                                          power={b.phases[0]?.attacker_power ?? 0}
+                                          rows={b.attacker_order}
+                                          names={b.attacker_unit_names}
+                                        />
+                                        <BattleLineSide
+                                          title="Defender Line"
+                                          country={b.defender}
+                                          commanders={b.defender_commanders}
+                                          doctrine={b.defender_doctrine}
+                                          morale={b.defender_morale}
+                                          combined={b.defender_combined_arms}
+                                          power={b.phases[0]?.defender_power ?? 0}
+                                          rows={b.defender_order}
+                                          names={b.defender_unit_names}
+                                        />
                                       </div>
-                                      <div>
-                                        <span className="text-muted-foreground">Defenders:</span>{" "}
-                                        {(b.defender_unit_names.length > 0
-                                          ? b.defender_unit_names
-                                          : b.defender_units
-                                        ).join(", ")}
-                                        {b.defender_doctrine && (
-                                          <span className="text-muted-foreground"> — {b.defender_doctrine}</span>
-                                        )}
-                                      </div>
-                                      {(b.attacker_commanders.length > 0 || b.defender_commanders.length > 0) && (
-                                        <div className="grid grid-cols-2 gap-1">
-                                          <div>
-                                            <span className="text-muted-foreground">Attacker Command:</span>{" "}
-                                            {b.attacker_commanders.map((c, i) => (
-                                              <span key={c.vip_id + i}>
-                                                {i > 0 && ", "}
-                                                <VipHoverCard vipId={c.vip_id}>
-                                                  <span className="underline decoration-dotted cursor-pointer">
-                                                    {c.rank} {c.name}
-                                                  </span>
-                                                </VipHoverCard>
-                                              </span>
-                                            ))}
-                                          </div>
-                                          <div>
-                                            <span className="text-muted-foreground">Defender Command:</span>{" "}
-                                            {b.defender_commanders.map((c, i) => (
-                                              <span key={c.vip_id + i}>
-                                                {i > 0 && ", "}
-                                                <VipHoverCard vipId={c.vip_id}>
-                                                  <span className="underline decoration-dotted cursor-pointer">
-                                                    {c.rank} {c.name}
-                                                  </span>
-                                                </VipHoverCard>
-                                              </span>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
+                                      {/* Command VIPs render inside each
+                                          BattleLineSide header. */}
                                       <div className="grid grid-cols-2 gap-1">
                                         <div>
                                           Attacker — KIA {num(Number(b.attacker_dead))} · WIA{" "}
@@ -257,7 +239,12 @@ function HistoricalWarsPanel({ endedWars, regionNameById }: { endedWars: Militar
                     onClick={() => setOpen(isOpen ? null : key)}
                   >
                     <span className="font-medium text-sm">
-                      {isOpen ? "▾" : "▸"} {w.aggressor} vs {w.defender}
+                      {isOpen ? "▾" : "▸"}{" "}
+                      {/* v4.28.0 TASK-013: aggressor/defender badges. */}
+                      <span className="text-red-400">⚔ {w.aggressor}</span>
+                      <span className="text-muted-foreground text-xs"> (Initiator) vs </span>
+                      <span className="text-sky-300">{w.defender}</span>
+                      <span className="text-muted-foreground text-xs"> (Defender)</span>
                     </span>
                     <span className="text-xs text-muted-foreground">
                       T{w.start_turn}–T{w.end_turn}
@@ -861,6 +848,102 @@ export function MilitaryPage() {
       <WarMoralePanel morale={dashboard.war_morale} />
       <PowCampsPanel camps={dashboard.pow_camps} />
       <DisastersPanel disasters={dashboard.disasters} />
+    </div>
+  );
+}
+
+// ============================================================================
+// v4.28.0 TASK-013: Two-Column Battle Line (order of battle)
+// ============================================================================
+
+const BRANCH_BADGE_COLORS: Record<string, string> = {
+  INF: "bg-blue-900/60 text-blue-200 border-blue-700",
+  ART: "bg-amber-900/60 text-amber-200 border-amber-700",
+  ARM: "bg-red-900/60 text-red-200 border-red-700",
+  AIR: "bg-sky-900/60 text-sky-200 border-sky-700",
+  NAV: "bg-teal-900/60 text-teal-200 border-teal-700",
+  MIL: "bg-zinc-800 text-zinc-300 border-zinc-600",
+};
+
+/** One side of the two-column Battle Line — command header + unit rows. */
+function BattleLineSide({
+  title,
+  country,
+  commanders,
+  doctrine,
+  morale,
+  combined,
+  power,
+  rows,
+  names,
+}: {
+  title: string;
+  country: string;
+  commanders: CommanderRow[];
+  doctrine: string;
+  morale: number;
+  combined: number;
+  power: number;
+  rows: BattleUnitRow[];
+  /** Legacy name fallback when no per-unit order is recorded. */
+  names: string[];
+}) {
+  const committed = rows.reduce((s, r) => s + Number(r.manpower), 0);
+  const losses = rows.reduce((s, r) => s + Number(r.losses), 0);
+  return (
+    <div className="border border-border/60 rounded p-1.5 space-y-1">
+      <div className="flex items-baseline justify-between gap-1">
+        <span className="font-semibold text-foreground">{title}</span>
+        <span className="text-muted-foreground">{country}</span>
+      </div>
+      {commanders.length > 0 && (
+        <div>
+          <span className="text-muted-foreground">Command:</span>{" "}
+          {commanders.map((c, i) => (
+            <span key={c.vip_id + i}>
+              {i > 0 && ", "}
+              <VipHoverCard vipId={c.vip_id}>
+                <span className="underline decoration-dotted cursor-pointer">
+                  {c.rank} {c.name}
+                </span>
+              </VipHoverCard>
+            </span>
+          ))}
+        </div>
+      )}
+      {doctrine && (
+        <div>
+          <span className="text-muted-foreground">Doctrine:</span> {doctrine}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-muted-foreground">
+        <span>Power <span className="text-foreground">{num(Math.round(power))}</span></span>
+        <span>Morale <span className="text-foreground">{(morale * 100).toFixed(0)}%</span></span>
+        <span>Combined Arms <span className="text-foreground">{(combined * 100).toFixed(0)}%</span></span>
+        <span>Strength <span className="text-foreground">{num(committed)}</span></span>
+        <span>Losses <span className="text-foreground">{num(losses)}</span></span>
+      </div>
+      <div className="pt-0.5 space-y-0.5">
+        {rows.length > 0
+          ? rows.map((u, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <span
+                  className={`inline-block w-8 text-center rounded border text-[10px] font-mono ${BRANCH_BADGE_COLORS[u.badge] ?? BRANCH_BADGE_COLORS.MIL}`}
+                  title={u.branch}
+                >
+                  {u.badge}
+                </span>
+                <span className="flex-1 truncate" title={u.name}>{u.name}</span>
+                <span className="text-muted-foreground whitespace-nowrap">
+                  {num(Number(u.manpower))}
+                  {Number(u.losses) > 0 && (
+                    <span className="text-red-400"> −{num(Number(u.losses))}</span>
+                  )}
+                </span>
+              </div>
+            ))
+          : names.map((n, i) => <div key={i} className="truncate">{n}</div>)}
+      </div>
     </div>
   );
 }

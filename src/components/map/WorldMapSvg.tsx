@@ -12,6 +12,7 @@ import type {
   MapEdgeDto,
   MapFeatureDto,
   MapRegionDto,
+  WaterBodyDto,
   WorldMapSnapshot,
 } from "../../types/api";
 
@@ -148,7 +149,10 @@ export function regionFill(
   switch (mode) {
     case "political":
     case "infrastructure":
-      return countryColor(c.color_index);
+      // v4.28.0: fill follows the CURRENT sovereign (owner_color_index) —
+      // ceded territory paints the occupier's palette while geometry stays
+      // grouped under its genesis layout cell.
+      return countryColor(Number(r.owner_color_index ?? c.color_index));
     case "governance":
       return heatColor(r.development_level, DEV_RAMP);
     case "military":
@@ -165,7 +169,7 @@ export function regionFill(
     case "megaregions":
       // Regions outside any megaregion keep a dimmed country tint.
       return Number(r.megaregion_index) < 0
-        ? countryColor(c.color_index)
+        ? countryColor(Number(r.owner_color_index ?? c.color_index))
         : megaregionColor(Number(r.megaregion_index));
     case "migration":
       return migrationColor(Number(r.net_migration ?? 0), maxNetMigration);
@@ -191,6 +195,9 @@ interface WorldMapSvgProps {
   /** Dim other countries instead of hiding them (embed context). */
   highlightCountry?: string | null;
   onRegionClick?: (region: MapRegionDto, country: CountryMapDto) => void;
+  /** v4.28.0: clicking a named water body (lake/sea/strait) opens its
+   * detail card — name, area, depth, navigability, bordering regions. */
+  onWaterClick?: (water: WaterBodyDto) => void;
   /** Compact embed: no labels/markers beyond capitals, thinner strokes. */
   compact?: boolean;
   /** Show region name labels (full map only — still gated by density). */
@@ -205,6 +212,12 @@ function polyPoints(r: MapRegionDto): string {
 function boundaryPath(c: CountryMapDto): string {
   return (
     c.boundary.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ") + " Z"
+  );
+}
+
+function waterPath(w: WaterBodyDto): string {
+  return (
+    w.boundary.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ") + " Z"
   );
 }
 
@@ -227,6 +240,7 @@ export function WorldMapSvg({
   onlyCountry,
   highlightCountry,
   onRegionClick,
+  onWaterClick,
   compact = false,
   showLabels = false,
   className,
@@ -304,6 +318,24 @@ export function WorldMapSvg({
     [snapshot, onlyCountry],
   );
 
+  // v4.28.0 (TASK-011): named water bodies — scope inland lakes/seas to
+  // the visible region set when `onlyCountry` crops the view. Ocean zones
+  // (continent < 0) and open seas always render.
+  const visibleWater = useMemo(
+    () =>
+      snapshot.water_bodies.filter((w) => {
+        if (!onlyCountry) return true;
+        return w.bordering_regions.some((r) => visibleRegionIds.has(r));
+      }),
+    [snapshot, onlyCountry, visibleRegionIds],
+  );
+
+  // v4.28.0 (TASK-011): war frontlines — only meaningful on the full map.
+  const visibleFrontlines = useMemo(
+    () => (onlyCountry ? [] : snapshot.frontlines),
+    [snapshot, onlyCountry],
+  );
+
   // v4.27.0: maritime borders — dashed straits/sea-lane links between
   // islands and the mainland (never land adjacency).
   const seaLaneEdges = useMemo(
@@ -362,6 +394,39 @@ export function WorldMapSvg({
       />
       {/* v4.27.0: maritime borders — dashed straits linking islands to the
           mainland. Drawn beneath landmasses. */}
+      {/* v4.28.0: named water bodies — unified deep-water fill with a
+          lighter shoreline rim. Drawn beneath land so continent edges
+          clip them; lakes/inland seas sit fully inside and read as real
+          water. Clickable when `onWaterClick` is wired. */}
+      {visibleWater.map((w) => (
+        <g key={w.id}>
+          <path
+            d={waterPath(w)}
+            fill={w.kind === "lake" ? "#15405e" : "#123a55"}
+            stroke="#2f6d95"
+            strokeWidth={strokeW * 1.1}
+            opacity={0.92}
+            style={{ cursor: onWaterClick ? "pointer" : "default" }}
+            onClick={onWaterClick ? () => onWaterClick(w) : undefined}
+          >
+            <title>{w.name}</title>
+          </path>
+          {!compact && labelsOn && (
+            <text
+              x={w.center.x}
+              y={w.center.y}
+              textAnchor="middle"
+              fontSize={Math.max(4, strokeW * 9)}
+              fill="#7fb4d4"
+              fontStyle="italic"
+              opacity={0.85}
+              pointerEvents="none"
+            >
+              {w.name}
+            </text>
+          )}
+        </g>
+      ))}
       {seaLaneEdges.map((e) => (
         <SeaLane key={`sl-${e.from_region}-${e.to_region}`} edge={e} centroids={centroidById} strokeW={strokeW} />
       ))}
@@ -541,17 +606,27 @@ export function WorldMapSvg({
               </g>
             )}
             {/* v4.27.0: Internal Migration mode — directional arrows
-                between regions, scaled and colored by flow intensity. */}
+                between regions, scaled and colored by flow intensity.
+                v4.28.0 (TASK-012): only the selected/hovered region's flows
+                render — painting every arrow at once was an unreadable web. */}
             {mode === "migration" &&
-              c.flows.map((f, fi) => (
-                <FlowArrow
-                  key={`flow-${c.country}-${fi}`}
-                  from={centroidById.get(f.from_region)}
-                  to={centroidById.get(f.to_region)}
-                  amount={Number(f.amount)}
-                  strokeW={strokeW}
-                />
-              ))}
+              (() => {
+                const focusId = hoveredId ?? selectedRegionId ?? null;
+                if (!focusId) return null;
+                return c.flows
+                  .filter(
+                    (f) => f.from_region === focusId || f.to_region === focusId,
+                  )
+                  .map((f, fi) => (
+                    <FlowArrow
+                      key={`flow-${c.country}-${fi}`}
+                      from={centroidById.get(f.from_region)}
+                      to={centroidById.get(f.to_region)}
+                      amount={Number(f.amount)}
+                      strokeW={strokeW}
+                    />
+                  ));
+              })()}
             {/* Country name at the capital anchor (full map only). */}
             {!compact && (
               <text
@@ -581,6 +656,66 @@ export function WorldMapSvg({
         .map((f, fi) => (
           <FeatureMark key={`mtn-${fi}`} feature={f} strokeW={strokeW} />
         ))}
+      {/* v4.28.0 (TASK-011): war frontlines — thick high-contrast dashed
+          markers along the shared belligerent border, with crossed-swords
+          at recent battle sites. Drawn above all fills. */}
+      {visibleFrontlines.map((f) => (
+        <g key={f.id} pointerEvents="none">
+          {f.segments.map((seg, si) => {
+            const pts = seg.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
+            return (
+              <g key={`${f.id}-${si}`}>
+                {/* Dark under-stroke so the bright dash stays readable on
+                    both light land and dark sea. */}
+                <polyline
+                  points={pts}
+                  fill="none"
+                  stroke="#1c0b0b"
+                  strokeWidth={strokeW * 5.4}
+                  strokeLinecap="round"
+                  opacity={0.85}
+                />
+                <polyline
+                  points={pts}
+                  fill="none"
+                  stroke="#dc2626"
+                  strokeWidth={strokeW * 4.2}
+                  strokeLinecap="round"
+                  strokeDasharray={`${strokeW * 8} ${strokeW * 4}`}
+                  opacity={0.95}
+                />
+                <polyline
+                  points={pts}
+                  fill="none"
+                  stroke="#fde047"
+                  strokeWidth={strokeW * 1.6}
+                  strokeLinecap="round"
+                  strokeDasharray={`${strokeW * 4} ${strokeW * 8}`}
+                  opacity={0.95}
+                />
+              </g>
+            );
+          })}
+          {f.battle_points.map((p, bi) => (
+            <BattleMark key={`${f.id}-b${bi}`} x={p.x} y={p.y} r={strokeW * 5.5} />
+          ))}
+          {!compact && (
+            <text
+              x={f.segments[0]?.[Math.floor((f.segments[0]?.length ?? 0) / 2)]?.x ?? 0}
+              y={(f.segments[0]?.[Math.floor((f.segments[0]?.length ?? 0) / 2)]?.y ?? 0) - strokeW * 8}
+              textAnchor="middle"
+              fontSize={Math.max(4.5, strokeW * 10)}
+              fill="#fde047"
+              stroke="#1c0b0b"
+              strokeWidth={strokeW * 0.4}
+              paintOrder="stroke"
+              fontWeight={700}
+            >
+              {f.attacker} ⚔ {f.defender}
+            </text>
+          )}
+        </g>
+      ))}
     </svg>
   );
 }
@@ -666,6 +801,22 @@ function FeatureMark({ feature, strokeW }: { feature: MapFeatureDto; strokeW: nu
   );
 }
 
+/** Crossed-swords marker for a recent frontline battle. */
+function BattleMark({ x, y, r }: { x: number; y: number; r: number }) {
+  const s = r;
+  return (
+    <g transform={`translate(${x},${y})`} pointerEvents="none">
+      <circle r={s * 1.35} fill="#1c0b0b" opacity={0.75} />
+      {/* Two crossed blades. */}
+      <line x1={-s * 0.55} y1={-s * 0.55} x2={s * 0.55} y2={s * 0.55} stroke="#fde047" strokeWidth={s * 0.28} strokeLinecap="round" />
+      <line x1={s * 0.55} y1={-s * 0.55} x2={-s * 0.55} y2={s * 0.55} stroke="#fde047" strokeWidth={s * 0.28} strokeLinecap="round" />
+      {/* Hilts. */}
+      <line x1={s * 0.3} y1={s * 0.75} x2={s * 0.8} y2={s * 0.3} stroke="#dc2626" strokeWidth={s * 0.2} strokeLinecap="round" />
+      <line x1={-s * 0.75} y1={s * 0.3} x2={-s * 0.3} y2={s * 0.75} stroke="#dc2626" strokeWidth={s * 0.2} strokeLinecap="round" />
+    </g>
+  );
+}
+
 /** Directional SVG arrow scaled and colored by migrant-flow intensity. */
 function FlowArrow({
   from,
@@ -695,14 +846,41 @@ function FlowArrow({
   const hx2 = endX - ux * headLen + uy * headLen * 0.5;
   const hy2 = endY - uy * headLen - ux * headLen * 0.5;
   const color = amount >= 1000 ? "#22c55e" : amount >= 200 ? "#84cc16" : "#a3a380";
+  // Curved shaft — bow perpendicular to the chord so opposing inflow/
+  // outflow arrows between the same pair don't overlap.
+  const midX = (from.x + endX) / 2;
+  const midY = (from.y + endY) / 2;
+  const bow = len * 0.14;
+  const cx = midX - uy * bow;
+  const cy = midY + ux * bow;
   return (
     <g pointerEvents="none">
-      <line x1={from.x} y1={from.y} x2={endX} y2={endY} stroke={color} strokeWidth={w} opacity={0.85} />
+      <path
+        d={`M${from.x},${from.y} Q${cx},${cy} ${endX},${endY}`}
+        fill="none"
+        stroke={color}
+        strokeWidth={w}
+        opacity={0.85}
+      />
       <polygon
         points={`${endX},${endY} ${hx1},${hy1} ${hx2},${hy2}`}
         fill={color}
         opacity={0.95}
       />
+      {/* v4.28.0 (TASK-012): migrant count at the curve apex — arrows are
+          only drawn for the focused region, so labels stay readable. */}
+      <text
+        x={cx}
+        y={cy - w * 0.8}
+        textAnchor="middle"
+        fontSize={Math.max(3.5, w * 2.6)}
+        fill="#dcfce7"
+        stroke="#0a1622"
+        strokeWidth={w * 0.5}
+        paintOrder="stroke"
+      >
+        {amount >= 1000 ? `${(amount / 1000).toFixed(1)}k` : Math.round(amount)}
+      </text>
     </g>
   );
 }
