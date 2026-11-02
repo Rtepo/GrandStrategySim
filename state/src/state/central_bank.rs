@@ -538,7 +538,17 @@ impl CentralBank {
         // discount rates, negative XIBOR, and ultimately NEGATIVE loan
         // interest income (banks paying borrowers), which is incoherent.
         // Cap at 20%.
-        let new_reference_rate = smoothed_rate.max(0.0).min(0.20);
+        // v4.29.0 (TASK-016): the ZLB is reserved for GENUINE deflation —
+        // inflation running >300bps below target. In a mild disinflation
+        // the policy rate floors at 1.5% (the mandate's positive-rate
+        // corridor: 1.5%–7.5% steady state); the QE leg in banking.rs
+        // fights the price level instead of the rate corridor.
+        let floor = if current_inflation < -0.02 {
+            0.0
+        } else {
+            0.015
+        };
+        let new_reference_rate = smoothed_rate.max(floor).min(0.20);
         let rate_adjustment = new_reference_rate - prev_rate;
 
         self.interest_rates.reference_rate = new_reference_rate;

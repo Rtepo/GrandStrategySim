@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./ui";
 import type { RoyalDynastySnapshot, DynastyMemberRow, CourtIntrigueRow, InternalConflictsSnapshot } from "../types/api";
 import { VipHoverCard } from "./VipHoverCard";
@@ -24,35 +25,62 @@ interface DynastyTreeProps {
  * size inside a `translate/scale` transform; wheel zooms around the
  * viewport center, drag pans freely.
  */
+interface ViewState { x: number; y: number; z: number }
+
+/// v4.29.0 (TASK-019): clamp zoom to [0.35, 3.0] and replace any
+/// NaN/Infinity coordinate with the last known-good value — an invalid
+/// transform string is what crashed the React Error Boundary.
+function sanitizeView(next: ViewState, prev: ViewState): ViewState {
+  const z = Number.isFinite(next.z) ? Math.min(3.0, Math.max(0.35, next.z)) : prev.z;
+  const x = Number.isFinite(next.x) ? next.x : prev.x;
+  const y = Number.isFinite(next.y) ? next.y : prev.y;
+  return { x, y, z };
+}
+
 function PanZoomViewport({ children }: { children: React.ReactNode }) {
-  const [view, setView] = useState({ x: 0, y: 0, z: 1 });
+  const [view, setView] = useState<ViewState>({ x: 0, y: 0, z: 1 });
   const drag = useRef<{ px: number; py: number } | null>(null);
 
+  // v4.29.0 (TASK-019): every state update passes through `sanitizeView` —
+  // zoom is clamped to [0.35, 3.0] and any NaN/Infinity coordinate falls
+  // back to the previous finite value, so a malformed wheel/pointer event
+  // can never poison the transform and crash the render.
   const onWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
+    if (!Number.isFinite(e.deltaY) || e.deltaY === 0) return;
     setView((v) => {
       const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-      const z = Math.min(3, Math.max(0.25, v.z * factor));
+      const z = Math.min(3.0, Math.max(0.35, v.z * factor));
       // Zoom toward the viewport center — keep the focal point stable.
       const rect = e.currentTarget.getBoundingClientRect();
+      if (!rect || rect.width === 0 || !Number.isFinite(rect.left)) return v;
       const cx = e.clientX - rect.left - rect.width / 2;
       const cy = e.clientY - rect.top - rect.height / 2;
       const k = z / v.z;
-      return { x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k, z };
+      if (!Number.isFinite(cx) || !Number.isFinite(cy) || !Number.isFinite(k)) return v;
+      return sanitizeView({ x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k, z }, v);
     });
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!Number.isFinite(e.clientX) || !Number.isFinite(e.clientY)) return;
     drag.current = { px: e.clientX, py: e.clientY };
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Pointer may already be released — capture is best-effort.
+    }
   }, []);
 
   const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.current) return;
+    if (!Number.isFinite(e.clientX) || !Number.isFinite(e.clientY)) return;
     const dx = e.clientX - drag.current.px;
     const dy = e.clientY - drag.current.py;
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
     drag.current = { px: e.clientX, py: e.clientY };
-    setView((v) => ({ ...v, x: v.x + dx, y: v.y + dy }));
+    setView((v) => sanitizeView({ ...v, x: v.x + dx, y: v.y + dy }, v));
   }, []);
 
   const endDrag = useCallback(() => {
@@ -73,7 +101,7 @@ function PanZoomViewport({ children }: { children: React.ReactNode }) {
       <div
         className="absolute left-1/2 top-4"
         style={{
-          transform: `translate(${view.x}px, ${view.y}px) scale(${view.z})`,
+          transform: `translate(${Number.isFinite(view.x) ? view.x : 0}px, ${Number.isFinite(view.y) ? view.y : 0}px) scale(${Number.isFinite(view.z) ? view.z : 1})`,
           transformOrigin: "0 0",
         }}
       >
@@ -486,8 +514,54 @@ function MemberCard({
   ]
     .filter(Boolean)
     .join(" ");
+  // v4.29.0 (TASK-019): rich hover tooltip rendered through a portal so
+  // it escapes both the `overflow: hidden` pan/zoom viewport and the
+  // scaled transform layer — bottom-row cards were clipped in half.
+  const [tip, setTip] = useState<{ x: number; y: number; flip: boolean } | null>(null);
+  const showTip = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    if (!r || !Number.isFinite(r.left)) return;
+    setTip({ x: r.left + r.width / 2, y: r.top, flip: r.top < 120 });
+  }, []);
+  const hideTip = useCallback(() => setTip(null), []);
+  const reign =
+    member.reign_start_turn != null
+      ? `reign T${member.reign_start_turn}${member.reign_end_turn != null ? `–T${member.reign_end_turn}` : member.is_dead ? "" : "–"}`
+      : null;
   return (
-    <div className={cls} title={spouse ? "Married into the dynasty" : undefined}>
+    <div
+      className={cls}
+      title={spouse ? "Married into the dynasty" : undefined}
+      onMouseEnter={showTip}
+      onMouseLeave={hideTip}
+    >
+      {tip &&
+        createPortal(
+          <div
+            className="pointer-events-none fixed z-[90] -translate-x-1/2 rounded-md border border-border bg-popover px-2.5 py-1.5 text-[11px] text-popover-foreground shadow-lg"
+            style={{
+              left: tip.x,
+              top: tip.flip ? tip.y + 8 : undefined,
+              bottom: tip.flip ? undefined : window.innerHeight - tip.y + 8,
+              maxWidth: 220,
+            }}
+          >
+            <div className="font-medium leading-tight">{member.name}</div>
+            <div className="text-muted-foreground leading-tight">
+              {member.relation}
+              {member.age > 0 ? ` · age ${member.age}` : ""}
+              {spouse ? " · married in" : ""}
+            </div>
+            {(member.is_dead || reign || member.succession_order > 0) && (
+              <div className="text-muted-foreground leading-tight">
+                {member.is_dead ? `†${member.death_cause ? ` ${member.death_cause}` : ""} ` : ""}
+                {reign ? `${reign} ` : ""}
+                {member.succession_order > 0 ? `#${member.succession_order} in line` : ""}
+              </div>
+            )}
+          </div>,
+          document.body,
+        )}
       <div className="gss-avatar" data-gender={member.gender}>
         {initials || "?"}
       </div>

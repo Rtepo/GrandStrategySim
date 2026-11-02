@@ -37,7 +37,11 @@ pub struct FinancialTransaction {
 /// f64 hyperinflation overflows. The dynamic `global_market.base_prices` is
 /// still used for import/export price calculation, but the HARD BOUNDS are
 /// always `immutable_base * PRICE_FLOOR` and `immutable_base * PRICE_CAP`.
-const PRICE_FLOOR: f64 = 0.2;
+/// v4.29.0 (TASK-016): the floor is anchored to ~unit production cost —
+/// firms reduce output/utilization rather than dump goods at ~50% below
+/// marginal cost. The old 0.2× floor let surplus clearing collapse CPI
+/// toward ~53 and drove every central bank to the zero lower bound.
+const PRICE_FLOOR: f64 = 0.75;
 const PRICE_CAP: f64 = 5.0;
 
 /// VAT-enabled market clearing result with tax records.

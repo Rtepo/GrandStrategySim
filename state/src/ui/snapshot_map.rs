@@ -304,6 +304,32 @@ pub struct FrontlineDto {
 /// Thin aliases over the shared geography hashing helpers — the worldgen
 /// border wiring (`wire_international_land_borders`) and this snapshot must
 /// agree bit-for-bit on every jitter value.
+/// v4.29.0 (TASK-017): deterministic cultural city-name generator.
+/// Each civilisation hashes to one of several phonotactic pools (stems +
+/// suffixes), so "Lechia" yields cities like "Vroskov" / "Zelmena" rather
+/// than a copy of the region's own name.
+fn cultural_city_name(country: &str, region_id: &str, is_capital: bool) -> String {
+    const POOLS: &[(&[&str], &[&str])] = &[
+        // Slavic-flavoured
+        (&["Vro", "Zel", "Kra", "Dro", "Belo", "Tver", "Novo"], &["skov", "grad", "mena", "via", "pol", "rin"]),
+        // Romance-flavoured
+        (&["Val", "Mon", "Tor", "Cas", "San", "Bel", "Por"], &["monte", "verde", "lia", "rosa", "dora", "mara"]),
+        // Germanic-flavoured
+        (&["Nor", "Eisen", "Hol", "Falk", "Brun", "Ost", "Wol"], &["haven", "burg", "feld", "stad", "holm", "wick"]),
+        // Turkic/Steppe-flavoured
+        (&["Ka", "Ba", "Tar", "Al", "Su", "Or", "Ka"], &["zan", "kent", "gul", "shar", "bek", "tam"]),
+        // Celtic-flavoured
+        (&["Aber", "Dun", "Kil", "Bal", "Inver", "Glen", "Car"], &["deen", "more", "low", "ness", "dhu", "rick"]),
+        // Hellenic-flavoured
+        (&["Ne", "Thessa", "Ka", "My", "Ara", "Pha", "Cor"], &["polis", "lon", "thos", "dra", "nia", "kos"]),
+    ];
+    let pool = &POOLS[(hash_unit(country, 911) * POOLS.len() as f64) as usize % POOLS.len()];
+    let key = |salt: u64| hash_unit(&format!("{country}:{region_id}"), salt);
+    let stem = pool.0[(key(913) * pool.0.len() as f64) as usize % pool.0.len()];
+    let idx = (key(if is_capital { 919 } else { 917 }) * pool.1.len() as f64) as usize;
+    format!("{stem}{}", pool.1[idx % pool.1.len()])
+}
+
 fn hash_unit(s: &str, salt: u64) -> f64 {
     map_hash_unit(s, salt)
 }
@@ -1688,15 +1714,61 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 .cmp(&regions_out[a].urban_population)
         });
         let mut cities = Vec::new();
+        // v4.29.0 (TASK-017): cultural city names — generated per
+        // civilisation instead of copying the region's name — and every
+        // city/capital marker is pushed off any lake polygon inside its
+        // region cell so stars/dots never sit on water.
+        let lakes_by_region: std::collections::HashMap<&str, Vec<&Vec<MapPoint>>> = {
+            let mut m: std::collections::HashMap<&str, Vec<&Vec<MapPoint>>> =
+                std::collections::HashMap::new();
+            for f in &features_out {
+                if f.kind == "lake" || f.kind == "inland_sea" {
+                    m.entry(f.region_id.as_str()).or_default().push(&f.points);
+                }
+            }
+            m
+        };
         for &i in by_urban.iter().take(12) {
             let r = &regions_out[i];
             if r.urban_population <= 0 && !r.is_capital_district {
                 continue;
             }
+            let mut pt = r.centroid.clone();
+            if let Some(lakes) = lakes_by_region.get(r.id.as_str()) {
+                for lake in lakes {
+                    let raw: Vec<(f64, f64)> =
+                        lake.iter().map(|p| (p.x, p.y)).collect();
+                    if point_in_polygon((pt.x, pt.y), &raw) {
+                        // Land-only centroid: pick the region's polygon
+                        // vertex farthest from the lake's centre.
+                        let n = lake.len() as f64;
+                        let (lx, ly) = lake.iter().fold((0.0, 0.0), |(ax, ay), p| {
+                            (ax + p.x / n, ay + p.y / n)
+                        });
+                        let cell = region_cells[color_index]
+                            .get(i)
+                            .cloned()
+                            .unwrap_or_default();
+                        let mut best = (pt.x, pt.y);
+                        let mut best_d = -1.0;
+                        for v in &cell {
+                            if point_in_polygon(*v, &raw) {
+                                continue;
+                            }
+                            let d = (v.0 - lx).powi(2) + (v.1 - ly).powi(2);
+                            if d > best_d {
+                                best_d = d;
+                                best = *v;
+                            }
+                        }
+                        pt = MapPoint { x: best.0, y: best.1 };
+                    }
+                }
+            }
             cities.push(MapCityDto {
                 region_id: r.id.clone(),
-                name: r.name.clone(),
-                point: r.centroid.clone(),
+                name: cultural_city_name(&layout.name, &r.id, r.is_capital_district),
+                point: pt,
                 population: r.urban_population,
                 is_capital: r.is_capital_district,
             });
@@ -2309,6 +2381,12 @@ pub struct MapParcelDto {
     pub dominant_party: String,
     /// Winning faction's precinct share (0–1).
     pub party_share: f64,
+    /// v4.29.0 (TASK-018): dominant NATIONAL parliamentary party in this
+    /// precinct + its national seat share — powers the Party Support
+    /// sub-toggle (National Parties vs Regional Council Factions).
+    pub national_party: String,
+    /// National party's seat share (0–1).
+    pub national_share: f64,
 }
 
 /// A region's cadastral parcel layout for the Regions-page drill-down map.
@@ -2427,8 +2505,198 @@ pub fn build_region_parcel_map(
         })
         .unwrap_or_default();
 
+    // v4.29.0 (TASK-018): spatial seed clustering — instead of rendering
+    // parcels in raw slotmap order (random zoning noise), each cell is
+    // assigned to a contiguous zone grown by BFS from a deterministic seed:
+    //   water     → anchored on a corner/edge (river mouth)
+    //   industrial→ 2–3 zones grown near water or an edge rail hub
+    //   commercial→ city centre
+    //   residential→ ring around commercial
+    //   the rest  → agricultural plains / hills & forest clusters
+    let cell_class: Vec<String> = {
+        let class_of = |pid: &crate::society::cadastre::ParcelId| -> &'static str {
+            let p = country.cadastre.get(*pid).expect("parcel");
+            if p.devastation_index >= 0.3 {
+                "devastated"
+            } else if p.topography.water_access != crate::society::cadastre::WaterAccessType::None {
+                "water"
+            } else {
+                match p.zoning {
+                    ZoningDesignation::Industrial => "industrial",
+                    ZoningDesignation::Commercial => "commercial",
+                    ZoningDesignation::Residential => "residential",
+                    _ => "rural",
+                }
+            }
+        };
+        let counts: std::collections::BTreeMap<&'static str, usize> = {
+            let mut m: std::collections::BTreeMap<&'static str, usize> =
+                std::collections::BTreeMap::new();
+            for pid in &pids {
+                *m.entry(class_of(pid)).or_default() += 1;
+            }
+            m
+        };
+        // BFS-grow each zone class from its seed over unassigned cells.
+        let mut cell_zone: Vec<&'static str> = vec![""; n];
+        let seed_pref = |cls: &str| -> (f64, f64) {
+            // Preferred seed location in normalized grid coords.
+            match cls {
+                "water" => (0.0, 0.0),
+                "industrial" => (1.0, 0.0),
+                "commercial" => (0.5, 0.5),
+                "residential" => (0.45, 0.6),
+                _ => (0.5, 1.0),
+            }
+        };
+        let order = ["water", "industrial", "commercial", "residential", "devastated", "rural"];
+        for cls in order {
+            let need = counts.get(cls).copied().unwrap_or(0);
+            if need == 0 {
+                continue;
+            }
+            // Split industrial into 2–3 contiguous zones.
+            let zones = if cls == "industrial" {
+                if need >= 10 {
+                    3usize
+                } else if need >= 4 {
+                    2
+                } else {
+                    1
+                }
+            } else {
+                1
+            };
+            let mut remaining = need;
+            for zi in 0..zones {
+                if remaining == 0 {
+                    break;
+                }
+                let target = remaining.div_ceil(zones - zi);
+                let (px, py) = seed_pref(cls);
+                // Offset successive industrial seeds along the edge.
+                let (sx, sy) = if zi == 0 {
+                    (px, py)
+                } else {
+                    (px, (zi as f64) / (zones as f64))
+                };
+                // Seed = unassigned cell nearest the preferred point.
+                let mut seed = usize::MAX;
+                let mut best = f64::MAX;
+                for (c, z) in cell_zone.iter().enumerate() {
+                    if !z.is_empty() {
+                        continue;
+                    }
+                    let gx = (c % cols) as f64 / cols as f64;
+                    let gy = (c / cols) as f64 / rows as f64;
+                    let d = (gx - sx).powi(2) + (gy - sy).powi(2)
+                        + hash_unit(&format!("zs:{region_id}:{cls}:{zi}:{c}"), 3) * 0.02;
+                    if d < best {
+                        best = d;
+                        seed = c;
+                    }
+                }
+                if seed == usize::MAX {
+                    break;
+                }
+                // BFS ring-growth from the seed.
+                let mut frontier = std::collections::VecDeque::from([seed]);
+                let mut grown = 0usize;
+                while let Some(c) = frontier.pop_front() {
+                    if !cell_zone[c].is_empty() {
+                        continue;
+                    }
+                    cell_zone[c] = cls;
+                    grown += 1;
+                    if grown >= target {
+                        break;
+                    }
+                    let (cr, cc) = (c / cols, c % cols);
+                    for (nr, nc) in [
+                        (cr.wrapping_sub(1), cc),
+                        (cr + 1, cc),
+                        (cr, cc.wrapping_sub(1)),
+                        (cr, cc + 1),
+                    ] {
+                        if nr < rows && nc < cols {
+                            let ni = nr * cols + nc;
+                            if ni < n && cell_zone[ni].is_empty() {
+                                frontier.push_back(ni);
+                            }
+                        }
+                    }
+                    if frontier.is_empty() {
+                        // Zone ran out of neighbours — jump to next free cell.
+                        if let Some(free) = (0..n).find(|&c| cell_zone[c].is_empty()) {
+                            frontier.push_back(free);
+                        }
+                    }
+                }
+                remaining = remaining.saturating_sub(grown);
+            }
+        }
+        // Anything unassigned (rounding gaps) fills with "rural".
+        cell_zone.iter_mut().for_each(|z| {
+            if z.is_empty() {
+                *z = "rural";
+            }
+        });
+        cell_zone.iter().map(|s| s.to_string()).collect()
+    };
+    // Reorder pids so the parcel rendered in cell i belongs to cell_class[i].
+    let mut ordered: Vec<crate::society::cadastre::ParcelId> = Vec::with_capacity(n);
+    {
+        let mut cursors: std::collections::BTreeMap<String, usize> =
+            std::collections::BTreeMap::new();
+        let classified: Vec<(crate::society::cadastre::ParcelId, String)> = pids
+            .iter()
+            .map(|pid| {
+                let p = country.cadastre.get(*pid).expect("parcel");
+                let cls = if p.devastation_index >= 0.3 {
+                    "devastated"
+                } else if p.topography.water_access
+                    != crate::society::cadastre::WaterAccessType::None
+                {
+                    "water"
+                } else {
+                    match p.zoning {
+                        ZoningDesignation::Industrial => "industrial",
+                        ZoningDesignation::Commercial => "commercial",
+                        ZoningDesignation::Residential => "residential",
+                        _ => "rural",
+                    }
+                };
+                (*pid, cls.to_string())
+            })
+            .collect();
+        for cls_name in &cell_class {
+            let start = cursors.entry(cls_name.clone()).or_insert(0);
+            let pid = classified
+                .iter()
+                .skip(*start)
+                .find(|(_, c)| c == cls_name)
+                .map(|(p, _)| *p)
+                .or_else(|| classified.last().map(|(p, _)| *p));
+            if let Some(pid) = pid {
+                *start = classified
+                    .iter()
+                    .position(|(p, _)| *p == pid)
+                    .unwrap_or(*start)
+                    + 1;
+                ordered.push(pid);
+            }
+        }
+        // Any leftovers (class mismatch) append deterministically.
+        for (pid, _) in &classified {
+            if !ordered.contains(pid) {
+                ordered.push(*pid);
+            }
+        }
+        ordered.truncate(n);
+    }
+
     let mut parcels = Vec::with_capacity(n);
-    for (i, pid) in pids.iter().enumerate() {
+    for (i, pid) in ordered.iter().enumerate() {
         let Some(p) = country.cadastre.get(*pid) else {
             continue;
         };
@@ -2480,38 +2748,69 @@ pub fn build_region_parcel_map(
             crate::society::cadastre::WaterAccessType::Lake => "lake",
             crate::society::cadastre::WaterAccessType::Sea => "coast",
             crate::society::cadastre::WaterAccessType::None => {
+                // v4.29.0 (TASK-018): full 8-biome palette — every region
+                // mixes its dominant biome with soil-driven farmland,
+                // marshy wetlands and hill relief so a single cadastral
+                // map shows ≥6 visually distinct terrain types.
+                let h2 = hash_unit(&format!("ter2:{region_id}:{pid:?}"), 213);
                 if p.topography.is_forest {
-                    "forest"
+                    // Forest parcels dominate wooded regions, but the
+                    // cadastral map needs relief: clearings (plains),
+                    // marshy hollows, highland treeline and steppe fringe.
+                    if h2 < 0.12 { "highlands" }
+                    else if h2 < 0.22 { "wetlands" }
+                    else if h2 < 0.32 { "plains" }
+                    else if h2 < 0.38 { "steppe" }
+                    else { "forest" }
                 } else if p.topography.is_natural_wonder {
-                    "highlands"
+                    if h2 < 0.4 { "mountains" } else { "highlands" }
                 } else {
-                    match region_biome {
-                        "Mountains" => {
-                            if h < 0.55 { "mountains" } else { "highlands" }
-                        }
-                        "Highlands" => {
-                            if h < 0.15 {
-                                "mountains"
-                            } else if h < 0.6 {
-                                "highlands"
-                            } else {
-                                "plains"
+                    // Fertile soils (Class I–II) read as farmland.
+                    let farmland = matches!(p.soil_class.as_str(), "Class_I" | "Class_II");
+                    if farmland && h2 < 0.35 {
+                        "farmland"
+                    } else {
+                        match region_biome {
+                            "Mountains" => {
+                                if h < 0.45 { "mountains" }
+                                else if h < 0.7 { "highlands" }
+                                else if h2 < 0.15 { "forest" }
+                                else { "plains" }
                             }
-                        }
-                        "Wetlands" => {
-                            if h < 0.5 { "wetlands" } else { "plains" }
-                        }
-                        "Forest" => {
-                            if h < 0.5 { "forest" } else { "plains" }
-                        }
-                        "Steppe" => {
-                            if h < 0.75 { "steppe" } else { "plains" }
-                        }
-                        "Coast" => {
-                            if h < 0.1 { "coast" } else { "plains" }
-                        }
-                        _ => {
-                            if h < 0.12 { "forest" } else { "plains" }
+                            "Highlands" => {
+                                if h < 0.12 { "mountains" }
+                                else if h < 0.55 { "highlands" }
+                                else if h2 < 0.2 { "forest" }
+                                else { "plains" }
+                            }
+                            "Wetlands" => {
+                                if h < 0.45 { "wetlands" }
+                                else if h2 < 0.2 { "forest" }
+                                else { "plains" }
+                            }
+                            "Forest" => {
+                                if h < 0.45 { "forest" }
+                                else if h2 < 0.15 { "highlands" }
+                                else if h2 < 0.3 { "wetlands" }
+                                else { "plains" }
+                            }
+                            "Steppe" => {
+                                if h < 0.55 { "steppe" }
+                                else if h2 < 0.2 { "farmland" }
+                                else { "plains" }
+                            }
+                            "Coast" => {
+                                if h < 0.08 { "coast" }
+                                else if h2 < 0.15 { "wetlands" }
+                                else { "plains" }
+                            }
+                            _ => {
+                                if h < 0.1 { "forest" }
+                                else if h2 < 0.12 { "wetlands" }
+                                else if h2 < 0.24 { "highlands" }
+                                else if h2 < 0.4 { "farmland" }
+                                else { "plains" }
+                            }
                         }
                     }
                 }
@@ -2519,6 +2818,40 @@ pub fn build_region_parcel_map(
         };
         // Precinct polling: region council shares + deterministic
         // neighbourhood noise → varied political wards on the parcel map.
+        // v4.29.0 (TASK-018): the national-parliament share is computed the
+        // same way from the country's seat map so the Party Support mode can
+        // toggle between National Parties and Regional Council Factions.
+        let (national_party, national_share) = {
+            let seats: Vec<(String, f64)> = country
+                .politics
+                .parliament_struct
+                .as_ref()
+                .map(|parl| {
+                    let m = parl.lower_seat_map();
+                    let tot: f64 = m.values().map(|v| *v as f64).sum::<f64>().max(1.0);
+                    m.into_iter().map(|(k, v)| (k, v as f64 / tot)).collect()
+                })
+                .unwrap_or_default();
+            if seats.is_empty() {
+                (String::new(), 0.0)
+            } else {
+                let roll = hash_unit(&format!("np:{region_id}:{pid:?}"), 229);
+                let noise = |i: usize| {
+                    (hash_unit(&format!("nn:{region_id}:{pid:?}:{i}"), 231) - 0.5) * 0.20
+                };
+                let mut acc = 0.0;
+                let mut pick = (String::new(), 0.0_f64);
+                for (i, (name, share)) in seats.iter().enumerate() {
+                    let w = (*share + noise(i)).max(0.02);
+                    acc += w;
+                    if roll <= acc || i == seats.len() - 1 {
+                        pick = (name.clone(), *share);
+                        break;
+                    }
+                }
+                pick
+            }
+        };
         let (dominant_party, party_share) = if faction_shares.is_empty() {
             (String::new(), 0.0)
         } else {
@@ -2556,6 +2889,8 @@ pub fn build_region_parcel_map(
             terrain: terrain.to_string(),
             dominant_party,
             party_share,
+            national_party,
+            national_share,
         });
     }
 
