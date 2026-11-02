@@ -1074,13 +1074,23 @@ pub fn generate_cadastre(
             let infrastructure_access =
                 (region.development_level * 0.4 + rng.gen_range(0.05..0.15)).clamp(0.05, 0.6);
 
-            // Initial zoning — state forests get ProtectedNatural, others use soil-based zoning
+            // Initial zoning — state forests get ProtectedNatural, others use
+            // soil + development-based zoning. v4.28.0 (TASK-012): industrial
+            // and commercial parcels now seed in proportion to regional
+            // development (≈ MPZP's ~30% industrial target in developed
+            // regions) — previously only Residential/Agricultural/Unplanned
+            // could ever appear, so the cadastral map showed no industry.
             let zoning = if land_use_tag == "forest_district" {
                 ZoningDesignation::ProtectedNatural
             } else if land_use_tag == "MunicipalReserve" {
                 ZoningDesignation::Unplanned
             } else {
-                pick_initial_zoning(soil_class, region.is_capital, rng)
+                pick_initial_zoning(
+                    soil_class,
+                    region.is_capital,
+                    region.development_level,
+                    rng,
+                )
             };
 
             // Border zone flag (10% chance for edge regions)
@@ -1364,12 +1374,36 @@ fn pick_owner(
 }
 
 /// Pick initial zoning for a parcel.
+///
+/// `development_level` (0.0–1.0) drives the urban share: in a developed
+/// region ≈30% of parcels are industrial (the MPZP target ratio), with
+/// commercial/mixed/residential neighbourhoods beside them; in a rural
+/// region most parcels stay agricultural or unsurveyed.
 fn pick_initial_zoning(
     soil_class: &str,
     is_capital: bool,
+    development_level: f64,
     rng: &mut impl Rng,
 ) -> ZoningDesignation {
-    if is_capital && rng.gen_range(0.0..1.0) < 0.5 {
+    let dev = development_level.clamp(0.0, 1.0);
+    let roll: f64 = rng.gen_range(0.0..1.0);
+    // Urban uses — shares scale with development; capital adds a
+    // residential bias on top.
+    let industrial_cap = 0.10 + dev * 0.25; // ~10–35%
+    let commercial_cap = industrial_cap + dev * 0.12; // +0–12%
+    let mixed_cap = commercial_cap + dev * 0.08; // +0–8%
+    let residential_cap =
+        mixed_cap + 0.10 + dev * 0.15 + if is_capital { 0.15 } else { 0.0 };
+    if roll < industrial_cap {
+        return ZoningDesignation::Industrial;
+    }
+    if roll < commercial_cap {
+        return ZoningDesignation::Commercial;
+    }
+    if roll < mixed_cap {
+        return ZoningDesignation::Mixed;
+    }
+    if roll < residential_cap {
         return ZoningDesignation::Residential;
     }
     // High-fertility soil → Agricultural

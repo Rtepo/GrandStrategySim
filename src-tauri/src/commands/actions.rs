@@ -227,6 +227,14 @@ pub async fn get_game_status(state: tauri::State<'_, AppState>) -> Result<GameSt
                 })
                 .collect();
 
+            let annexed_countries = engine_state
+                .game_state
+                .countries
+                .iter()
+                .filter(|(_, c)| c.annexed_by.is_some())
+                .map(|(name, _)| name.clone())
+                .collect();
+
             Ok(GameStatus {
                 has_game: true,
                 turn: calendar.global_turn,
@@ -236,6 +244,7 @@ pub async fn get_game_status(state: tauri::State<'_, AppState>) -> Result<GameSt
                 countries,
                 processing,
                 legislature_names,
+                annexed_countries,
             })
         }
         None => Ok(GameStatus {
@@ -247,6 +256,7 @@ pub async fn get_game_status(state: tauri::State<'_, AppState>) -> Result<GameSt
             countries: Vec::new(),
             processing,
             legislature_names: Default::default(),
+            annexed_countries: Vec::new(),
         }),
     }
 }

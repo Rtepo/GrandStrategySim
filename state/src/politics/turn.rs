@@ -45,6 +45,10 @@ pub fn process_political_year(
     unions: &mut [crate::entities::Union],
     year: u32,
 ) -> Vec<String> {
+    // v4.28.0 (TASK-011): an annexed state has no legislature.
+    if country.annexed_by.is_some() {
+        return Vec::new();
+    }
     let mut messages = Vec::new();
 
     // Phase 48: VIP Registry — age all VIPs, degrade health, check natural deaths.
@@ -821,6 +825,10 @@ pub fn process_political_turn(
     // anchored to real January rollover, not raw `turn / 24` sim-years.
     calendar: &crate::state::Calendar,
 ) -> Vec<String> {
+    // v4.28.0 (TASK-011): an annexed state has no legislature or politics.
+    if country.annexed_by.is_some() {
+        return Vec::new();
+    }
     let mut messages = Vec::new();
 
     // Phase 48: Drain pending unnatural deaths and trigger immediate succession.

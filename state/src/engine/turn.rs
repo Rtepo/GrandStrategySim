@@ -427,6 +427,118 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             );
         }
 
+        // ─────────────────────────────────────────────────────────────
+        // v4.28.0 (TASK-011): ZOMBIE-STATE SWEEP. A country holding zero
+        // land regions (or zero total population) capitulates: its liquid
+        // monetary balances and corporate cash liquidate into the state
+        // holding most of its former territory, its wars and fronts end,
+        // and `annexed_by` halts legislature/GDP ticks downstream.
+        // ─────────────────────────────────────────────────────────────
+        {
+            use crate::society::geography::NodeType;
+            // Pass A — detect zombies + resolve each one's annexer: the
+            // still-living country holding the most regions minted under
+            // the zombie's `"{Country}-Region{N}"` prefix (deterministic:
+            // max count, tiebreak by sorted name).
+            let mut zombies: Vec<String> = Vec::new();
+            let mut annexer_of: HashMap<String, String> = HashMap::new();
+            for (zname, z) in &state.countries {
+                let land = z
+                    .regions
+                    .iter()
+                    .filter(|r| r.node_type == NodeType::LandRegion)
+                    .count();
+                let pop: i64 = z.regions.iter().map(|r| r.population.max(0)).sum();
+                if land > 0 && pop > 0 {
+                    continue;
+                }
+                zombies.push(zname.clone());
+                // Already-capitulated shells re-enter the drain below —
+                // structural revenue legs keep crediting a dead treasury,
+                // so the sweep is a recurring invariant, not a one-shot.
+                if z.annexed_by.is_some() {
+                    continue;
+                }
+                let prefix = format!("{}-Region", zname);
+                let mut best: Option<(&String, usize)> = None;
+                for (cname, c) in &state.countries {
+                    if cname == zname || c.annexed_by.is_some() {
+                        continue;
+                    }
+                    let held = c
+                        .regions
+                        .iter()
+                        .filter(|r| r.id.starts_with(&prefix))
+                        .count();
+                    if held > 0 && best.map(|(_, n)| held > n).unwrap_or(true) {
+                        best = Some((cname, held));
+                    }
+                }
+                if let Some((cname, _)) = best {
+                    annexer_of.insert(zname.clone(), cname.clone());
+                }
+            }
+            // Pass B — execute capitulations. Estate transfers accumulate
+            // and apply after the mutable pass (two live &mut borrows into
+            // `state.countries` aren't allowed).
+            let mut estate_transfers: Vec<(String, f64)> = Vec::new();
+            let mut gold_transfers: Vec<(String, f64)> = Vec::new();
+            for zname in &zombies {
+                let aname = state
+                    .countries
+                    .get(zname)
+                    .and_then(|z| z.annexed_by.clone())
+                    .or_else(|| annexer_of.get(zname).cloned())
+                    .unwrap_or_default();
+                let z = state.countries.get_mut(zname).unwrap();
+                let mut estate = z.budget.liquid_reserves.max(0.0);
+                z.budget.liquid_reserves = 0.0;
+                let gold = z.central_bank.physical_gold_reserves.max(0.0);
+                z.central_bank.physical_gold_reserves = 0.0;
+                // Corporate liquidation: drain company cash pockets and
+                // place every company into receivership so its GDP stops.
+                if let Some(ents) = entity_tuples.get_mut(zname) {
+                    for company in &mut ents.0 {
+                        estate += (company.available_cash
+                            + company.debit_cash
+                            + company.liquid_capital)
+                            .max(0.0);
+                        company.available_cash = 0.0;
+                        company.debit_cash = 0.0;
+                        company.liquid_capital = 0.0;
+                        company.is_in_receivership = true;
+                    }
+                }
+                // Monetary + war ledgers die with the state.
+                z.central_bank.fx_reserves.clear();
+                z.central_bank.omo_bond_holdings = 0.0;
+                z.budget.gdp = 0.0;
+                z.macro_indicators.gdp_breakdown.official_gdp = 0.0;
+                z.at_war_with.clear();
+                z.military_fronts.clear();
+                if z.annexed_by.is_none() && !aname.is_empty() {
+                    z.annexed_by = Some(aname.clone());
+                }
+                if z.capitulated_turn.is_none() {
+                    z.capitulated_turn = Some(turn);
+                }
+                if !aname.is_empty() {
+                    estate_transfers.push((aname.clone(), estate));
+                    gold_transfers.push((aname, gold));
+                }
+            }
+            for (aname, amt) in estate_transfers {
+                if let Some(a) = state.countries.get_mut(&aname) {
+                    a.budget.liquid_reserves += amt;
+                }
+            }
+            for (aname, amt) in gold_transfers {
+                if let Some(a) = state.countries.get_mut(&aname) {
+                    a.central_bank.physical_gold_reserves += amt;
+                }
+            }
+        }
+
         // Phase 6.5: Use unified calendar from GameState
         let turn_calendar = &state.calendar;
 
@@ -630,10 +742,25 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
             }
             // v4.27.0 (TASK-009): `social_unrest` accumulated without any
             // decay — every producer only added, so it pinned at 100%
-            // forever ("universal 100% discontent"). Decay toward 0 at
-            // 3%/turn and clamp to the 0–100 scale the KPIs present.
+            // forever ("universal 100% discontent").
+            // v4.28.0 (TASK-014): mean-reversion toward a weighted
+            // baseline instead of blind decay — unemployment (~35%),
+            // inflation, and active war fronts drive the equilibrium to a
+            // realistic 5–35% in peacetime (higher under war).
+            let c = &task.ctx.country;
+            let unemployment = c.macro_indicators.labor_market.unemployment_rate
+                .max(0.0)
+                * 100.0;
+            let inflation = c.macro_indicators.inflation.abs().min(20.0);
+            let war = c
+                .military_fronts
+                .iter()
+                .filter(|f| f.is_active(turn, 6))
+                .count() as f64;
+            let baseline = (5.0 + unemployment * 0.35 + inflation * 1.2 + war * 9.0)
+                .clamp(5.0, 45.0);
             let unrest = &mut task.ctx.country.macro_indicators.social_unrest;
-            *unrest = (*unrest * 0.97).clamp(0.0, 100.0);
+            *unrest = (*unrest + (baseline - *unrest) * 0.12).clamp(0.0, 100.0);
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
         #[cfg(feature = "diagnostic")]
@@ -764,6 +891,12 @@ pub fn run_turn_inner<P: crate::engine::diagnostic::TurnProbe>(
         let _saved_rng_state = crate::engine::seeded_rng::save_stream();
         tasks.par_iter_mut().for_each(|task| {
             crate::engine::seed_propagation::ensure_worker_seeded();
+            // v4.28.0 (TASK-011): annexed states get no deficit-financing
+            // advance — the treasury of a capitulated ledger shell stays
+            // drained instead of being refilled by its own CB.
+            if task.ctx.country.annexed_by.is_some() {
+                return;
+            }
             let prev_g = task
                 .ctx
                 .country
@@ -12820,8 +12953,12 @@ tasks.par_iter_mut().for_each(|task| {
                 .insert("gdp_g_sources".to_string(), serde_json::Value::Object(g_src));
 
             // Also update Treasury.gdp for downstream consumers (CB rate setter, etc.)
-            task.ctx.country.budget.gdp =
-                task.ctx.country.macro_indicators.gdp_breakdown.official_gdp;
+            // v4.28.0 (TASK-011): annexed shells stay at GDP 0 — the GDP
+            // tick is halted for them.
+            if task.ctx.country.annexed_by.is_none() {
+                task.ctx.country.budget.gdp =
+                    task.ctx.country.macro_indicators.gdp_breakdown.official_gdp;
+            }
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
@@ -13726,13 +13863,15 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
             // include it) then had no matching residual to distribute.
             // v4.19: `consumption` holds MONETIZED spending only; the full
             // identity keeps `imputed_consumption` as its own term.
-            country.macro_indicators.gdp_breakdown.official_gdp =
-                country.macro_indicators.gdp_breakdown.consumption
-                    + country.macro_indicators.gdp_breakdown.imputed_consumption
-                    + country.macro_indicators.gdp_breakdown.government_spending
-                    + country.macro_indicators.gdp_breakdown.investment
-                    + country.macro_indicators.gdp_breakdown.net_exports;
-            country.budget.gdp = country.macro_indicators.gdp_breakdown.official_gdp;
+            if country.annexed_by.is_none() {
+                country.macro_indicators.gdp_breakdown.official_gdp =
+                    country.macro_indicators.gdp_breakdown.consumption
+                        + country.macro_indicators.gdp_breakdown.imputed_consumption
+                        + country.macro_indicators.gdp_breakdown.government_spending
+                        + country.macro_indicators.gdp_breakdown.investment
+                        + country.macro_indicators.gdp_breakdown.net_exports;
+                country.budget.gdp = country.macro_indicators.gdp_breakdown.official_gdp;
+            }
         }
     }
 
@@ -14764,6 +14903,33 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
     ctx.market = market;
     ctx.diplomacy = diplomacy;
     ctx.entities = entities;
+
+    // v4.28.0 (TASK-011): END-OF-TURN zombie drain. The early sweep
+    // capitulates dead states before tasks run, but dozens of revenue
+    // legs (taxes, fines, debt issuance, legalisation fees…) credit the
+    // corpse's treasury during task execution. Re-drain now so an
+    // annexed shell's end-of-turn balance is actually zero, and route
+    // the residue to the annexer.
+    {
+        let mut residue: Vec<(String, f64)> = Vec::new();
+        for z in state.countries.values_mut() {
+            let Some(aname) = z.annexed_by.clone() else {
+                continue;
+            };
+            let amt = z.budget.liquid_reserves.max(0.0)
+                + z.central_bank.liquidity_injected.max(0.0);
+            if amt > 0.0 {
+                z.budget.liquid_reserves = 0.0;
+                z.central_bank.liquidity_injected = 0.0;
+                residue.push((aname, amt));
+            }
+        }
+        for (aname, amt) in residue {
+            if let Some(a) = state.countries.get_mut(&aname) {
+                a.budget.liquid_reserves += amt;
+            }
+        }
+    }
 
     Ok(())
 }

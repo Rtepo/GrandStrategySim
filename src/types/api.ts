@@ -333,6 +333,32 @@ defender_casualties: bigint,
 turn: number, };
 
 /**
+ * v4.28.0 (TASK-013): one row of a battle's order of battle — a single
+ * engaged unit with its branch badge, strength and attributed losses.
+ */
+export type BattleUnitRow = { 
+/**
+ * Display name — regimental name, never a raw `UNIT-*` id.
+ */
+name: string, 
+/**
+ * Branch badge token: `INF` | `ART` | `ARM` | `AIR` | `NAV` | `MIL`.
+ */
+badge: string, 
+/**
+ * Branch display label ("Infantry", "Artillery", …).
+ */
+branch: string, 
+/**
+ * Committed manpower at battle time.
+ */
+manpower: bigint, 
+/**
+ * Attributed casualties (manpower share of the side's total).
+ */
+losses: bigint, };
+
+/**
  * v4.18: Bill detail payload for the expandable drawer — provisions,
  * sponsor, effective turn.
  */
@@ -1883,6 +1909,40 @@ debt_held_by_foreign: number, m0: number, m3: number, cb_reference_rate: number,
 ministry_expenditure_breakdown: Array<MinistryExpenditureEntry>, };
 
 /**
+ * v4.28.0 (TASK-011): an active war frontline — the shared border between
+ * two belligerents' regions plus recent battle points.
+ */
+export type FrontlineDto = { 
+/**
+ * Front id.
+ */
+id: string, 
+/**
+ * Front display name.
+ */
+name: string, 
+/**
+ * Aggressor country name.
+ */
+attacker: string, 
+/**
+ * Defender country name.
+ */
+defender: string, 
+/**
+ * Shared-border polylines (world-map units) — thick dashed render.
+ */
+segments: Array<Array<MapPoint>>, 
+/**
+ * Regions currently contested on this front.
+ */
+regions: Array<string>, 
+/**
+ * Recent battle locations (crossed-swords markers).
+ */
+battle_points: Array<MapPoint>, };
+
+/**
  * Phase 57: Detailed fund view for the fund detail panel.
  */
 export type FundDetail = { fund_id: string, name: string, fund_type: string, 
@@ -1984,7 +2044,16 @@ export type FxBasketEntry = { currency: string, amount: number, exchange_rate: n
 /**
  * v4.27.0 (TASK-010): one foreign-currency reserve holding.
  */
-export type FxReserveRow = { currency: string, amount: number, };
+export type FxReserveRow = { currency: string, 
+/**
+ * v4.28.0 (TASK-015): display name ("Lechian Marka") resolved from
+ * the in-game currency code — replaces real-world "USD/EUR/GBP".
+ */
+currency_name: string, 
+/**
+ * v4.28.0 (TASK-015): units of domestic currency per unit of foreign.
+ */
+exchange_rate: number, amount: number, };
 
 /**
  * Response for the get_game_status command.
@@ -2002,7 +2071,13 @@ season: string, processing: boolean, countries: Array<string>,
  * v4.22 WS2.1: per-country regime legislature name (e.g. "Royal
  * Council", "National Salvation Junta") for the sidebar tab label.
  */
-legislature_names: { [key in string]: string }, };
+legislature_names: { [key in string]: string }, 
+/**
+ * v4.28.0 TASK-011: capitulated ("annexed") states — the selector
+ * badges them so a zombie ledger shell can't be confused with a
+ * living nation.
+ */
+annexed_countries: Array<string>, };
 
 /**
  * National + per-region GDP composition with a ~24-turn history.
@@ -2616,7 +2691,25 @@ land_use_tag: string,
  * v4.27.0: real parcel topography (`river` | `lake` | `sea` | `none`)
  * — water parcels render as rivers/lakes on the cadastral map.
  */
-water_access: string, };
+water_access: string, 
+/**
+ * v4.28.0 (TASK-012): parcel-level terrain for the Topography map —
+ * `mountains` | `highlands` | `forest` | `plains` | `steppe` |
+ * `wetlands` | `coast` | `river` | `lake`. Water parcels always map to
+ * their water class; land parcels inherit a deterministic mix around
+ * the region biome.
+ */
+terrain: string, 
+/**
+ * v4.28.0 (TASK-012): precinct-level dominant faction — the parcel's
+ * local council ward winner (region seat shares + deterministic
+ * neighbourhood noise).
+ */
+dominant_party: string, 
+/**
+ * Winning faction's precinct share (0–1).
+ */
+party_share: number, };
 
 /**
  * A single 2D point in world-map space (procedural units, not lat/lon).
@@ -2632,9 +2725,16 @@ export type MapRegionDto = {
  */
 id: string, 
 /**
- * Owning country name.
+ * Owning country name (current sovereign — follows `owner_country`
+ * through annexations; the layout position never moves).
  */
 country: string, 
+/**
+ * v4.28.0 (TASK-011): palette index of the CURRENT owner (the country
+ * ordering index of `owner_country`). The fill uses this so annexed
+ * land repaints without moving a vertex.
+ */
+owner_color_index: bigint, 
 /**
  * Display name (`display_name` with `id` fallback).
  */
@@ -3028,12 +3128,25 @@ export type MovementDetailData = { movement_type: string, initiating_class: stri
  * v4.27.0 (TASK-010): one MPC rate decision — rates, bps change, macro
  * rationale and the committee roll-call.
  */
-export type MpcDecisionRow = { turn: number, previous_rate: number, new_rate: number, bps_change: number, cpi: number, output_gap: number, rationale: string, votes: Array<MpcVoteRow>, };
+export type MpcDecisionRow = { turn: number, previous_rate: number, new_rate: number, bps_change: number, cpi: number, output_gap: number, rationale: string, votes: Array<MpcVoteRow>, 
+/**
+ * v4.28.0 (TASK-015): credit growth at decision time — part of the
+ * expandable economic briefing.
+ */
+credit_growth: number, };
 
 /**
  * v4.27.0 (TASK-010): one MPC roll-call vote.
  */
-export type MpcVoteRow = { member_name: string, vote: string, };
+export type MpcVoteRow = { member_name: string, vote: string, 
+/**
+ * v4.28.0 (TASK-015): member's policy stance (Hawk/Dove/Centrist).
+ */
+stance: string, 
+/**
+ * v4.28.0 (TASK-015): dissenting opinion when voting Against.
+ */
+dissent: string, };
 
 /**
  * Phase 86.5B: Municipal AI snapshot for a country.
@@ -4618,6 +4731,14 @@ location: string,
  */
 result: string, 
 /**
+ * v4.28.0 (TASK-013): attacking country — battle-line header.
+ */
+attacker: string, 
+/**
+ * v4.28.0 (TASK-013): defending country — battle-line header.
+ */
+defender: string, 
+/**
  * Engaged unit ids, attacker side.
  */
 attacker_units: Array<string>, 
@@ -4686,7 +4807,36 @@ attacker_doctrine: string,
 /**
  * v4.27.0 (TASK-007): tactical doctrine employed by the defender.
  */
-defender_doctrine: string, };
+defender_doctrine: string, 
+/**
+ * v4.28.0 (TASK-013): attacker order of battle — one row per engaged
+ * unit with branch badge, committed strength and attributed losses.
+ */
+attacker_order: Array<BattleUnitRow>, 
+/**
+ * v4.28.0 (TASK-013): defender order of battle.
+ */
+defender_order: Array<BattleUnitRow>, 
+/**
+ * v4.28.0 (TASK-013): mean organization/morale across the engaged
+ * attacker units (0–1).
+ */
+attacker_morale: number, 
+/**
+ * v4.28.0 (TASK-013): mean organization/morale across engaged
+ * defender units.
+ */
+defender_morale: number, 
+/**
+ * v4.28.0 (TASK-013): combined-arms completeness 0–1 — distinct
+ * combat branches committed (Inf/Art/Arm/Air) out of the 3 needed
+ * for the full doctrine bonus.
+ */
+attacker_combined_arms: number, 
+/**
+ * v4.28.0 (TASK-013): defender combined-arms completeness.
+ */
+defender_combined_arms: number, };
 
 /**
  * A single active war/front row for the Military dashboard.
@@ -4837,6 +4987,51 @@ uncollected_biohazard: number,
 leachate_leakage: number, };
 
 /**
+ * v4.28.0 (TASK-011): a named, clickable water body on the world map.
+ */
+export type WaterBodyDto = { 
+/**
+ * Stable id (`"sea-{continent}"`, `"lake-{region_id}"`).
+ */
+id: string, 
+/**
+ * Display name ("Gallian Sea", "Lake Marholm").
+ */
+name: string, 
+/**
+ * `"sea"` | `"ocean"` | `"inland_sea"` | `"lake"`.
+ */
+kind: string, 
+/**
+ * Polygon outline (world-map units) — rendered + clickable.
+ */
+boundary: Array<MapPoint>, 
+/**
+ * Label anchor.
+ */
+center: MapPoint, 
+/**
+ * Surface area in km².
+ */
+area_km2: number, 
+/**
+ * Mean depth in metres.
+ */
+depth_m: number, 
+/**
+ * Navigable by ocean-going shipping.
+ */
+navigable: boolean, 
+/**
+ * Region ids whose polygons border this water body.
+ */
+bordering_regions: Array<string>, 
+/**
+ * Owning continent index (-1 for shared ocean).
+ */
+continent: bigint, };
+
+/**
  * Phase 83: Water grid snapshot for UI display.
  *
  * Role-gating (Rule 11):
@@ -4941,7 +5136,17 @@ min_region_polygon_vertices: number,
  * stay 0 (sites are clamped inside the country boundary; deliberate
  * islands get real blob polygons instead).
  */
-degenerate_region_count: number, };
+degenerate_region_count: number, 
+/**
+ * v4.28.0 (TASK-011): named, clickable water bodies — continental
+ * seas, shared oceans, inland seas and lakes.
+ */
+water_bodies: Array<WaterBodyDto>, 
+/**
+ * v4.28.0 (TASK-011): active war frontlines — polylines along shared
+ * enemy borders rendered as thick dashed markers.
+ */
+frontlines: Array<FrontlineDto>, };
 
 /**
  * Phase 60: Zoning plan row (public data).

@@ -1,6 +1,6 @@
 [package]
 name = "sim_engine"
-version = "4.27.0"
+version = "4.28.0"
 edition = "2021"
 description = "Rust migration of the Grand Strategy simulation engine (Target 0: static registries & core math)."
 license = "MIT"
@@ -52,6 +52,10 @@ path = "tests/determinism_fingerprint_test.rs"
 [[test]]
 name = "v4270_release_gates"
 path = "tests/v4270_release_gates.rs"
+
+[[test]]
+name = "v4280_release_gates"
+path = "tests/v4280_release_gates.rs"
 
 # ============================================================================
 # v4: Epic test targets — only compiled with --features epic-tests

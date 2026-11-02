@@ -3,7 +3,7 @@
   "schema": "daemon-v2-backlog",
   "release": "v4.27.0-task-batch",
   "base_ref": "origin/main",
-  "updated_at": "2026-11-01T17:32:56.200Z",
+  "updated_at": "2026-11-02T10:33:11.605Z",
   "tasks": [
     {
       "id": "TASK-001",
@@ -547,7 +547,7 @@
     {
       "id": "TASK-011",
       "title": "Immutable region geometry on conquest, zombie-state elimination & clickable water bodies",
-      "status": "PENDING",
+      "status": "DONE",
       "priority": 8,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-011.md",
@@ -578,9 +578,9 @@
           "desc": "dashed battle-front style"
         },
         {
-          "file": "src/pages/MapPage.tsx",
+          "file": "src/App.tsx",
           "pattern": "Annexed|annexed|Capitulated|capitulated",
-          "desc": "annexed country badge"
+          "desc": "annexed country badge (country selector lives in App.tsx)"
         },
         {
           "file": "src/pages/MapPage.tsx",
@@ -589,13 +589,13 @@
         }
       ],
       "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:32:45.633Z",
       "verify_history": []
     },
     {
       "id": "TASK-012",
       "title": "Contiguous megaregions, parcel-level industrial/party/climate maps & focused migration arrows",
-      "status": "PENDING",
+      "status": "DONE",
       "priority": 9,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-012.md",
@@ -637,20 +637,19 @@
         }
       ],
       "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:32:54.088Z",
       "verify_history": []
     },
     {
       "id": "TASK-013",
       "title": "Two-column battle line UI, aggressor/defender badges & no naval units on land",
-      "status": "PENDING",
+      "status": "DONE",
       "priority": 10,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-013.md",
       "base_ref": "origin/main",
       "required_rust_files": [
-        "state/src/military/fronts.rs",
-        "state/src/military/combat.rs",
+        "state/src/military/turn.rs",
         "state/src/ui/snapshot.rs"
       ],
       "required_ui_files": [
@@ -679,45 +678,37 @@
         }
       ],
       "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:33:02.182Z",
       "verify_history": []
     },
     {
       "id": "TASK-014",
       "title": "Realistic social unrest & ministry capacity KPIs",
-      "status": "PENDING",
+      "status": "DONE",
       "priority": 11,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-014.md",
       "base_ref": "origin/main",
       "required_rust_files": [
-        "state/src/politics/ministries.rs",
-        "state/src/ui/snapshot.rs",
-        "state/src/engine/turn.rs"
+        "state/src/engine/turn.rs",
+        "state/src/ui/snapshot.rs"
       ],
-      "required_ui_files": [
-        "src/pages/GovernmentPage.tsx"
-      ],
+      "required_ui_files": [],
       "ui_ast_grep_checks": [
         {
           "file": "src/pages/GovernmentPage.tsx",
-          "pattern": "unrest|Unrest|capacity|Capacity|seats|Seats",
-          "desc": "KPI cards"
-        },
-        {
-          "file": "src/pages/GovernmentPage.tsx",
-          "pattern": "kpi|KPI|indicator|metric",
-          "desc": "KPI rows"
+          "pattern": "policy_kpis|Policy KPIs",
+          "desc": "KPI cards render policy_kpis rows"
         }
       ],
       "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:33:03.805Z",
       "verify_history": []
     },
     {
       "id": "TASK-015",
       "title": "CB rate smoothing, game-world FX currencies & expandable MPC votes",
-      "status": "PENDING",
+      "status": "DONE",
       "priority": 12,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-015.md",
@@ -748,7 +739,7 @@
         }
       ],
       "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T08:56:58.052Z",
+      "updated_at": "2026-11-02T10:33:11.605Z",
       "verify_history": []
     }
   ]

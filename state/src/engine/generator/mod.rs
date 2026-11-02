@@ -240,7 +240,10 @@ pub fn generate_world(
             );
         }
         let mut region_ids: Vec<String> = country_regions.keys().cloned().collect();
-        region_ids.sort();
+        // Numeric suffix order (Region1, Region2, …) — matches the world
+        // map's `map_region_sort_key` slot order so ring-plan adjacency in
+        // `generate_megaregions` mirrors rendered adjacency.
+        region_ids.sort_by_key(|a| map_region_sort_key(a));
         let mut megaregion_list =
             generate_megaregions(name, &region_ids, country.politics.state_structure);
 
@@ -843,6 +846,8 @@ fn generate_country(
         politics: Politics::default(),
         regions: Vec::new(),
         megaregions: Vec::new(),
+        annexed_by: None,
+        capitulated_turn: None,
         last_migration_flows: Vec::new(),
         last_internal_flows: Vec::new(),
         is_rebellion: false,
@@ -2518,11 +2523,30 @@ fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> cr
     let prefix = name[..3.min(name.len())].to_uppercase();
     let fx_reserve_value = treasury.gdp * rng.gen_range(0.05..0.20);
 
-    // Initialize FX reserves with some foreign currencies
+    // v4.28.0 (TASK-015): FX reserves hold IN-GAME currencies keyed by the
+    // issuing country's prefix (LEA, ELD, SAR, …) — never real-world
+    // USD/EUR/GBP. Weighted basket of the 3 largest trade neighbours,
+    // deterministic per country name via the rng stream order.
     let mut fx_reserves = std::collections::HashMap::new();
-    fx_reserves.insert("USD".to_string(), fx_reserve_value * 0.5);
-    fx_reserves.insert("EUR".to_string(), fx_reserve_value * 0.3);
-    fx_reserves.insert("GBP".to_string(), fx_reserve_value * 0.2);
+    let mut others: Vec<&str> = COUNTRY_NAMES
+        .iter()
+        .copied()
+        .filter(|c| *c != name)
+        .collect();
+    others.sort();
+    // Deterministic but varied 3-currency basket: rotate the pick window
+    // by the country's position in COUNTRY_NAMES.
+    let own_idx = COUNTRY_NAMES.iter().position(|c| *c == name).unwrap_or(0);
+    for i in 0..3 {
+        let c = others[(own_idx * 5 + i * 4) % others.len()];
+        let code = c[..3.min(c.len())].to_uppercase();
+        let share = match i {
+            0 => 0.50,
+            1 => 0.30,
+            _ => 0.20,
+        };
+        *fx_reserves.entry(code).or_insert(0.0) += fx_reserve_value * share;
+    }
 
     // Phase 38: Initialize interest rates anchored to the neutral rate (2%)
     // rather than a random 1-10% range. This ensures the first turn's sovereign
@@ -2533,11 +2557,50 @@ fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> cr
     let lombard_rate = reference_rate + 0.015; // +150 bps
     let deposit_rate = (reference_rate - 0.015).max(0.0_f64); // -150 bps, floor at 0
 
+    // v4.28.0 (TASK-015): mandate + independence vary by regime hash —
+    // no more cloned "Dual Mandate / 80%" on every central bank.
+    let regime_hash = crate::society::geography::map_hash_unit(name, 977);
+    let independence_model = if regime_hash < 0.25 {
+        crate::state::CentralBankIndependence::Federal
+    } else if regime_hash < 0.75 {
+        crate::state::CentralBankIndependence::CentralIndependent
+    } else {
+        crate::state::CentralBankIndependence::Dependent
+    };
+    let mandate_hash = crate::society::geography::map_hash_unit(name, 991);
+    let mandate = if mandate_hash < 0.25 {
+        crate::state::MonetaryMandate::GoldStandard
+    } else if mandate_hash < 0.45 {
+        crate::state::MonetaryMandate::Inflationary
+    } else if mandate_hash < 0.70 {
+        crate::state::MonetaryMandate::Mixed
+    } else if mandate_hash < 0.85 {
+        crate::state::MonetaryMandate::ExchangeRatePeg
+    } else {
+        crate::state::MonetaryMandate::TreasuryFinancing
+    };
+    // Independence index 15–95% — model base ± deterministic regime offset.
+    let model_base = match independence_model {
+        crate::state::CentralBankIndependence::Federal => 0.85,
+        crate::state::CentralBankIndependence::CentralIndependent => 0.65,
+        crate::state::CentralBankIndependence::Dependent => 0.25,
+    };
+    let independence_override =
+        Some((model_base + (regime_hash - 0.5) * 0.2).clamp(0.15, 0.95) * 100.0);
+
+    // v4.28.0 (TASK-015): realistic 1900 bullion holdings — 50–2,500 t
+    // scaled by economy size (was ~208,000 t from an unscaled formula).
+    let gold_tons = (fx_reserve_value * 0.30
+        / crate::state::gold::GOLD_PRICE_IEU_1900
+        / 1_000_000.0)
+        .clamp(50.0, 2500.0);
+
     crate::state::CentralBank {
         id: format!("BC-{}", prefix),
         name: format!("Central Bank of {}", name),
-        independence_model: crate::state::CentralBankIndependence::CentralIndependent,
-        mandate: crate::state::MonetaryMandate::Mixed,
+        independence_model,
+        independence_override,
+        mandate,
         governor_id: format!("GOV-{}-001", prefix),
         governor_appointment_turn: 0,
         governor_term_length: 60, // 5 years (assuming 12 turns/year)
@@ -2564,8 +2627,7 @@ fn build_central_bank(name: &str, treasury: &Treasury, rng: &mut impl Rng) -> cr
         // ~30% of the country's fx-reserve value held as physical bullion
         // in the central bank vault (credited to state.vaults where the
         // GameState is assembled).
-        physical_gold_reserves: fx_reserve_value * 0.30
-            / crate::state::gold::GOLD_PRICE_IEU_1900,
+        physical_gold_reserves: gold_tons,
         liquidity_injected: 0.0,
         domestic_currency_repatriated: 0.0,
         omo_bond_holdings: 0.0,

@@ -172,6 +172,10 @@ function CentralBankPanel({ cb }: { cb: CentralBankDto }) {
   const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
   const lastDecisions = [...cb.mpc_decisions].reverse().slice(0, 12);
   const lastOps = [...cb.omo_log].reverse().slice(0, 12);
+  // v4.28.0 (TASK-015): expandable MPC rows — briefing + vote table.
+  const [expandedMpc, setExpandedMpc] = useState<number | null>(null);
+  const [showAllFx, setShowAllFx] = useState(false);
+  const fxRows = showAllFx ? cb.fx_reserves : cb.fx_reserves.slice(0, 5);
   return (
     <div className="space-y-4">
       {/* Governor + institution card */}
@@ -235,9 +239,24 @@ function CentralBankPanel({ cb }: { cb: CentralBankDto }) {
         <CardContent className="grid grid-cols-2 gap-x-8 text-sm">
           <div className="space-y-1.5">
             <Dl label="Gold reserves" value={`${cb.gold_reserves_tons.toFixed(1)} t · ${fmt(cb.gold_reserves_value)}`} bold />
-            {cb.fx_reserves.map((f) => (
-              <Dl key={f.currency} label={`FX · ${f.currency}`} value={fmt(f.amount)} />
+            {/* v4.28.0 (TASK-015): in-game FX reserve table — named
+                currencies + exchange rate, expandable beyond 5 rows. */}
+            {fxRows.map((f) => (
+              <Dl
+                key={f.currency}
+                label={`FX · ${f.currency_name}`}
+                value={`${fmt(f.amount)} · ${f.exchange_rate.toFixed(3)}/IEU`}
+              />
             ))}
+            {cb.fx_reserves.length > 5 && (
+              <button
+                type="button"
+                className="text-xs text-primary hover:underline"
+                onClick={() => setShowAllFx((s) => !s)}
+              >
+                {showAllFx ? "Collapse" : `Show all ${cb.fx_reserves.length} currencies…`}
+              </button>
+            )}
           </div>
           <div className="space-y-1.5">
             <Dl label="Gov. bonds (OMO)" value={fmt(cb.omo_bond_holdings)} />
@@ -266,22 +285,68 @@ function CentralBankPanel({ cb }: { cb: CentralBankDto }) {
                 <TableEmpty colSpan={6} message="No MPC decisions recorded yet" />
               ) : (
                 lastDecisions.map((d) => (
-                  <TableRow key={d.turn}>
-                    <TableCell>T{d.turn}</TableCell>
-                    <TableCell className="text-right">{(d.previous_rate * 100).toFixed(2)}%</TableCell>
-                    <TableCell className="text-right font-medium">{(d.new_rate * 100).toFixed(2)}%</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={d.bps_change > 0 ? "destructive" : d.bps_change < 0 ? "success" : "secondary"}>
-                        {d.bps_change >= 0 ? "+" : ""}{d.bps_change.toFixed(0)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground max-w-72 truncate" title={d.rationale}>
-                      {(d.cpi * 100).toFixed(1)}% CPI · {(d.output_gap * 100).toFixed(1)}% gap — {d.rationale}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {d.votes.map((v) => `${v.member_name.split(" ").pop()}: ${v.vote}`).join(" · ") || "—"}
-                    </TableCell>
-                  </TableRow>
+                  <Fragment key={d.turn}>
+                    <TableRow
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => setExpandedMpc((t) => (t === d.turn ? null : d.turn))}
+                    >
+                      <TableCell>{expandedMpc === d.turn ? "▾" : "▸"} T{d.turn}</TableCell>
+                      <TableCell className="text-right">{(d.previous_rate * 100).toFixed(2)}%</TableCell>
+                      <TableCell className="text-right font-medium">{(d.new_rate * 100).toFixed(2)}%</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={d.bps_change > 0 ? "destructive" : d.bps_change < 0 ? "success" : "secondary"}>
+                          {d.bps_change >= 0 ? "+" : ""}{d.bps_change.toFixed(0)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-72 truncate" title={d.rationale}>
+                        {(d.cpi * 100).toFixed(1)}% CPI · {(d.output_gap * 100).toFixed(1)}% gap — {d.rationale}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {d.votes.map((v) => `${v.member_name.split(" ").pop()}: ${v.vote}`).join(" · ") || "—"}
+                      </TableCell>
+                    </TableRow>
+                    {expandedMpc === d.turn && (
+                      <TableRow key={`${d.turn}-x`}>
+                        <TableCell colSpan={6} className="bg-muted/30 p-3">
+                          {/* v4.28.0 (TASK-015): economic briefing +
+                              member vote table with stance/dissent. */}
+                          <div className="grid grid-cols-4 gap-2 text-xs mb-2">
+                            <span><b>CPI:</b> {(d.cpi * 100).toFixed(2)}%</span>
+                            <span><b>Output gap:</b> {(d.output_gap * 100).toFixed(2)}%</span>
+                            <span><b>Credit growth:</b> {(d.credit_growth * 100).toFixed(2)}%</span>
+                            <span><b>Move:</b> {d.bps_change.toFixed(0)} bps</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground italic mb-2">{d.rationale}</div>
+                          {d.votes.length > 0 && (
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Member</TableHead>
+                                  <TableHead>Stance</TableHead>
+                                  <TableHead>Vote</TableHead>
+                                  <TableHead>Dissenting opinion</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {d.votes.map((v) => (
+                                  <TableRow key={v.member_name}>
+                                    <TableCell className="py-1">{v.member_name}</TableCell>
+                                    <TableCell className="py-1"><Badge variant="outline">{v.stance || "—"}</Badge></TableCell>
+                                    <TableCell className="py-1">
+                                      <Badge variant={v.vote === "For" ? "success" : "destructive"}>{v.vote}</Badge>
+                                    </TableCell>
+                                    <TableCell className="py-1 text-xs text-muted-foreground">
+                                      {v.dissent || "—"}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </Fragment>
                 ))
               )}
             </TableBody>

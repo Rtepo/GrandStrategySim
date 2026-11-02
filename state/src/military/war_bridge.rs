@@ -1316,6 +1316,10 @@ fn conclude_war(
                 let mut region = dc.regions.remove(pos);
                 capital_ceded |= region.is_capital;
                 region.is_capital = false;
+                // v4.28.0 (TASK-011): sovereignty follows the region — every
+                // economy/snapshot filter keys on `owner_country`, so leaving
+                // it as the loser kept the corpse on the books.
+                region.owner_country = aggressor.clone();
                 // Move the region's parcels into the victor's cadastre —
                 // slotmap keys are per-map, so each ParcelChunk is
                 // re-inserted and `region.parcel_ids` rewritten to the

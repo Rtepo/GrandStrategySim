@@ -4353,6 +4353,11 @@ pub struct GameStatus {
     /// Council", "National Salvation Junta") for the sidebar tab label.
     #[serde(default)]
     pub legislature_names: std::collections::BTreeMap<String, String>,
+    /// v4.28.0 TASK-011: capitulated ("annexed") states — the selector
+    /// badges them so a zombie ledger shell can't be confused with a
+    /// living nation.
+    #[serde(default)]
+    pub annexed_countries: Vec<String>,
 }
 
 /// Response for the get_parliament command.
@@ -4565,6 +4570,13 @@ pub struct MacroHistoryPoint {
 #[ts(export, export_to = "../../src/types/api.ts")]
 pub struct FxReserveRow {
     pub currency: String,
+    /// v4.28.0 (TASK-015): display name ("Lechian Marka") resolved from
+    /// the in-game currency code — replaces real-world "USD/EUR/GBP".
+    #[serde(default)]
+    pub currency_name: String,
+    /// v4.28.0 (TASK-015): units of domestic currency per unit of foreign.
+    #[serde(default)]
+    pub exchange_rate: f64,
     pub amount: f64,
 }
 
@@ -4584,6 +4596,12 @@ pub struct OmoOperationRow {
 pub struct MpcVoteRow {
     pub member_name: String,
     pub vote: String,
+    /// v4.28.0 (TASK-015): member's policy stance (Hawk/Dove/Centrist).
+    #[serde(default)]
+    pub stance: String,
+    /// v4.28.0 (TASK-015): dissenting opinion when voting Against.
+    #[serde(default)]
+    pub dissent: String,
 }
 
 /// v4.27.0 (TASK-010): one MPC rate decision — rates, bps change, macro
@@ -4599,6 +4617,10 @@ pub struct MpcDecisionRow {
     pub output_gap: f64,
     pub rationale: String,
     pub votes: Vec<MpcVoteRow>,
+    /// v4.28.0 (TASK-015): credit growth at decision time — part of the
+    /// expandable economic briefing.
+    #[serde(default)]
+    pub credit_growth: f64,
 }
 
 /// v4.27.0 (TASK-010): full Central Bank DTO for the Banking → Central
@@ -4662,7 +4684,10 @@ pub struct BankingAggregates {
 /// v4.27.0 (TASK-010): build the Central Bank DTO from country state —
 /// resolves the governor VIP for name/traits and maps every ledger field
 /// the sub-tab renders.
-pub fn build_central_bank_dto(country: &crate::state::Country) -> CentralBankDto {
+pub fn build_central_bank_dto(
+    country: &crate::state::Country,
+    currencies: &std::collections::HashMap<String, crate::state::Currency>,
+) -> CentralBankDto {
     let cb = &country.central_bank;
     let gov = country
         .politics
@@ -4696,9 +4721,18 @@ pub fn build_central_bank_dto(country: &crate::state::Country) -> CentralBankDto
         fx_reserves: cb
             .fx_reserves
             .iter()
-            .map(|(c, a)| FxReserveRow {
-                currency: c.clone(),
-                amount: *a,
+            .map(|(c, a)| {
+                let cur = currencies.get(c);
+                FxReserveRow {
+                    currency: c.clone(),
+                    // v4.28.0 (TASK-015): in-game currency name ("Lechian
+                    // Marka") — the issuing country's adjective + unit.
+                    currency_name: cur
+                        .map(|x| x.display_name())
+                        .unwrap_or_else(|| c.clone()),
+                    exchange_rate: cur.map(|x| x.exchange_rate).unwrap_or(1.0),
+                    amount: *a,
+                }
             })
             .collect(),
         omo_bond_holdings: cb.omo_bond_holdings,
@@ -4734,8 +4768,11 @@ pub fn build_central_bank_dto(country: &crate::state::Country) -> CentralBankDto
                             .map(|v| MpcVoteRow {
                                 member_name: v.member_name.clone(),
                                 vote: v.vote.clone(),
+                                stance: v.stance.clone(),
+                                dissent: v.dissent.clone(),
                             })
                             .collect(),
+                        credit_growth: d.credit_growth,
                     })
                     .collect()
             })
@@ -8127,9 +8164,30 @@ fn ministry_policy_kpis(
                 ));
             }
             Comp::InternalSecurity => {
-                // v4.25 WS4: `social_unrest` is a 0–100 scale whose
-                // accumulators are not all clamped — bound it here.
-                let unrest = norm_pct(country.macro_indicators.social_unrest);
+                // v4.28.0 (TASK-014): social unrest is a WEIGHTED
+                // structural measure — unemployment (~35%), inflation and
+                // active war fronts set the equilibrium — blended over the
+                // raw event-spiked accumulator (0–100). The accumulator
+                // alone pinned at 100 in every country because producers
+                // only ever added. Structural = 80% baseline + 20% raw.
+                let raw_unrest = norm_pct(country.macro_indicators.social_unrest);
+                let unemployment = country
+                    .macro_indicators
+                    .labor_market
+                    .unemployment_rate
+                    .max(0.0)
+                    * 100.0;
+                let inflation = country.macro_indicators.inflation.abs().min(20.0);
+                let active_fronts = country
+                    .military_fronts
+                    .iter()
+                    .filter(|f| f.is_active(country_turn(country), 6))
+                    .count() as f64;
+                let baseline = (5.0 + unemployment * 0.35
+                    + inflation * 1.2
+                    + active_fronts * 9.0)
+                    .clamp(5.0, 45.0);
+                let unrest = (baseline * 0.8 + raw_unrest * 0.2).clamp(0.0, 100.0);
                 rows.push(kpi("Social unrest", unrest, "%", "≤ 25", lib(unrest, 25.0)));
                 // `corruption_index` is a 0–1 ratio → single ×100.
                 let corruption = inspectorate.map(|i| ratio_pct(i.corruption_index)).unwrap_or(0.0);
@@ -8140,7 +8198,13 @@ fn ministry_policy_kpis(
                     "≤ 20%",
                     lib(corruption, 20.0),
                 ));
-                let capacity = inspectorate
+                // v4.28.0 (TASK-014): "% of regional districts covered" —
+                // physical inspectorate-building capacity plus a
+                // spending-driven operating floor (the Internal Security
+                // budget staffs field inspections even where no dedicated
+                // inspectorate building exists yet). One coverage point ≈
+                // one regional district inspected per turn.
+                let physical = inspectorate
                     .map(|i| {
                         i.sanepid_capacity
                             + i.building_inspectorate_capacity
@@ -8148,12 +8212,18 @@ fn ministry_policy_kpis(
                             + i.labor_inspection_capacity
                     })
                     .unwrap_or(0.0);
+                let n_districts =
+                    country.regions.iter().filter(|r| {
+                        r.node_type == crate::society::geography::NodeType::LandRegion
+                    }).count().max(1) as f64;
+                let spend_pts = crate::politics::ministries::ministry_spent(ministry) / 8e6;
+                let coverage = ((physical + spend_pts) / n_districts * 100.0).min(100.0);
                 rows.push(kpi(
                     "Inspectorate capacity",
-                    capacity,
-                    "capacity",
-                    "Nationwide coverage",
-                    "watch",
+                    coverage,
+                    "%",
+                    "≥ 60% districts",
+                    hib(coverage, 60.0),
                 ));
             }
             Comp::Justice => {
@@ -8233,6 +8303,20 @@ fn ministry_policy_kpis(
                     &[CT::PrimarySeats, CT::MiddleSeats, CT::HighSchoolSeats, CT::UniversitySlots],
                 );
                 rows.push(kpi("School seats", seats, "seats", "Per-capita coverage", "watch"));
+                // v4.28.0 (TASK-014): seats per 1,000 school-age children —
+                // the coverage ratio the mandate specifies, derived from
+                // the real child-cohort share.
+                let child_share =
+                    country.macro_indicators.demographics.age_groups.children.max(0.02);
+                let school_age = country.budget.population as f64 * child_share;
+                let per_1k = if school_age > 0.0 { seats / school_age * 1000.0 } else { 0.0 };
+                rows.push(kpi(
+                    "Seats per 1,000 children",
+                    per_1k,
+                    "/1k",
+                    "≥ 700",
+                    hib(per_1k, 700.0),
+                ));
             }
             Comp::Healthcare => {
                 let life = health.average_lifespan;
@@ -8429,6 +8513,35 @@ fn ministry_policy_kpis(
             }
         }
     }
+    // v4.28.0 (TASK-014): generic budget KPIs appended to every portfolio —
+    // with the competency gauges above this lands each ministry at 5–6
+    // cards, all measured from live ministry state.
+    rows.push(kpi(
+        "Budget allocation",
+        ministry.allocated_cash,
+        "¤/turn",
+        "Funded mandate",
+        if ministry.allocated_cash > 0.0 { "on_track" } else { "at_risk" },
+    ));
+    let utilisation = if ministry.allocated_cash > 0.0 {
+        (ministry.spent_cash / ministry.allocated_cash * 100.0).clamp(0.0, 150.0)
+    } else {
+        0.0
+    };
+    rows.push(kpi(
+        "Budget utilisation",
+        utilisation,
+        "%",
+        "70–100%",
+        if utilisation >= 70.0 { "on_track" } else { "watch" },
+    ));
+    rows.push(kpi(
+        "Spending actions",
+        ministry.spending_actions.len() as f64,
+        "count",
+        "Active programme",
+        "watch",
+    ));
     rows
 }
 
@@ -9764,6 +9877,12 @@ pub struct WarBattleRow {
     pub location: String,
     /// Battle result.
     pub result: String,
+    /// v4.28.0 (TASK-013): attacking country — battle-line header.
+    #[serde(default)]
+    pub attacker: String,
+    /// v4.28.0 (TASK-013): defending country — battle-line header.
+    #[serde(default)]
+    pub defender: String,
     /// Engaged unit ids, attacker side.
     pub attacker_units: Vec<String>,
     /// Engaged unit ids, defender side.
@@ -9806,6 +9925,46 @@ pub struct WarBattleRow {
     /// v4.27.0 (TASK-007): tactical doctrine employed by the defender.
     #[serde(default)]
     pub defender_doctrine: String,
+    /// v4.28.0 (TASK-013): attacker order of battle — one row per engaged
+    /// unit with branch badge, committed strength and attributed losses.
+    #[serde(default)]
+    pub attacker_order: Vec<BattleUnitRow>,
+    /// v4.28.0 (TASK-013): defender order of battle.
+    #[serde(default)]
+    pub defender_order: Vec<BattleUnitRow>,
+    /// v4.28.0 (TASK-013): mean organization/morale across the engaged
+    /// attacker units (0–1).
+    #[serde(default)]
+    pub attacker_morale: f64,
+    /// v4.28.0 (TASK-013): mean organization/morale across engaged
+    /// defender units.
+    #[serde(default)]
+    pub defender_morale: f64,
+    /// v4.28.0 (TASK-013): combined-arms completeness 0–1 — distinct
+    /// combat branches committed (Inf/Art/Arm/Air) out of the 3 needed
+    /// for the full doctrine bonus.
+    #[serde(default)]
+    pub attacker_combined_arms: f64,
+    /// v4.28.0 (TASK-013): defender combined-arms completeness.
+    #[serde(default)]
+    pub defender_combined_arms: f64,
+}
+
+/// v4.28.0 (TASK-013): one row of a battle's order of battle — a single
+/// engaged unit with its branch badge, strength and attributed losses.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BattleUnitRow {
+    /// Display name — regimental name, never a raw `UNIT-*` id.
+    pub name: String,
+    /// Branch badge token: `INF` | `ART` | `ARM` | `AIR` | `NAV` | `MIL`.
+    pub badge: String,
+    /// Branch display label ("Infantry", "Artillery", …).
+    pub branch: String,
+    /// Committed manpower at battle time.
+    pub manpower: i64,
+    /// Attributed casualties (manpower share of the side's total).
+    pub losses: i64,
 }
 
 /// One deterministic tactical phase of a battle (v4.24.0).
@@ -10283,26 +10442,115 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 // v4.27.0 (TASK-007): resolve engaged unit ids to their
                 // display names via each belligerent's live OOB —
                 // regimental names, never raw `UNIT-*` tokens.
-                let unit_display = |country_nm: &str, uid: &str| -> String {
-                    state
-                        .countries
-                        .get(country_nm)
-                        .and_then(|c| {
-                            c.order_of_battle.armies.iter().find_map(|a| {
-                                a.divisions.iter().find_map(|d| {
-                                    d.regiments.iter().find_map(|r| {
-                                        r.units.iter().find(|u| u.id == uid).map(|u| {
-                                            if u.name.is_empty() {
-                                                r.name.clone()
-                                            } else {
-                                                u.name.clone()
-                                            }
-                                        })
+                // Resolve a unit id to `(unit, regimental display name)`.
+                // The display name falls back to the regiment's name when
+                // the unit's own name field is empty or a raw `UNIT-*` id
+                // — the battle line never leaks engine ids to the UI.
+                let unit_lookup = |country_nm: &str, uid: &str| {
+                    state.countries.get(country_nm).and_then(|c| {
+                        c.order_of_battle.armies.iter().find_map(|a| {
+                            a.divisions.iter().find_map(|d| {
+                                d.regiments.iter().find_map(|r| {
+                                    r.units.iter().find(|u| u.id == uid).map(|u| {
+                                        let name = if u.name.is_empty()
+                                            || u.name.starts_with("UNIT-")
+                                        {
+                                            r.name.clone()
+                                        } else {
+                                            u.name.clone()
+                                        };
+                                        (u, name)
                                     })
                                 })
                             })
                         })
+                    })
+                };
+                let unit_display = |country_nm: &str, uid: &str| -> String {
+                    unit_lookup(country_nm, uid)
+                        .map(|(_, n)| n)
                         .unwrap_or_else(|| uid.to_string())
+                };
+                // v4.28.0 (TASK-013): build one side's order of battle —
+                // per-unit rows + mean organization (morale) + the
+                // combined-arms completeness ratio. Losses are attributed
+                // deterministically: each unit's manpower share of the
+                // committed force × the side's recorded casualties.
+                let order_of = |country_nm: &str,
+                              uids: &[String],
+                              side_losses: i64|
+                 -> (Vec<BattleUnitRow>, f64, f64) {
+                    let mut rows: Vec<BattleUnitRow> = Vec::with_capacity(uids.len());
+                    let mut total_mp = 0i64;
+                    let mut org_sum = 0.0f64;
+                    let mut org_n = 0usize;
+                    let mut branches = std::collections::BTreeSet::new();
+                    for uid in uids {
+                        let (badge, branch) =
+                            match unit_lookup(country_nm, uid).map(|(u, _)| u.unit_type) {
+                                Some(crate::military::units::UnitType::Infantry) => {
+                                    ("INF", "Infantry")
+                                }
+                                Some(crate::military::units::UnitType::Artillery) => {
+                                    ("ART", "Artillery")
+                                }
+                                Some(crate::military::units::UnitType::Tanks) => {
+                                    ("ARM", "Armor")
+                                }
+                                Some(crate::military::units::UnitType::AirForce) => {
+                                    ("AIR", "Air Force")
+                                }
+                                Some(crate::military::units::UnitType::Naval) => {
+                                    ("NAV", "Naval")
+                                }
+                                Some(crate::military::units::UnitType::PeasantBattalion) => {
+                                    ("MIL", "Militia")
+                                }
+                                _ => ("INF", "Infantry"),
+                            };
+                        if badge != "NAV" && badge != "MIL" {
+                            branches.insert(badge);
+                        }
+                        let (name, mp, org) = unit_lookup(country_nm, uid)
+                            .map(|(u, n)| (n, u.manpower, u.stats.organization))
+                            .unwrap_or_else(|| (uid.clone(), 0, 0.0));
+                        // A resolved `UNIT-*` id means the unit was
+                        // destroyed/disbanded — never show the raw token.
+                        let name = if name.starts_with("UNIT-") {
+                            format!("{branch} Detachment")
+                        } else {
+                            name
+                        };
+                        total_mp += mp;
+                        org_sum += org;
+                        org_n += 1;
+                        rows.push(BattleUnitRow {
+                            name,
+                            badge: badge.to_string(),
+                            branch: branch.to_string(),
+                            manpower: mp,
+                            losses: 0,
+                        });
+                    }
+                    // Attribute the side's recorded casualties across units
+                    // by committed-manpower share (largest remainder first
+                    // so the column sums exactly).
+                    let mut allocated = 0i64;
+                    let last = rows.len().saturating_sub(1);
+                    for (i, row) in rows.iter_mut().enumerate() {
+                        row.losses = if i == last {
+                            side_losses - allocated
+                        } else if total_mp > 0 {
+                            let l = (side_losses * row.manpower) / total_mp;
+                            allocated += l;
+                            l
+                        } else {
+                            0
+                        };
+                    }
+                    let morale = if org_n > 0 { org_sum / org_n as f64 } else { 0.0 };
+                    let combined = (branches.len().min(3) as f64) / 3.0;
+                    (rows, morale, combined)
                 };
                 let vip_name_of = |vid: &str| -> String {
                     state
@@ -10362,11 +10610,18 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 let battles: Vec<WarBattleRow> = front
                     .battles
                     .iter()
-                    .map(|b| WarBattleRow {
+                    .map(|b| {
+                        let (attacker_order, attacker_morale, attacker_combined_arms) =
+                            order_of(&b.attacker, &b.attacker_units, b.attacker_casualties.total());
+                        let (defender_order, defender_morale, defender_combined_arms) =
+                            order_of(&b.defender, &b.defender_units, b.defender_casualties.total());
+                        WarBattleRow {
                         battle_id: b.id.clone(),
                         turn: b.turn,
                         location: b.location.clone(),
                         result: format!("{:?}", b.result),
+                        attacker: b.attacker.clone(),
+                        defender: b.defender.clone(),
                         attacker_units: b.attacker_units.clone(),
                         defender_units: b.defender_units.clone(),
                         attacker_dead: b.attacker_casualties.dead,
@@ -10405,6 +10660,13 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                         defender_commanders: cmd_rows(&b.defender_commanders),
                         attacker_doctrine: doctrine_of(&b.attacker_forces, true),
                         defender_doctrine: doctrine_of(&b.defender_forces, false),
+                        attacker_order,
+                        defender_order,
+                        attacker_morale,
+                        defender_morale,
+                        attacker_combined_arms,
+                        defender_combined_arms,
+                        }
                     })
                     .collect();
                 WarRow {

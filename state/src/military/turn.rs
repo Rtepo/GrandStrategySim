@@ -384,13 +384,35 @@ fn resolve_front_battles(
     let mut attacker_indices: Vec<usize> = Vec::new();
     let mut defender_indices: Vec<usize> = Vec::new();
 
+    // v4.28.0 (TASK-013): naval vessels never fight in land battles.
+    // A fleet anchored in a coastal front region used to be committed as a
+    // ground combatant ("Anatolian Battleship 4th" in an inland battle).
+    // Ground battles commit only ground/air/militia branches; naval units
+    // only join when the battle region is itself a sea/ocean node.
+    let battle_is_naval = regions
+        .iter()
+        .find(|r| r.id == battle_region_id)
+        .map(|r| {
+            matches!(
+                r.node_type,
+                crate::society::geography::NodeType::SeaNode
+                    | crate::society::geography::NodeType::OceanNode
+            )
+        })
+        .unwrap_or(false);
+
     for (idx, unit) in units.iter().enumerate() {
-        if front.regions.contains(&unit.location) {
-            if unit.location == first_region {
-                attacker_indices.push(idx);
-            } else {
-                defender_indices.push(idx);
-            }
+        if !front.regions.contains(&unit.location) {
+            continue;
+        }
+        let is_naval = unit.unit_type == crate::military::units::UnitType::Naval;
+        if is_naval != battle_is_naval {
+            continue;
+        }
+        if unit.location == first_region {
+            attacker_indices.push(idx);
+        } else {
+            defender_indices.push(idx);
         }
     }
 

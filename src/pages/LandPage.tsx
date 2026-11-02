@@ -10,8 +10,10 @@ import {
   getRegions,
   getRegionDetail,
   getWorldMap,
+  getRegionParcelMap,
 } from "../hooks/useTauriCommand";
 import { WorldMapSvg, BIOME_COLORS } from "../components/map/WorldMapSvg";
+import { RegionParcelGrid } from "../components/map/RegionParcelGrid";
 import {
   Card, CardHeader, CardTitle, CardContent, Badge,
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty,
@@ -23,6 +25,7 @@ import type {
   CourtBacklogRow,
   ArbitrationCaseRow,
   MinistryLandReportDTO,
+  MapParcelDto,
   RegionDetail,
 } from "../types/api";
 
@@ -527,6 +530,14 @@ function ClimateTab({ country }: { country: string }) {
     queryFn: getWorldMap,
   });
   const [biomeRegion, setBiomeRegion] = useState<string | null>(null);
+  // v4.28.0 (TASK-012): parcel-level Topography & Terrain drill-down —
+  // clicking a biome-map region fetches its 36–60 parcel lattice.
+  const [selectedParcel, setSelectedParcel] = useState<MapParcelDto | null>(null);
+  const { data: parcelMap } = useQuery({
+    queryKey: ["region-parcel-map", country, biomeRegion],
+    queryFn: () => getRegionParcelMap(country, biomeRegion!),
+    enabled: !!biomeRegion,
+  });
 
   if (isLoading) return <div className="text-muted-foreground">Loading regions...</div>;
   if (!regions || regions.length === 0) return <div className="text-muted-foreground">No regions found.</div>;
@@ -569,6 +580,16 @@ function ClimateTab({ country }: { country: string }) {
                 {worldMap.countries
                   .find((c) => c.country === country)
                   ?.regions.find((r) => r.id === biomeRegion)?.biome ?? ""}
+              </div>
+            )}
+            {biomeRegion && parcelMap && (
+              <div className="pt-2 border-t border-border">
+                <RegionParcelGrid
+                  parcelMap={parcelMap}
+                  selectedParcel={selectedParcel}
+                  onSelectParcel={setSelectedParcel}
+                  initialMode="terrain"
+                />
               </div>
             )}
           </CardContent>

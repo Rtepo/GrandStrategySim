@@ -1506,10 +1506,30 @@ pub fn settle_trades(
                             .map(|bc| bc != &country.name)
                             .unwrap_or(false);
                     if buyer_abroad {
+                        // v4.28.0 (TASK-015): credit export proceeds in the
+                        // BUYER's in-game currency (prefix = country-code),
+                        // never the real-world "USD" bucket. Exogenous
+                        // FOREIGN-SECTOR sales settle in the reserve
+                        // currency the CB already holds most of (or IEU).
+                        let fx_key = company_country
+                            .get(&trade.buyer_id)
+                            .map(|bc| bc[..3.min(bc.len())].to_uppercase())
+                            .unwrap_or_else(|| {
+                                country
+                                    .central_bank
+                                    .fx_reserves
+                                    .iter()
+                                    .max_by(|a, b| {
+                                        a.1.partial_cmp(b.1)
+                                            .unwrap_or(std::cmp::Ordering::Equal)
+                                    })
+                                    .map(|(k, _)| k.clone())
+                                    .unwrap_or_else(|| "IEU".to_string())
+                            });
                         *country
                             .central_bank
                             .fx_reserves
-                            .entry("USD".to_string())
+                            .entry(fx_key)
                             .or_insert(0.0) += trade_value;
                     }
                     #[cfg(feature = "diagnostic")]

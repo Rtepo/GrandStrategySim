@@ -167,7 +167,9 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
           >
             <option value="">— Select —</option>
             {gameStatus.countries.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {gameStatus.annexed_countries?.includes(c) ? `${c} (Annexed)` : c}
+              </option>
             ))}
           </select>
         </div>
