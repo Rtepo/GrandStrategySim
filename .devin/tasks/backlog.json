@@ -1,901 +1,1111 @@
 {
-  "version": 2,
-  "schema": "daemon-v2-backlog",
-  "release": "v4.27.0-task-batch",
-  "base_ref": "origin/main",
-  "updated_at": "2026-11-02T13:40:40.535Z",
-  "tasks": [
+ "version": 2,
+ "schema": "daemon-v2-backlog",
+ "release": "v4.27.0-task-batch",
+ "base_ref": "origin/main",
+ "updated_at": "2026-11-02T13:40:40.535Z",
+ "tasks": [
+  {
+   "id": "TASK-001",
+   "title": "World map topology: Voronoi cells, canonical half-edge borders, real names, Megaregions mode + legend",
+   "status": "DONE",
+   "priority": 10,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-001.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/society/geography.rs",
+    "state/src/ui/snapshot_map.rs"
+   ],
+   "required_ui_files": [
+    "src/components/map/WorldMapSvg.tsx",
+    "src/pages/MapPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
     {
-      "id": "TASK-001",
-      "title": "World map topology: Voronoi cells, canonical half-edge borders, real names, Megaregions mode + legend",
-      "status": "DONE",
-      "priority": 10,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-001.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/society/geography.rs",
-        "state/src/ui/snapshot_map.rs"
-      ],
-      "required_ui_files": [
-        "src/components/map/WorldMapSvg.tsx",
-        "src/pages/MapPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/components/map/WorldMapSvg.tsx",
-          "pattern": "points=|polygon|path",
-          "desc": "Regions render as polygon/path geometry (not wedge sectors)"
-        },
-        {
-          "file": "src/components/map/WorldMapSvg.tsx",
-          "pattern": "displayName|display_name|region\\.name|label",
-          "desc": "Region labels resolve to display names (no raw Anatolia-Region4 ids)"
-        },
-        {
-          "file": "src/pages/MapPage.tsx",
-          "pattern": "[Mm]egaregion|mega_region",
-          "desc": "Megaregions map mode button exists"
-        },
-        {
-          "file": "src/pages/MapPage.tsx",
-          "pattern": "[Ll]egend|colorScale|color_?scale",
-          "desc": "High-contrast color scale with legend bar"
-        }
-      ],
-      "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T15:43:20.268Z",
-      "verify_history": []
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "points=|polygon|path",
+     "desc": "Regions render as polygon/path geometry (not wedge sectors)"
     },
     {
-      "id": "TASK-002",
-      "title": "Interactive cadastral parcel grid map (zoning colors, back nav) + sector/courts/gold invariants held",
-      "status": "DONE",
-      "priority": 9,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-002.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/ui/snapshot_map.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/RegionsPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "parcel|Parcel",
-          "desc": "Parcel sub-map renders parcel geometry when a region is selected"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "zoning|zone_type|Agricultural|Industrial|Residential",
-          "desc": "Parcels colored by zoning classification"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "Back to|backTo|←",
-          "desc": "'← Back to Country Map' navigation control exists"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "megaregion|Megaregion|mega_region",
-          "desc": "Megaregions map-mode toggle exists"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "selectedParcel|onClick.*parcel|parcelHover|setSelected.*[Pp]arcel",
-          "desc": "Parcel polygons are individually interactive (click/hover selection)"
-        }
-      ],
-      "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T15:47:57.855Z",
-      "verify_history": []
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "displayName|display_name|region\\.name|label",
+     "desc": "Region labels resolve to display names (no raw Anatolia-Region4 ids)"
     },
     {
-      "id": "TASK-003",
-      "title": "Deep expandable Military view: war detail, battle phases, OOB branches, generals, POW camps",
-      "status": "DONE",
-      "priority": 9,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-003.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/ui/snapshot.rs",
-        "state/src/military/oob.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/MilitaryPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "expandedWar|expanded_war|openWar|selectedWar",
-          "desc": "Active Wars rows are clickable/expandable"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "war_?score|warScore|war-score",
-          "desc": "Expanded war shows War Score bar"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "casus|war_?goal|warGoal|cb_",
-          "desc": "War Goal / Casus Belli rendered"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "battles|Battles",
-          "desc": "Nested battles render inside expanded war"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "phase|Phase",
-          "desc": "Battle rows expand to show tactical phases/units"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "[Hh]istorical|ended_?wars|past_?wars",
-          "desc": "Historical Wars sub-tab exists"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "[Nn]av(y|al)|AirForce|air_?force",
-          "desc": "OOB splits by branch (Land/Navy/Air)"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "[Gg]eneral|commander|Commander",
-          "desc": "Commanding generals listed (clickable VIP links)"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "KIA|killed|casualt|WIA|wounded|desert",
-          "desc": "KIA/WIA/POW/Deserted casualty splits render"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "POW|pow_?camp|prisoner",
-          "desc": "Expandable POW camps (prisoners, quality, cost, escapes)"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "[Cc]onscription|[Mm]obiliz|reserve",
-          "desc": "Conscription law + mobilized vs reserve pools"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "[Rr]eadiness|equipment|[Tt]raining",
-          "desc": "Equipment readiness % / training-experience display"
-        }
-      ],
-      "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T15:53:31.696Z",
-      "verify_history": []
+     "file": "src/pages/MapPage.tsx",
+     "pattern": "[Mm]egaregion|mega_region",
+     "desc": "Megaregions map mode button exists"
     },
     {
-      "id": "TASK-004",
-      "title": "Statutes prose + 24-turn support window, Espionage sub-tab, expandable treaties/resolutions, analytical press",
-      "status": "DONE",
-      "priority": 8,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-004.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/ui/snapshot.rs",
-        "state/src/ui/snapshot_press.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/DiplomacyPage.tsx",
-        "src/pages/ParliamentPage.tsx",
-        "src/pages/PressPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/DiplomacyPage.tsx",
-          "pattern": "[Ii]ntelligence|[Ee]spionage|covert|CovertOperation",
-          "desc": "Intelligence & Espionage sub-tab exists"
-        },
-        {
-          "file": "src/pages/DiplomacyPage.tsx",
-          "pattern": "counter.?intel|intel_?budget|spy|Spy",
-          "desc": "Budget / counter-intelligence / active spies surface"
-        },
-        {
-          "file": "src/pages/DiplomacyPage.tsx",
-          "pattern": "expandedTreaty|expanded_treaty|openTreaty|expandedResolution|openResolution",
-          "desc": "Treaties and Resolutions are expandable"
-        },
-        {
-          "file": "src/pages/DiplomacyPage.tsx",
-          "pattern": "negotiation|Negotiation",
-          "desc": "Negotiation log renders inside expanded treaties"
-        },
-        {
-          "file": "src/pages/ParliamentPage.tsx",
-          "pattern": "[Ss]tatute",
-          "desc": "Statutes section present"
-        },
-        {
-          "file": "src/pages/ParliamentPage.tsx",
-          "pattern": "[Tt]rend|party_?support|24",
-          "desc": "Rolling 24-turn party support trend window"
-        },
-        {
-          "file": "src/pages/PressPage.tsx",
-          "pattern": "articleBody|article_body|paragraphs|fullText|expandedArticle|openArticle",
-          "desc": "Multi-paragraph expandable article bodies"
-        },
-        {
-          "file": "src/pages/PressPage.tsx",
-          "pattern": "[Cc]hart|Sparkline|sparkline|mini.?chart",
-          "desc": "Embedded mini-charts in economic/financial stories"
-        }
-      ],
-      "created_at": "2026-10-31T11:00:00Z",
-      "updated_at": "2026-10-31T15:56:47.506Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-005",
-      "title": "Map geometry: true adjacency, real islands, inland lakes, fractal coasts, 4 map modes, dense parcels, climate/biome map",
-      "status": "DONE",
-      "priority": 10,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-005.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/society/geography.rs",
-        "state/src/ui/snapshot_map.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/RegionsPage.tsx",
-        "src/pages/MapPage.tsx",
-        "src/pages/LandPage.tsx",
-        "src/components/map/WorldMapSvg.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "mapMode|MapMode|map_mode",
-          "desc": "Map Mode switcher exists"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "arter|transport|road|rail",
-          "desc": "Transport arteries overlay"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "migration|Migration",
-          "desc": "Internal Migration mode w/ arrows"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "party|Party|faction|Faction",
-          "desc": "Party/Faction Support mode"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "megaregion|Megaregion|mega_region",
-          "desc": "Megaregions mode moved to Regions"
-        },
-        {
-          "file": "src/pages/LandPage.tsx",
-          "pattern": "topograph|Topograph|biome|Biome|terrain|Terrain",
-          "desc": "Topography & Biome map in Climate"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "Industrial|Commercial|Water",
-          "desc": "Industrial/Commercial/Water parcel zones"
-        },
-        {
-          "file": "src/components/map/WorldMapSvg.tsx",
-          "pattern": "island|Island|is_island|isIsland",
-          "desc": "Islands rendered distinctly"
-        }
-      ],
-      "created_at": "2026-11-01T15:15:55.535Z",
-      "updated_at": "2026-11-01T15:47:09.258Z",
-      "verify_history": [
-        {
-          "at": "2026-11-01T15:46:10.326Z",
-          "result": "FAIL"
-        }
-      ]
-    },
-    {
-      "id": "TASK-006",
-      "title": "International & internal migration tracking — origins/destinations table, regional in/out/net flow",
-      "status": "DONE",
-      "priority": 9,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-006.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/economy/labor/migration.rs",
-        "state/src/ui/snapshot_regions.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/SocietyPage.tsx",
-        "src/pages/RegionsPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/SocietyPage.tsx",
-          "pattern": "[Ii]mmigration|[Ee]migration",
-          "desc": "Immigration/Emigration section"
-        },
-        {
-          "file": "src/pages/SocietyPage.tsx",
-          "pattern": "origin|destination|source|Origin|Destination",
-          "desc": "Origins & Destinations breakdown table"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "in_?migration|out_?migration|net_?migration|InMigration|OutMigration|NetMigration|migration",
-          "desc": "Regional in/out/net migration stats"
-        }
-      ],
-      "created_at": "2026-11-01T15:15:55.535Z",
-      "updated_at": "2026-11-01T16:07:11.047Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-007",
-      "title": "Deep military overhaul — regimental names, coalition wars + territory transfer, readiness/navy fix, dynamic POW camps",
-      "status": "DONE",
-      "priority": 9,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-007.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/military/oob.rs",
-        "state/src/military/pows.rs",
-        "state/src/military/units.rs",
-        "state/src/ui/snapshot.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/MilitaryPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "[Rr]egiment|Line Infantry|Lancers|Hussars",
-          "desc": "Cultural regimental names"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "[Dd]octrine|[Tt]actic|Barrage|Envelopment",
-          "desc": "Tactical doctrine per battle"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "coalition|Coalition|allied|Allies",
-          "desc": "Unified coalition war table"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "war_?goal|WarGoal|warGoal|casus",
-          "desc": "Concrete war goals"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "annex|cession|territor|conquered",
-          "desc": "Territorial transfers on war end"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "Battleship|Cruiser|Destroyer|Transport|[Nn]aval|[Ff]leet",
-          "desc": "Naval fleet unit types"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "Infantry|Cavalry|Artillery|Engineer",
-          "desc": "Land unit sub-types"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "forced_?labor|maintenance_?cost|escape|mortality",
-          "desc": "Dynamic POW economics"
-        }
-      ],
-      "created_at": "2026-11-01T15:15:55.535Z",
-      "updated_at": "2026-11-01T16:22:15.077Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-008",
-      "title": "Diplomacy missions (diplomat/ambassador/spy + progress) & distinct era-appropriate expandable org resolutions",
-      "status": "DONE",
-      "priority": 8,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-008.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/international/organizations.rs",
-        "state/src/ui/snapshot.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/DiplomacyPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/DiplomacyPage.tsx",
-          "pattern": "[Mm]ission|[Aa]mbassador|[Dd]iplomat",
-          "desc": "Missions table with agents"
-        },
-        {
-          "file": "src/pages/DiplomacyPage.tsx",
-          "pattern": "mission_?type|missionType|progress|assigned",
-          "desc": "Mission type + progress"
-        },
-        {
-          "file": "src/pages/DiplomacyPage.tsx",
-          "pattern": "[Ss]py|covert|Steal|Sabotage",
-          "desc": "Spy/covert missions surfaced"
-        },
-        {
-          "file": "src/pages/DiplomacyPage.tsx",
-          "pattern": "statutory|funding|economic_?effect|description",
-          "desc": "Expandable resolutions w/ rules+effects+funding"
-        }
-      ],
-      "created_at": "2026-11-01T15:15:55.535Z",
-      "updated_at": "2026-11-01T16:29:50.173Z",
-      "verify_history": [
-        {
-          "at": "2026-11-01T16:29:31.647Z",
-          "result": "FAIL"
-        }
-      ]
-    },
-    {
-      "id": "TASK-009",
-      "title": "Differentiated ministry budgets/KPIs (school seats>0) + pan/zoom dynasty tree + intrigue details + closed reigns",
-      "status": "PENDING",
-      "priority": 8,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-009.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/politics/ministries.rs",
-        "state/src/politics/succession.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/GovernmentPage.tsx",
-        "src/components/DynastyTree.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/GovernmentPage.tsx",
-          "pattern": "school_?seats|sanitary|kpi|KPI|enrollment",
-          "desc": "Domain KPIs incl. school seats"
-        },
-        {
-          "file": "src/components/DynastyTree.tsx",
-          "pattern": "onWheel|zoom|viewBox|pan|scale",
-          "desc": "Pan/zoom container on family tree"
-        },
-        {
-          "file": "src/components/DynastyTree.tsx",
-          "pattern": "reign|Reign",
-          "desc": "Reign badges with closed dates"
-        },
-        {
-          "file": "src/components/DynastyTree.tsx",
-          "pattern": "conspirator|plot|[Ii]ntrigue|backing|coup",
-          "desc": "Expandable intrigue details + resolution log"
-        }
-      ],
-      "created_at": "2026-11-01T15:15:55.535Z",
-      "updated_at": "2026-11-01T15:15:55.535Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-010",
-      "title": "Banking → Central Bank sub-tab (governor, independence, mandate, balance sheet, OMO log, MPC votes)",
-      "status": "DONE",
-      "priority": 7,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-010.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/state/central_bank.rs",
-        "state/src/ui/snapshot.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/BankingPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "Central Bank|central_bank|centralBank|Bank Centralny",
-          "desc": "Central Bank sub-tab"
-        },
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "[Gg]overnor",
-          "desc": "Governor VIP link + traits"
-        },
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "independence|Independence|mandate|Mandate",
-          "desc": "Independence index + mandate"
-        },
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "gold|Gold|fx|FX|reserve",
-          "desc": "Balance sheet + reserve composition"
-        },
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "MPC|committee|rate|bps|vote",
-          "desc": "MPC rate decisions + voting history"
-        },
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "open.?market|OMO|liquidity|operation",
-          "desc": "Open market operations log"
-        }
-      ],
-      "created_at": "2026-11-01T15:15:55.535Z",
-      "updated_at": "2026-11-01T17:32:56.200Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-011",
-      "title": "Immutable region geometry on conquest, zombie-state elimination & clickable water bodies",
-      "status": "DONE",
-      "priority": 8,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-011.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/ui/snapshot_map.rs",
-        "state/src/engine/turn.rs",
-        "state/src/society/geography.rs"
-      ],
-      "required_ui_files": [
-        "src/components/map/WorldMapSvg.tsx",
-        "src/pages/MapPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/components/map/WorldMapSvg.tsx",
-          "pattern": "water|Water|lake|Lake|sea|Sea|ocean|Ocean",
-          "desc": "water body rendering"
-        },
-        {
-          "file": "src/components/map/WorldMapSvg.tsx",
-          "pattern": "front|Front|frontline|Frontline|battle.?front",
-          "desc": "frontline markers"
-        },
-        {
-          "file": "src/components/map/WorldMapSvg.tsx",
-          "pattern": "dash|Dashed|swords|Swords|crossed",
-          "desc": "dashed battle-front style"
-        },
-        {
-          "file": "src/App.tsx",
-          "pattern": "Annexed|annexed|Capitulated|capitulated",
-          "desc": "annexed country badge (country selector lives in App.tsx)"
-        },
-        {
-          "file": "src/pages/MapPage.tsx",
-          "pattern": "water|Water|depth|navigab|area_km|surface",
-          "desc": "water body click/details"
-        }
-      ],
-      "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T10:32:45.633Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-012",
-      "title": "Contiguous megaregions, parcel-level industrial/party/climate maps & focused migration arrows",
-      "status": "DONE",
-      "priority": 9,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-012.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/society/geography.rs",
-        "state/src/ui/snapshot_map.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/RegionsPage.tsx",
-        "src/pages/LandPage.tsx",
-        "src/components/map/WorldMapSvg.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "parcel|Parcel|cadastr|Cadastr",
-          "desc": "parcel map"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "industrial|Industrial|#f97316|orange|amber",
-          "desc": "industrial parcels"
-        },
-        {
-          "file": "src/pages/RegionsPage.tsx",
-          "pattern": "party|Party|faction|Faction|precinct|polling",
-          "desc": "parcel-level party mode"
-        },
-        {
-          "file": "src/pages/LandPage.tsx",
-          "pattern": "topograph|Topograph|biome|Biome|terrain|Terrain",
-          "desc": "parcel biome map"
-        },
-        {
-          "file": "src/components/map/WorldMapSvg.tsx",
-          "pattern": "selected|hover|Selected|Hover",
-          "desc": "focused migration arrows"
-        }
-      ],
-      "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T10:32:54.088Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-013",
-      "title": "Two-column battle line UI, aggressor/defender badges & no naval units on land",
-      "status": "DONE",
-      "priority": 10,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-013.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/military/turn.rs",
-        "state/src/ui/snapshot.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/MilitaryPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "Aggressor|aggressor|Initiator|initiator|Defender|defender",
-          "desc": "aggressor/defender badges"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "battle.?line|Battle.?Line|lineup|Lineup|two.?col|grid-cols-2|Attacker Line|Defender Line",
-          "desc": "two-column battle line"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "INF|ART|CAV|ENG|NAV|badge|Badge",
-          "desc": "unit type badges"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "morale|Morale|doctrine|Doctrine|commander|Commander|General",
-          "desc": "side header stats"
-        }
-      ],
-      "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T10:33:02.182Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-014",
-      "title": "Realistic social unrest & ministry capacity KPIs",
-      "status": "DONE",
-      "priority": 11,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-014.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/engine/turn.rs",
-        "state/src/ui/snapshot.rs"
-      ],
-      "required_ui_files": [],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/GovernmentPage.tsx",
-          "pattern": "policy_kpis|Policy KPIs",
-          "desc": "KPI cards render policy_kpis rows"
-        }
-      ],
-      "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T10:33:03.805Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-015",
-      "title": "CB rate smoothing, game-world FX currencies & expandable MPC votes",
-      "status": "DONE",
-      "priority": 12,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-015.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/state/central_bank.rs",
-        "state/src/engine/generator/mod.rs",
-        "state/src/ui/snapshot.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/BankingPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "expand|Expand|open|detail|briefing|Briefing",
-          "desc": "expandable MPC rows"
-        },
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "currency|Currency|Marka|Crown|exchange|fx|FX",
-          "desc": "game-world FX table"
-        },
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "smoothing|step|bps|cap",
-          "desc": "rate smoothing display"
-        }
-      ],
-      "created_at": "2026-11-02T08:56:58.052Z",
-      "updated_at": "2026-11-02T10:33:11.605Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-016",
-      "title": "Fix deflation spiral (CPI ~53, 0% CB rates) & zero health mortality",
-      "status": "DONE",
-      "priority": 13,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-016.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/economy/market/clearing.rs",
-        "state/src/state/banking.rs",
-        "state/src/ui/snapshot.rs"
-      ],
-      "required_ui_files": [],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/BankingPage.tsx",
-          "pattern": "FX|currency|reserve|OMO|omo",
-          "desc": "banking UI intact"
-        }
-      ],
-      "created_at": "2026-11-02T12:41:43.774Z",
-      "updated_at": "2026-11-02T13:39:27.178Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-017",
-      "title": "Map scale/LOD labels, clickable lakes, cultural cities, annexation sync",
-      "status": "DONE",
-      "priority": 14,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-017.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/ui/snapshot_map.rs",
-        "state/src/military/war_bridge.rs"
-      ],
-      "required_ui_files": [
-        "src/components/map/WorldMapSvg.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/components/map/WorldMapSvg.tsx",
-          "pattern": "onWheel|vp.z|zoomDeep|zoomIn",
-          "desc": "zoom-adaptive LOD"
-        },
-        {
-          "file": "src/components/map/WorldMapSvg.tsx",
-          "pattern": "onWaterClick|water_bodies|visibleWater",
-          "desc": "clickable lakes"
-        }
-      ],
-      "created_at": "2026-11-02T12:41:43.774Z",
-      "updated_at": "2026-11-02T13:39:44.663Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-018",
-      "title": "Contiguous parcel clusters, 8-biome topography, party map toggle",
-      "status": "DONE",
-      "priority": 15,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-018.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/ui/snapshot_map.rs"
-      ],
-      "required_ui_files": [
-        "src/components/map/RegionParcelGrid.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/components/map/RegionParcelGrid.tsx",
-          "pattern": "partyView|national|National|regional|Regional",
-          "desc": "party sub-toggle"
-        },
-        {
-          "file": "src/components/map/RegionParcelGrid.tsx",
-          "pattern": "terrain|Topography|PARCEL_TERRAIN",
-          "desc": "topography mode"
-        }
-      ],
-      "created_at": "2026-11-02T12:41:43.774Z",
-      "updated_at": "2026-11-02T13:40:01.501Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-019",
-      "title": "Dynasty tree zoom crash & tooltip clipping",
-      "status": "DONE",
-      "priority": 16,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-019.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [],
-      "required_ui_files": [
-        "src/components/DynastyTree.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/components/DynastyTree.tsx",
-          "pattern": "sanitizeView|0.35|3.0|Number.isFinite",
-          "desc": "zoom clamp + NaN guards"
-        },
-        {
-          "file": "src/components/DynastyTree.tsx",
-          "pattern": "createPortal|portal|flip",
-          "desc": "portal tooltip"
-        }
-      ],
-      "created_at": "2026-11-02T12:41:43.774Z",
-      "updated_at": "2026-11-02T13:40:20.794Z",
-      "verify_history": []
-    },
-    {
-      "id": "TASK-020",
-      "title": "Military phase sub-tabs, ghost detachments, conscription, cession mini-map",
-      "status": "DONE",
-      "priority": 17,
-      "assigned_daemon": "agent-5",
-      "spec_file": ".devin/tasks/specs/TASK-020.md",
-      "base_ref": "origin/main",
-      "required_rust_files": [
-        "state/src/military/war_bridge.rs",
-        "state/src/ui/snapshot.rs"
-      ],
-      "required_ui_files": [
-        "src/pages/MilitaryPage.tsx"
-      ],
-      "ui_ast_grep_checks": [
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "BattleExpansion|setTab|phase|Tactical",
-          "desc": "phase sub-tabs"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "WINNER|LOSER|won",
-          "desc": "winner/loser badges"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "CessionMiniMap|Territory Transferred|devastationTier|byCountry",
-          "desc": "cession mini-map + devastation tiers"
-        },
-        {
-          "file": "src/pages/MilitaryPage.tsx",
-          "pattern": "armBadge|[INF]|BRANCH_BADGE",
-          "desc": "unit badges"
-        }
-      ],
-      "created_at": "2026-11-02T12:41:43.774Z",
-      "updated_at": "2026-11-02T13:40:40.535Z",
-      "verify_history": []
+     "file": "src/pages/MapPage.tsx",
+     "pattern": "[Ll]egend|colorScale|color_?scale",
+     "desc": "High-contrast color scale with legend bar"
     }
-  ]
+   ],
+   "created_at": "2026-10-31T11:00:00Z",
+   "updated_at": "2026-10-31T15:43:20.268Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-002",
+   "title": "Interactive cadastral parcel grid map (zoning colors, back nav) + sector/courts/gold invariants held",
+   "status": "DONE",
+   "priority": 9,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-002.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/ui/snapshot_map.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/RegionsPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "parcel|Parcel",
+     "desc": "Parcel sub-map renders parcel geometry when a region is selected"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "zoning|zone_type|Agricultural|Industrial|Residential",
+     "desc": "Parcels colored by zoning classification"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "Back to|backTo|←",
+     "desc": "'← Back to Country Map' navigation control exists"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "megaregion|Megaregion|mega_region",
+     "desc": "Megaregions map-mode toggle exists"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "selectedParcel|onClick.*parcel|parcelHover|setSelected.*[Pp]arcel",
+     "desc": "Parcel polygons are individually interactive (click/hover selection)"
+    }
+   ],
+   "created_at": "2026-10-31T11:00:00Z",
+   "updated_at": "2026-10-31T15:47:57.855Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-003",
+   "title": "Deep expandable Military view: war detail, battle phases, OOB branches, generals, POW camps",
+   "status": "DONE",
+   "priority": 9,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-003.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/ui/snapshot.rs",
+    "state/src/military/oob.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/MilitaryPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "expandedWar|expanded_war|openWar|selectedWar",
+     "desc": "Active Wars rows are clickable/expandable"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "war_?score|warScore|war-score",
+     "desc": "Expanded war shows War Score bar"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "casus|war_?goal|warGoal|cb_",
+     "desc": "War Goal / Casus Belli rendered"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "battles|Battles",
+     "desc": "Nested battles render inside expanded war"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "phase|Phase",
+     "desc": "Battle rows expand to show tactical phases/units"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "[Hh]istorical|ended_?wars|past_?wars",
+     "desc": "Historical Wars sub-tab exists"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "[Nn]av(y|al)|AirForce|air_?force",
+     "desc": "OOB splits by branch (Land/Navy/Air)"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "[Gg]eneral|commander|Commander",
+     "desc": "Commanding generals listed (clickable VIP links)"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "KIA|killed|casualt|WIA|wounded|desert",
+     "desc": "KIA/WIA/POW/Deserted casualty splits render"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "POW|pow_?camp|prisoner",
+     "desc": "Expandable POW camps (prisoners, quality, cost, escapes)"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "[Cc]onscription|[Mm]obiliz|reserve",
+     "desc": "Conscription law + mobilized vs reserve pools"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "[Rr]eadiness|equipment|[Tt]raining",
+     "desc": "Equipment readiness % / training-experience display"
+    }
+   ],
+   "created_at": "2026-10-31T11:00:00Z",
+   "updated_at": "2026-10-31T15:53:31.696Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-004",
+   "title": "Statutes prose + 24-turn support window, Espionage sub-tab, expandable treaties/resolutions, analytical press",
+   "status": "DONE",
+   "priority": 8,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-004.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/ui/snapshot.rs",
+    "state/src/ui/snapshot_press.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/DiplomacyPage.tsx",
+    "src/pages/ParliamentPage.tsx",
+    "src/pages/PressPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/DiplomacyPage.tsx",
+     "pattern": "[Ii]ntelligence|[Ee]spionage|covert|CovertOperation",
+     "desc": "Intelligence & Espionage sub-tab exists"
+    },
+    {
+     "file": "src/pages/DiplomacyPage.tsx",
+     "pattern": "counter.?intel|intel_?budget|spy|Spy",
+     "desc": "Budget / counter-intelligence / active spies surface"
+    },
+    {
+     "file": "src/pages/DiplomacyPage.tsx",
+     "pattern": "expandedTreaty|expanded_treaty|openTreaty|expandedResolution|openResolution",
+     "desc": "Treaties and Resolutions are expandable"
+    },
+    {
+     "file": "src/pages/DiplomacyPage.tsx",
+     "pattern": "negotiation|Negotiation",
+     "desc": "Negotiation log renders inside expanded treaties"
+    },
+    {
+     "file": "src/pages/ParliamentPage.tsx",
+     "pattern": "[Ss]tatute",
+     "desc": "Statutes section present"
+    },
+    {
+     "file": "src/pages/ParliamentPage.tsx",
+     "pattern": "[Tt]rend|party_?support|24",
+     "desc": "Rolling 24-turn party support trend window"
+    },
+    {
+     "file": "src/pages/PressPage.tsx",
+     "pattern": "articleBody|article_body|paragraphs|fullText|expandedArticle|openArticle",
+     "desc": "Multi-paragraph expandable article bodies"
+    },
+    {
+     "file": "src/pages/PressPage.tsx",
+     "pattern": "[Cc]hart|Sparkline|sparkline|mini.?chart",
+     "desc": "Embedded mini-charts in economic/financial stories"
+    }
+   ],
+   "created_at": "2026-10-31T11:00:00Z",
+   "updated_at": "2026-10-31T15:56:47.506Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-005",
+   "title": "Map geometry: true adjacency, real islands, inland lakes, fractal coasts, 4 map modes, dense parcels, climate/biome map",
+   "status": "DONE",
+   "priority": 10,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-005.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/society/geography.rs",
+    "state/src/ui/snapshot_map.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/RegionsPage.tsx",
+    "src/pages/MapPage.tsx",
+    "src/pages/LandPage.tsx",
+    "src/components/map/WorldMapSvg.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "mapMode|MapMode|map_mode",
+     "desc": "Map Mode switcher exists"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "arter|transport|road|rail",
+     "desc": "Transport arteries overlay"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "migration|Migration",
+     "desc": "Internal Migration mode w/ arrows"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "party|Party|faction|Faction",
+     "desc": "Party/Faction Support mode"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "megaregion|Megaregion|mega_region",
+     "desc": "Megaregions mode moved to Regions"
+    },
+    {
+     "file": "src/pages/LandPage.tsx",
+     "pattern": "topograph|Topograph|biome|Biome|terrain|Terrain",
+     "desc": "Topography & Biome map in Climate"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "Industrial|Commercial|Water",
+     "desc": "Industrial/Commercial/Water parcel zones"
+    },
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "island|Island|is_island|isIsland",
+     "desc": "Islands rendered distinctly"
+    }
+   ],
+   "created_at": "2026-11-01T15:15:55.535Z",
+   "updated_at": "2026-11-01T15:47:09.258Z",
+   "verify_history": [
+    {
+     "at": "2026-11-01T15:46:10.326Z",
+     "result": "FAIL"
+    }
+   ]
+  },
+  {
+   "id": "TASK-006",
+   "title": "International & internal migration tracking — origins/destinations table, regional in/out/net flow",
+   "status": "DONE",
+   "priority": 9,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-006.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/economy/labor/migration.rs",
+    "state/src/ui/snapshot_regions.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/SocietyPage.tsx",
+    "src/pages/RegionsPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/SocietyPage.tsx",
+     "pattern": "[Ii]mmigration|[Ee]migration",
+     "desc": "Immigration/Emigration section"
+    },
+    {
+     "file": "src/pages/SocietyPage.tsx",
+     "pattern": "origin|destination|source|Origin|Destination",
+     "desc": "Origins & Destinations breakdown table"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "in_?migration|out_?migration|net_?migration|InMigration|OutMigration|NetMigration|migration",
+     "desc": "Regional in/out/net migration stats"
+    }
+   ],
+   "created_at": "2026-11-01T15:15:55.535Z",
+   "updated_at": "2026-11-01T16:07:11.047Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-007",
+   "title": "Deep military overhaul — regimental names, coalition wars + territory transfer, readiness/navy fix, dynamic POW camps",
+   "status": "DONE",
+   "priority": 9,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-007.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/military/oob.rs",
+    "state/src/military/pows.rs",
+    "state/src/military/units.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/MilitaryPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "[Rr]egiment|Line Infantry|Lancers|Hussars",
+     "desc": "Cultural regimental names"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "[Dd]octrine|[Tt]actic|Barrage|Envelopment",
+     "desc": "Tactical doctrine per battle"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "coalition|Coalition|allied|Allies",
+     "desc": "Unified coalition war table"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "war_?goal|WarGoal|warGoal|casus",
+     "desc": "Concrete war goals"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "annex|cession|territor|conquered",
+     "desc": "Territorial transfers on war end"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "Battleship|Cruiser|Destroyer|Transport|[Nn]aval|[Ff]leet",
+     "desc": "Naval fleet unit types"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "Infantry|Cavalry|Artillery|Engineer",
+     "desc": "Land unit sub-types"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "forced_?labor|maintenance_?cost|escape|mortality",
+     "desc": "Dynamic POW economics"
+    }
+   ],
+   "created_at": "2026-11-01T15:15:55.535Z",
+   "updated_at": "2026-11-01T16:22:15.077Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-008",
+   "title": "Diplomacy missions (diplomat/ambassador/spy + progress) & distinct era-appropriate expandable org resolutions",
+   "status": "DONE",
+   "priority": 8,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-008.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/international/organizations.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/DiplomacyPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/DiplomacyPage.tsx",
+     "pattern": "[Mm]ission|[Aa]mbassador|[Dd]iplomat",
+     "desc": "Missions table with agents"
+    },
+    {
+     "file": "src/pages/DiplomacyPage.tsx",
+     "pattern": "mission_?type|missionType|progress|assigned",
+     "desc": "Mission type + progress"
+    },
+    {
+     "file": "src/pages/DiplomacyPage.tsx",
+     "pattern": "[Ss]py|covert|Steal|Sabotage",
+     "desc": "Spy/covert missions surfaced"
+    },
+    {
+     "file": "src/pages/DiplomacyPage.tsx",
+     "pattern": "statutory|funding|economic_?effect|description",
+     "desc": "Expandable resolutions w/ rules+effects+funding"
+    }
+   ],
+   "created_at": "2026-11-01T15:15:55.535Z",
+   "updated_at": "2026-11-01T16:29:50.173Z",
+   "verify_history": [
+    {
+     "at": "2026-11-01T16:29:31.647Z",
+     "result": "FAIL"
+    }
+   ]
+  },
+  {
+   "id": "TASK-009",
+   "title": "Differentiated ministry budgets/KPIs (school seats>0) + pan/zoom dynasty tree + intrigue details + closed reigns",
+   "status": "PENDING",
+   "priority": 8,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-009.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/politics/ministries.rs",
+    "state/src/politics/succession.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/GovernmentPage.tsx",
+    "src/components/DynastyTree.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/GovernmentPage.tsx",
+     "pattern": "school_?seats|sanitary|kpi|KPI|enrollment",
+     "desc": "Domain KPIs incl. school seats"
+    },
+    {
+     "file": "src/components/DynastyTree.tsx",
+     "pattern": "onWheel|zoom|viewBox|pan|scale",
+     "desc": "Pan/zoom container on family tree"
+    },
+    {
+     "file": "src/components/DynastyTree.tsx",
+     "pattern": "reign|Reign",
+     "desc": "Reign badges with closed dates"
+    },
+    {
+     "file": "src/components/DynastyTree.tsx",
+     "pattern": "conspirator|plot|[Ii]ntrigue|backing|coup",
+     "desc": "Expandable intrigue details + resolution log"
+    }
+   ],
+   "created_at": "2026-11-01T15:15:55.535Z",
+   "updated_at": "2026-11-01T15:15:55.535Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-010",
+   "title": "Banking → Central Bank sub-tab (governor, independence, mandate, balance sheet, OMO log, MPC votes)",
+   "status": "DONE",
+   "priority": 7,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-010.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/state/central_bank.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/BankingPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "Central Bank|central_bank|centralBank|Bank Centralny",
+     "desc": "Central Bank sub-tab"
+    },
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "[Gg]overnor",
+     "desc": "Governor VIP link + traits"
+    },
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "independence|Independence|mandate|Mandate",
+     "desc": "Independence index + mandate"
+    },
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "gold|Gold|fx|FX|reserve",
+     "desc": "Balance sheet + reserve composition"
+    },
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "MPC|committee|rate|bps|vote",
+     "desc": "MPC rate decisions + voting history"
+    },
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "open.?market|OMO|liquidity|operation",
+     "desc": "Open market operations log"
+    }
+   ],
+   "created_at": "2026-11-01T15:15:55.535Z",
+   "updated_at": "2026-11-01T17:32:56.200Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-011",
+   "title": "Immutable region geometry on conquest, zombie-state elimination & clickable water bodies",
+   "status": "DONE",
+   "priority": 8,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-011.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/ui/snapshot_map.rs",
+    "state/src/engine/turn.rs",
+    "state/src/society/geography.rs"
+   ],
+   "required_ui_files": [
+    "src/components/map/WorldMapSvg.tsx",
+    "src/pages/MapPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "water|Water|lake|Lake|sea|Sea|ocean|Ocean",
+     "desc": "water body rendering"
+    },
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "front|Front|frontline|Frontline|battle.?front",
+     "desc": "frontline markers"
+    },
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "dash|Dashed|swords|Swords|crossed",
+     "desc": "dashed battle-front style"
+    },
+    {
+     "file": "src/App.tsx",
+     "pattern": "Annexed|annexed|Capitulated|capitulated",
+     "desc": "annexed country badge (country selector lives in App.tsx)"
+    },
+    {
+     "file": "src/pages/MapPage.tsx",
+     "pattern": "water|Water|depth|navigab|area_km|surface",
+     "desc": "water body click/details"
+    }
+   ],
+   "created_at": "2026-11-02T08:56:58.052Z",
+   "updated_at": "2026-11-02T10:32:45.633Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-012",
+   "title": "Contiguous megaregions, parcel-level industrial/party/climate maps & focused migration arrows",
+   "status": "DONE",
+   "priority": 9,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-012.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/society/geography.rs",
+    "state/src/ui/snapshot_map.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/RegionsPage.tsx",
+    "src/pages/LandPage.tsx",
+    "src/components/map/WorldMapSvg.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "parcel|Parcel|cadastr|Cadastr",
+     "desc": "parcel map"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "industrial|Industrial|#f97316|orange|amber",
+     "desc": "industrial parcels"
+    },
+    {
+     "file": "src/pages/RegionsPage.tsx",
+     "pattern": "party|Party|faction|Faction|precinct|polling",
+     "desc": "parcel-level party mode"
+    },
+    {
+     "file": "src/pages/LandPage.tsx",
+     "pattern": "topograph|Topograph|biome|Biome|terrain|Terrain",
+     "desc": "parcel biome map"
+    },
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "selected|hover|Selected|Hover",
+     "desc": "focused migration arrows"
+    }
+   ],
+   "created_at": "2026-11-02T08:56:58.052Z",
+   "updated_at": "2026-11-02T10:32:54.088Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-013",
+   "title": "Two-column battle line UI, aggressor/defender badges & no naval units on land",
+   "status": "DONE",
+   "priority": 10,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-013.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/military/turn.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/MilitaryPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "Aggressor|aggressor|Initiator|initiator|Defender|defender",
+     "desc": "aggressor/defender badges"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "battle.?line|Battle.?Line|lineup|Lineup|two.?col|grid-cols-2|Attacker Line|Defender Line",
+     "desc": "two-column battle line"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "INF|ART|CAV|ENG|NAV|badge|Badge",
+     "desc": "unit type badges"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "morale|Morale|doctrine|Doctrine|commander|Commander|General",
+     "desc": "side header stats"
+    }
+   ],
+   "created_at": "2026-11-02T08:56:58.052Z",
+   "updated_at": "2026-11-02T10:33:02.182Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-014",
+   "title": "Realistic social unrest & ministry capacity KPIs",
+   "status": "DONE",
+   "priority": 11,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-014.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/engine/turn.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/GovernmentPage.tsx",
+     "pattern": "policy_kpis|Policy KPIs",
+     "desc": "KPI cards render policy_kpis rows"
+    }
+   ],
+   "created_at": "2026-11-02T08:56:58.052Z",
+   "updated_at": "2026-11-02T10:33:03.805Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-015",
+   "title": "CB rate smoothing, game-world FX currencies & expandable MPC votes",
+   "status": "DONE",
+   "priority": 12,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-015.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/state/central_bank.rs",
+    "state/src/engine/generator/mod.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/BankingPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "expand|Expand|open|detail|briefing|Briefing",
+     "desc": "expandable MPC rows"
+    },
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "currency|Currency|Marka|Crown|exchange|fx|FX",
+     "desc": "game-world FX table"
+    },
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "smoothing|step|bps|cap",
+     "desc": "rate smoothing display"
+    }
+   ],
+   "created_at": "2026-11-02T08:56:58.052Z",
+   "updated_at": "2026-11-02T10:33:11.605Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-016",
+   "title": "Fix deflation spiral (CPI ~53, 0% CB rates) & zero health mortality",
+   "status": "DONE",
+   "priority": 13,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-016.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/economy/market/clearing.rs",
+    "state/src/state/banking.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "FX|currency|reserve|OMO|omo",
+     "desc": "banking UI intact"
+    }
+   ],
+   "created_at": "2026-11-02T12:41:43.774Z",
+   "updated_at": "2026-11-02T13:39:27.178Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-017",
+   "title": "Map scale/LOD labels, clickable lakes, cultural cities, annexation sync",
+   "status": "DONE",
+   "priority": 14,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-017.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/ui/snapshot_map.rs",
+    "state/src/military/war_bridge.rs"
+   ],
+   "required_ui_files": [
+    "src/components/map/WorldMapSvg.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "onWheel|vp.z|zoomDeep|zoomIn",
+     "desc": "zoom-adaptive LOD"
+    },
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "onWaterClick|water_bodies|visibleWater",
+     "desc": "clickable lakes"
+    }
+   ],
+   "created_at": "2026-11-02T12:41:43.774Z",
+   "updated_at": "2026-11-02T13:39:44.663Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-018",
+   "title": "Contiguous parcel clusters, 8-biome topography, party map toggle",
+   "status": "DONE",
+   "priority": 15,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-018.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/ui/snapshot_map.rs"
+   ],
+   "required_ui_files": [
+    "src/components/map/RegionParcelGrid.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/components/map/RegionParcelGrid.tsx",
+     "pattern": "partyView|national|National|regional|Regional",
+     "desc": "party sub-toggle"
+    },
+    {
+     "file": "src/components/map/RegionParcelGrid.tsx",
+     "pattern": "terrain|Topography|PARCEL_TERRAIN",
+     "desc": "topography mode"
+    }
+   ],
+   "created_at": "2026-11-02T12:41:43.774Z",
+   "updated_at": "2026-11-02T13:40:01.501Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-019",
+   "title": "Dynasty tree zoom crash & tooltip clipping",
+   "status": "DONE",
+   "priority": 16,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-019.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [],
+   "required_ui_files": [
+    "src/components/DynastyTree.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/components/DynastyTree.tsx",
+     "pattern": "sanitizeView|0.35|3.0|Number.isFinite",
+     "desc": "zoom clamp + NaN guards"
+    },
+    {
+     "file": "src/components/DynastyTree.tsx",
+     "pattern": "createPortal|portal|flip",
+     "desc": "portal tooltip"
+    }
+   ],
+   "created_at": "2026-11-02T12:41:43.774Z",
+   "updated_at": "2026-11-02T13:40:20.794Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-020",
+   "title": "Military phase sub-tabs, ghost detachments, conscription, cession mini-map",
+   "status": "DONE",
+   "priority": 17,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-020.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/military/war_bridge.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/MilitaryPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "BattleExpansion|setTab|phase|Tactical",
+     "desc": "phase sub-tabs"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "WINNER|LOSER|won",
+     "desc": "winner/loser badges"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "CessionMiniMap|Territory Transferred|devastationTier|byCountry",
+     "desc": "cession mini-map + devastation tiers"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "armBadge|[INF]|BRANCH_BADGE",
+     "desc": "unit badges"
+    }
+   ],
+   "created_at": "2026-11-02T12:41:43.774Z",
+   "updated_at": "2026-11-02T13:40:40.535Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-021",
+   "title": "Dynamic map ownership, pan/zoom, clickable lakes, real cession mini-maps",
+   "status": "REGISTERED",
+   "priority": 18,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-021.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/ui/snapshot_map.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [
+    "src/components/map/WorldMapSvg.tsx",
+    "src/pages/MilitaryPage.tsx",
+    "src/pages/RegionsPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "owner_country|owner|regions.filter",
+     "desc": "dynamic ownership filtering"
+    },
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "viewBox|zoom|scale",
+     "desc": "auto-fit + zoom labels"
+    },
+    {
+     "file": "src/components/map/WorldMapSvg.tsx",
+     "pattern": "water|lake|onWaterClick|onClick",
+     "desc": "clickable lakes"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "CessionMiniMap|polygon|points=",
+     "desc": "real polygon mini-map"
+    }
+   ],
+   "created_at": "2026-11-02T21:38:29.715Z",
+   "updated_at": "2026-11-02T21:38:29.715Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-022",
+   "title": "Realistic parcel layout, border zones, global palette",
+   "status": "REGISTERED",
+   "priority": 19,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-022.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/ui/snapshot_map.rs"
+   ],
+   "required_ui_files": [
+    "src/components/map/RegionParcelGrid.tsx",
+    "src/theme/palette.ts",
+    "src/components/map/WorldMapSvg.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/components/map/RegionParcelGrid.tsx",
+     "pattern": "border|boundary|edge",
+     "desc": "true border-zone"
+    },
+    {
+     "file": "src/theme/palette.ts",
+     "pattern": "#2563eb|#f59e0b|#10b981|OPTIMATES|MODERATES",
+     "desc": "shared palette"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "BRANCH_BADGE|badge",
+     "desc": "shared unit badges"
+    }
+   ],
+   "created_at": "2026-11-02T21:38:29.715Z",
+   "updated_at": "2026-11-02T21:38:29.715Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-023",
+   "title": "Dynasty getBoundingClientRect fix, tab dedupe, VIP ministers, cultural coherence",
+   "status": "REGISTERED",
+   "priority": 20,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-023.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/state/mod.rs",
+    "state/src/ui/snapshot.rs",
+    "state/src/society/geography.rs"
+   ],
+   "required_ui_files": [
+    "src/components/DynastyTree.tsx",
+    "src/App.tsx",
+    "src/pages/GovernmentPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/components/DynastyTree.tsx",
+     "pattern": "getBoundingClientRect|?.|!rect|return;",
+     "desc": "null-guarded rects"
+    },
+    {
+     "file": "src/App.tsx",
+     "pattern": "Government|Finance",
+     "desc": "finance in government"
+    }
+   ],
+   "created_at": "2026-11-02T21:38:29.715Z",
+   "updated_at": "2026-11-02T21:38:29.715Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-024",
+   "title": "Military two-column phases, morale clamp, OOB, POW, disasters, deep-links",
+   "status": "REGISTERED",
+   "priority": 21,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-024.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/ui/snapshot.rs",
+    "state/src/military/war_bridge.rs",
+    "state/src/engine/turn.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/MilitaryPage.tsx",
+    "src/components/map/WorldMapSvg.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "BattleLineSide|two-col|grid-cols-2|Attacker",
+     "desc": "two-column phases"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "Math.min(100|clamp|morale",
+     "desc": "morale clamp"
+    },
+    {
+     "file": "src/pages/MilitaryPage.tsx",
+     "pattern": "POW|camp|disaster|navigate|setTab",
+     "desc": "pow/disaster/deep-link"
+    }
+   ],
+   "created_at": "2026-11-02T21:38:29.715Z",
+   "updated_at": "2026-11-02T21:38:29.715Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-025",
+   "title": "Cross-border international migration",
+   "status": "REGISTERED",
+   "priority": 22,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-025.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/society/geography.rs",
+    "state/src/engine/turn.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/SocietyPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/SocietyPage.tsx",
+     "pattern": "immigration|emigration|migration",
+     "desc": "migration tables"
+    }
+   ],
+   "created_at": "2026-11-02T21:38:29.715Z",
+   "updated_at": "2026-11-02T21:38:29.715Z",
+   "verify_history": []
+  },
+  {
+   "id": "TASK-026",
+   "title": "Banking KPI charts, per-bank pie + profit lines",
+   "status": "REGISTERED",
+   "priority": 23,
+   "assigned_daemon": "agent-5",
+   "spec_file": ".devin/tasks/specs/TASK-026.md",
+   "base_ref": "origin/main",
+   "required_rust_files": [
+    "state/src/state/banking.rs",
+    "state/src/ui/snapshot.rs"
+   ],
+   "required_ui_files": [
+    "src/pages/BankingPage.tsx"
+   ],
+   "ui_ast_grep_checks": [
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "sparkline|polyline|Sparkline|history",
+     "desc": "kpi sparklines"
+    },
+    {
+     "file": "src/pages/BankingPage.tsx",
+     "pattern": "pie|donut|arc|Net Interest|profit",
+     "desc": "bank drawer charts"
+    }
+   ],
+   "created_at": "2026-11-02T21:38:29.715Z",
+   "updated_at": "2026-11-02T21:38:29.715Z",
+   "verify_history": []
+  }
+ ]
 }
