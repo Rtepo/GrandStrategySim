@@ -741,6 +741,168 @@
       "created_at": "2026-11-02T08:56:58.052Z",
       "updated_at": "2026-11-02T10:33:11.605Z",
       "verify_history": []
+    },
+    {
+      "id": "TASK-016",
+      "title": "Fix deflation spiral (CPI ~53, 0% CB rates) & zero health mortality",
+      "status": "PENDING",
+      "priority": 13,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-016.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/economy/market.rs",
+        "state/src/state/banking.rs",
+        "state/src/state/central_bank.rs",
+        "state/src/engine/turn.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/GovernmentPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/GovernmentPage.tsx",
+          "pattern": "mortality|Mortality|deaths|Deaths|hospital|Hospital",
+          "desc": "health mortality KPIs"
+        }
+      ],
+      "created_at": "2026-11-02T12:41:43.774Z",
+      "updated_at": "2026-11-02T12:41:43.774Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-017",
+      "title": "Map scale/LOD labels, clickable lakes, cultural cities, annexation sync",
+      "status": "PENDING",
+      "priority": 14,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-017.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/ui/snapshot_map.rs",
+        "state/src/society/geography.rs",
+        "state/src/military/war_bridge.rs"
+      ],
+      "required_ui_files": [
+        "src/components/map/WorldMapSvg.tsx",
+        "src/pages/MapPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "zoom|Zoom|viewBox|lod|Lod|LOD|scale",
+          "desc": "zoom-adaptive labels"
+        },
+        {
+          "file": "src/pages/MapPage.tsx",
+          "pattern": "lake|Lake|depth|navigab|mean_depth",
+          "desc": "lake detail card"
+        }
+      ],
+      "created_at": "2026-11-02T12:41:43.774Z",
+      "updated_at": "2026-11-02T12:41:43.774Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-018",
+      "title": "Contiguous parcel clusters, 8-biome topography, party map toggle",
+      "status": "PENDING",
+      "priority": 15,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-018.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/ui/snapshot_map.rs",
+        "state/src/society/cadastre.rs"
+      ],
+      "required_ui_files": [
+        "src/components/map/RegionParcelGrid.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/components/map/RegionParcelGrid.tsx",
+          "pattern": "cluster|zone|hub|clustering",
+          "desc": "parcel clustering"
+        },
+        {
+          "file": "src/components/map/RegionParcelGrid.tsx",
+          "pattern": "plains|mountains|wetlands|marsh|coastal|steppe",
+          "desc": "8-biome topography"
+        },
+        {
+          "file": "src/components/map/RegionParcelGrid.tsx",
+          "pattern": "national|National|council|Council|faction|Faction",
+          "desc": "party sub-toggle"
+        }
+      ],
+      "created_at": "2026-11-02T12:41:43.774Z",
+      "updated_at": "2026-11-02T12:41:43.774Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-019",
+      "title": "Dynasty tree zoom crash & tooltip clipping",
+      "status": "PENDING",
+      "priority": 16,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-019.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [],
+      "required_ui_files": [
+        "src/components/DynastyTree.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/components/DynastyTree.tsx",
+          "pattern": "clamp|Math.min|Math.max|isFinite|NaN",
+          "desc": "zoom clamp/NaN guards"
+        },
+        {
+          "file": "src/components/DynastyTree.tsx",
+          "pattern": "bottom-full|portal|createPortal|fixed|overflow",
+          "desc": "tooltip flip/portal"
+        }
+      ],
+      "created_at": "2026-11-02T12:41:43.774Z",
+      "updated_at": "2026-11-02T12:41:43.774Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-020",
+      "title": "Military phase sub-tabs, ghost detachments, conscription, cession mini-map",
+      "status": "PENDING",
+      "priority": 17,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-020.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/military/turn.rs",
+        "state/src/ui/snapshot.rs",
+        "state/src/engine/turn.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/MilitaryPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "Contact|Exchange|Decision|phase.?tab|phaseTab",
+          "desc": "phase sub-tabs"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "WINNER|LOSER|winner|loser|conscription|Conscription",
+          "desc": "winner badge/conscription"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "Critical|Severe|Moderate|Minor|cession|Cession|Before|After",
+          "desc": "devastation tiers/cession map"
+        }
+      ],
+      "created_at": "2026-11-02T12:41:43.774Z",
+      "updated_at": "2026-11-02T12:41:43.774Z",
+      "verify_history": []
     }
   ]
 }
