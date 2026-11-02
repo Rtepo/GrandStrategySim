@@ -219,13 +219,40 @@ mod tests {
                 );
             }
             // Sanity: the flood-fill helper itself must reproduce the
-            // stored megaregion partition.
-            let regen = flood_fill_clusters(&rids, &sites, &adj, 4);
-            assert_eq!(
-                regen.len(),
-                country.megaregions.len(),
-                "{cname}: stored megaregion count drifted from generator"
-            );
+            // stored megaregion partition. v4.29.0 (TASK-017): countries
+            // that gained or lost regions through treaty cession have an
+            // intentionally resynced partition — the victor's megaregions
+            // absorb ceded regions — so genesis flood-fill no longer
+            // reproduces the stored count BY DESIGN. Only untouched
+            // countries are held to the strict equality.
+            // Touched iff the country's genesis region set (all regions
+            // worldwide whose id carries this country's owner-prefix)
+            // differs from its current holdings — covers both gains and
+            // losses, since ceded regions move between country lists.
+            let genesis: std::collections::BTreeSet<&str> = state
+                .countries
+                .values()
+                .flat_map(|c| c.regions.iter())
+                .filter_map(|r| {
+                    r.id.rsplit_once("-Region").and_then(|(owner, _)| {
+                        (owner == *cname).then_some(r.id.as_str())
+                    })
+                })
+                .collect();
+            let current: std::collections::BTreeSet<&str> = country
+                .regions
+                .iter()
+                .map(|r| r.id.as_str())
+                .collect();
+            let touched_by_cession = genesis != current;
+            if !touched_by_cession {
+                let regen = flood_fill_clusters(&rids, &sites, &adj, 4);
+                assert_eq!(
+                    regen.len(),
+                    country.megaregions.len(),
+                    "{cname}: stored megaregion count drifted from generator"
+                );
+            }
         }
 
         // ============================================================

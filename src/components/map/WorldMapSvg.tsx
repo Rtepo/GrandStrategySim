@@ -6,7 +6,7 @@
  * the deterministic `WorldMapSnapshot` DTO (Voronoi cells + country
  * boundary blobs built in `state/src/ui/snapshot_map.rs`).
  */
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type {
   CountryMapDto,
   MapEdgeDto,
@@ -352,7 +352,62 @@ export function WorldMapSvg({
   const spanX = bounds[2] - bounds[0] || 1;
   const spanY = bounds[3] - bounds[1] || 1;
   const pad = Math.max(spanX, spanY) * 0.03;
-  const viewBox = `${bounds[0] - pad} ${bounds[1] - pad} ${spanX + 2 * pad} ${spanY + 2 * pad}`;
+
+  // v4.29.0 (TASK-017): zoom-adaptive LOD viewport. Wheel zooms (clamped
+  // [0.6, 6]) around the cursor, drag pans. Label tiers:
+  //   z < 1.5  → country names only (clean, centred on the capital anchor)
+  //   z ≥ 1.5  → + region names
+  //   z ≥ 2.4  → + city names
+  const [vp, setVp] = useState({ x: 0, y: 0, z: 1 });
+  const vpDrag = useRef<{ px: number; py: number; vx: number; vy: number } | null>(null);
+  const fullW = spanX + 2 * pad;
+  const fullH = spanY + 2 * pad;
+  const cx0 = bounds[0] + spanX / 2;
+  const cy0 = bounds[1] + spanY / 2;
+  const viewBox = `${cx0 - fullW / (2 * vp.z) + vp.x} ${cy0 - fullH / (2 * vp.z) + vp.y} ${fullW / vp.z} ${fullH / vp.z}`;
+  const zoomIn = vp.z >= 1.5;
+  const zoomDeep = vp.z >= 2.4;
+
+  const onWheel = useCallback(
+    (e: React.WheelEvent<SVGSVGElement>) => {
+      if (compact) return;
+      if (!Number.isFinite(e.deltaY) || e.deltaY === 0) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      if (!rect || rect.width === 0) return;
+      setVp((v) => {
+        const z = Math.min(6, Math.max(0.6, v.z * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
+        // Keep the cursor's world point stable across the zoom.
+        const mx = cx0 - fullW / (2 * v.z) + v.x + ((e.clientX - rect.left) / rect.width) * (fullW / v.z);
+        const my = cy0 - fullH / (2 * v.z) + v.y + ((e.clientY - rect.top) / rect.height) * (fullH / v.z);
+        const nx = mx - ((e.clientX - rect.left) / rect.width) * (fullW / z) - (cx0 - fullW / (2 * z));
+        const ny = my - ((e.clientY - rect.top) / rect.height) * (fullH / z) - (cy0 - fullH / (2 * z));
+        if (!Number.isFinite(nx) || !Number.isFinite(ny)) return v;
+        return { x: nx, y: ny, z };
+      });
+    },
+    [compact, cx0, cy0, fullW, fullH],
+  );
+  const onPointerDown = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
+    if (e.button !== 0) return;
+    vpDrag.current = { px: e.clientX, py: e.clientY, vx: 0, vy: 0 };
+  }, []);
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent<SVGSVGElement>) => {
+      if (!vpDrag.current) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      if (!rect || rect.width === 0) return;
+      const dx = ((e.clientX - vpDrag.current.px) / rect.width) * (fullW / vp.z);
+      const dy = ((e.clientY - vpDrag.current.py) / rect.height) * (fullH / vp.z);
+      if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+      vpDrag.current.px = e.clientX;
+      vpDrag.current.py = e.clientY;
+      setVp((v) => ({ ...v, x: v.x - dx, y: v.y - dy }));
+    },
+    [fullW, fullH, vp.z],
+  );
+  const endVpDrag = useCallback(() => {
+    vpDrag.current = null;
+  }, []);
 
   // Density heuristic: show text labels only when cells are large enough
   // relative to the viewport (~900px reference width).
@@ -370,6 +425,13 @@ export function WorldMapSvg({
       role="img"
       aria-label="Procedural world map"
       preserveAspectRatio="xMidYMid meet"
+      style={{ touchAction: "none", cursor: vpDrag.current ? "grabbing" : "grab" }}
+      onWheel={onWheel}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endVpDrag}
+      onPointerLeave={endVpDrag}
+      onDoubleClick={() => setVp({ x: 0, y: 0, z: 1 })}
     >
       <defs>
         {/* Occupied-region diagonal hatch overlay (military mode). */}
@@ -531,7 +593,7 @@ export function WorldMapSvg({
                   )}
                   {/* Region name — capital names always, others when the
                       cells are sparse enough to stay readable. */}
-                  {!compact && (labelsOn || r.is_capital_district || hovered) && (
+                  {!compact && ((labelsOn && zoomIn) || r.is_capital_district || hovered) && (
                     <text
                       x={r.centroid.x}
                       y={r.centroid.y + (r.is_capital_district ? starR * 2.2 : labelSize * 0.4)}
@@ -586,7 +648,7 @@ export function WorldMapSvg({
                         stroke="#1c1917"
                         strokeWidth={strokeW * 0.8}
                       />
-                      {!compact && (
+                      {!compact && zoomDeep && (
                         <text
                           x={city.point.x}
                           y={city.point.y - r * 1.4}

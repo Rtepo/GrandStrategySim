@@ -14,6 +14,9 @@ import { partyColor } from "../../lib/partyVisuals";
 import type { MapParcelDto, RegionParcelMapDto } from "../../types/api";
 
 export type ParcelMode = "zoning" | "party" | "terrain";
+/** v4.29.0 (TASK-018): Party Support sub-toggle — national parliamentary
+    parties vs regional council factions. */
+export type PartyView = "national" | "regional";
 
 export const PARCEL_USE_COLORS: Record<string, string> = {
   agricultural: "#4d9e3f",
@@ -52,6 +55,7 @@ const PARCEL_TERRAIN_COLORS: Record<string, string> = {
   forest: "#166534",
   plains: "#84cc16",
   steppe: "#d6b656",
+  farmland: "#eab308",
   wetlands: "#2dd4bf",
   coast: "#38bdf8",
   river: "#0284c7",
@@ -64,16 +68,19 @@ const PARCEL_TERRAIN_LABELS: Record<string, string> = {
   forest: "Forest",
   plains: "Plains",
   steppe: "Steppe",
+  farmland: "Farmland",
   wetlands: "Wetlands",
   coast: "Coast",
   river: "River",
   lake: "Lake",
 };
 
-function parcelFill(p: MapParcelDto, mode: ParcelMode): string {
+function parcelFill(p: MapParcelDto, mode: ParcelMode, partyView: PartyView = "regional"): string {
   switch (mode) {
     case "party":
-      return p.dominant_party ? partyColor(null, p.dominant_party) : "#3d4757";
+      return (partyView === "national" ? p.national_party : p.dominant_party)
+        ? partyColor(null, partyView === "national" ? p.national_party : p.dominant_party)
+        : "#3d4757";
     case "terrain":
       return PARCEL_TERRAIN_COLORS[p.terrain] ?? "#3d4757";
     default:
@@ -81,12 +88,13 @@ function parcelFill(p: MapParcelDto, mode: ParcelMode): string {
   }
 }
 
-function parcelLabel(p: MapParcelDto, mode: ParcelMode): string {
+function parcelLabel(p: MapParcelDto, mode: ParcelMode, partyView: PartyView = "regional"): string {
   switch (mode) {
-    case "party":
-      return p.dominant_party
-        ? `${p.dominant_party} — ${(p.party_share * 100).toFixed(0)}%`
-        : "No council";
+    case "party": {
+      const name = partyView === "national" ? p.national_party : p.dominant_party;
+      const share = partyView === "national" ? p.national_share : p.party_share;
+      return name ? `${name} — ${(share * 100).toFixed(0)}%` : "No council";
+    }
     case "terrain":
       return PARCEL_TERRAIN_LABELS[p.terrain] ?? p.terrain;
     default:
@@ -116,6 +124,7 @@ export function RegionParcelGrid({
   showModeSwitcher?: boolean;
 }) {
   const [mode, setMode] = useState<ParcelMode>(initialMode);
+  const [partyView, setPartyView] = useState<PartyView>("regional");
   const [minX, minY, maxX, maxY] = parcelMap.bounds;
   const w = Math.max(1e-6, maxX - minX);
   const h = Math.max(1e-6, maxY - minY);
@@ -127,12 +136,12 @@ export function RegionParcelGrid({
   for (const p of parcelMap.parcels) {
     const key =
       mode === "party"
-        ? p.dominant_party || "No council"
+        ? (partyView === "national" ? p.national_party : p.dominant_party) || "No council"
         : mode === "terrain"
           ? p.terrain
           : p.use_class;
     if (!present.has(key)) {
-      present.set(key, parcelLabel(p, mode));
+      present.set(key, parcelLabel(p, mode, partyView));
     }
   }
   const legendColor = (key: string) =>
@@ -172,6 +181,29 @@ export function RegionParcelGrid({
           )}
         </div>
       </div>
+      {/* v4.29.0 (TASK-018): Party Support sub-toggle — switch the ward
+          coloring between national parliamentary parties and regional
+          council factions. */}
+      {mode === "party" && (
+        <div className="flex items-center gap-1 text-xs">
+          <span className="text-muted-foreground mr-1">Wards:</span>
+          {(
+            [
+              { v: "national" as PartyView, label: "National Parties" },
+              { v: "regional" as PartyView, label: "Regional Council Factions" },
+            ]
+          ).map((o) => (
+            <Button
+              key={o.v}
+              variant={partyView === o.v ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPartyView(o.v)}
+            >
+              {o.label}
+            </Button>
+          ))}
+        </div>
+      )}
       <svg
         viewBox={`0 0 1000 560`}
         className="w-full h-64 rounded bg-[#0f1d2b] border border-border"
@@ -183,14 +215,14 @@ export function RegionParcelGrid({
             <polygon
               key={p.id}
               points={pts}
-              fill={parcelFill(p, mode)}
+              fill={parcelFill(p, mode, partyView)}
               fillOpacity={selected ? 1 : 0.8}
               stroke={selected ? "#ffffff" : "#0a1622"}
               strokeWidth={selected ? 2 : 0.5}
               className="cursor-pointer hover:opacity-90"
               onClick={() => onSelectParcel(selected ? null : p)}
             >
-              <title>{`${parcelLabel(p, mode)} — ${fmt(p.size_hectares)} ha — ${p.owner_type}`}</title>
+              <title>{`${parcelLabel(p, mode, partyView)} — ${fmt(p.size_hectares)} ha — ${p.owner_type}`}</title>
             </polygon>
           );
         })}

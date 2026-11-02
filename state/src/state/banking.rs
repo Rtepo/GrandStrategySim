@@ -3458,6 +3458,38 @@ pub fn process_banking_turn(
         .central_bank
         .update_reference_rate(inflation, gdp_growth, current_turn, credit_growth);
 
+    // v4.29.0 (TASK-016): zero-lower-bound / deflation stimulus. When the
+    // policy rate falls below 2% OR CPI drops under 95, the CB runs
+    // endogenous credit expansion — QE bond purchases injecting M0/M3 —
+    // and temporarily raises its inflation target so the Taylor rule
+    // fights the deflation instead of ratifying it.
+    let cpi_level = country.macro_indicators.inflation_indices.cpi_index;
+    let zlb = country.central_bank.interest_rates.reference_rate < 0.02;
+    let deflating = cpi_level > 0.0 && cpi_level < 95.0;
+    if (zlb || deflating) && country.budget.gdp > 0.0 {
+        let qe = (country.budget.gdp * 0.004).max(1.0);
+        country.central_bank.omo_bond_holdings += qe;
+        country.central_bank.liquidity_injected += qe;
+        country.central_bank.record_omo(
+            current_turn,
+            "QE",
+            qe,
+            format!(
+                "Deflation/ZLB stimulus — CPI {:.0}, ref rate {:.2}%",
+                cpi_level,
+                country.central_bank.interest_rates.reference_rate * 100.0
+            ),
+        );
+        // Inflation-target term drifts up (+0.5pp/turn, cap 4%) while the
+        // deflation persists — the Taylor rule responds to it next meeting.
+        country.central_bank.target_inflation =
+            (country.central_bank.target_inflation + 0.005).min(0.04);
+    } else if country.central_bank.target_inflation > 0.02 {
+        // Deflation over — the temporary target elevation unwinds slowly.
+        country.central_bank.target_inflation =
+            (country.central_bank.target_inflation - 0.002).max(0.02);
+    }
+
     
 // Step 2: Pre-clearing OMO â€” CB adjusts aggregate reserves to steer XIBOR toward target.
     // Calculate total bank reserves and total securities (government bonds) held by banks.

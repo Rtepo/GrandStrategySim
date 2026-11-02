@@ -8329,19 +8329,42 @@ fn ministry_policy_kpis(
                     "≥ 40",
                     hib(coverage, 40.0),
                 ));
-                // v4.25 WS4: `mortality_rate` is ambiguous upstream —
-                // small values are a per-turn fraction; large values are a
-                // raw death count. Normalize both to a real percent.
+                // v4.29.0 (TASK-016): mortality is never 0.00 — read the
+                // real demographic death_rate first (percent of population
+                // per year), falling back to the health stats series and
+                // the lifespan-implied rate as a last resort.
                 let mortality = {
-                    let raw = health.mortality_rate;
-                    let fraction = if raw <= 1.5 {
-                        raw
+                    let demo = country.macro_indicators.demographics.death_rate;
+                    let raw = if demo > 0.0 {
+                        demo
                     } else {
-                        raw / (country.budget.population.max(1) as f64)
+                        let h = health.mortality_rate;
+                        if h <= 1.5 {
+                            h
+                        } else {
+                            h / (country.budget.population.max(1) as f64)
+                        }
                     };
-                    ratio_pct(fraction)
+                    let pct = if raw <= 1.5 { ratio_pct(raw) } else { raw };
+                    if pct > 0.0 {
+                        pct
+                    } else if health.average_lifespan > 1.0 {
+                        100.0 / health.average_lifespan
+                    } else {
+                        1.2
+                    }
                 };
                 rows.push(kpi("Mortality rate", mortality, "%", "≤ 2%", lib(mortality, 2.0)));
+                // Deaths per 1,000 — the standard demographic measure the
+                // ministry report was missing.
+                let per_mille = (mortality * 10.0).min(99.0);
+                rows.push(kpi(
+                    "Deaths per 1,000",
+                    per_mille,
+                    "‰",
+                    "≤ 12‰",
+                    lib(per_mille, 12.0),
+                ));
             }
             Comp::SocialWelfare => {
                 let active = country
@@ -10069,6 +10092,9 @@ pub struct DevastationRow {
     pub destroyed_parcels: usize,
     /// Number of parcels above damage threshold.
     pub damaged_parcels: usize,
+    /// v4.29.0 (TASK-020): owning country — the heatmap groups regions
+    /// under expandable country headers.
+    pub country: String,
 }
 
 /// Army composition for a single country.
@@ -10514,6 +10540,14 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                         let (name, mp, org) = unit_lookup(country_nm, uid)
                             .map(|(u, n)| (n, u.manpower, u.stats.organization))
                             .unwrap_or_else(|| (uid.clone(), 0, 0.0));
+                        // v4.29.0 (TASK-020): purge ghost detachments — a
+                        // unit that committed ZERO manpower is a stale
+                        // ledger token, not a fighting detachment; showing
+                        // it produced the "0.00-strength Infantry
+                        // Detachment" rows in expanded battles.
+                        if mp <= 0 {
+                            continue;
+                        }
                         // A resolved `UNIT-*` id means the unit was
                         // destroyed/disbanded — never show the raw token.
                         let name = if name.starts_with("UNIT-") {
@@ -10591,21 +10625,45 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                         .max_by_key(|f| f.initial_manpower)
                         .map(|f| f.branch.as_str())
                         .unwrap_or("Infantry");
-                    match dominant {
-                        "Artillery" => "Artillery Barrage",
-                        "Armor" => "Flanking Envelopment",
-                        "Naval" => "Naval Bombardment",
-                        "Air" => "Air Superiority",
-                        "Militia" => "Guerrilla Resistance",
-                        _ => {
-                            if attacking {
-                                "Frontal Assault"
-                            } else {
-                                "Trench Defense"
-                            }
-                        }
-                    }
-                    .to_string()
+                    // v4.29.0 (TASK-020): expanded doctrine pool — ≥10
+                    // historical tactics, picked deterministically from the
+                    // dominant branch + a per-side hash so neighbouring
+                    // battles don't all read "Frontal Assault".
+                    let total_mp: i64 = forces.iter().map(|f| f.initial_manpower).sum();
+                    let pick = ((total_mp.unsigned_abs() + forces.len() as u64) % 11) as usize;
+                    const TACTICS: [&str; 11] = [
+                        "Artillery Barrage",
+                        "Flanking Envelopment",
+                        "Frontal Assault",
+                        "Trench Defense",
+                        "Pincer Movement",
+                        "Defense in Depth",
+                        "Infiltration Assault",
+                        "Cavalry Screen",
+                        "Counter-Battery Fire",
+                        "Elastic Defense",
+                        "Breakthrough Exploitation",
+                    ];
+                    let branch_bias = match dominant {
+                        "Artillery" => 0usize,
+                        "Armor" => 1,
+                        "Naval" => 8,
+                        "Air" => 10,
+                        "Militia" => 6,
+                        _ => usize::MAX,
+                    };
+                    let idx = if branch_bias == usize::MAX {
+                        // Infantry/mixed: pick from the full pool.
+                        pick
+                    } else if attacking || branch_bias >= 6 {
+                        // Attackers use the branch tactic half the time,
+                        // otherwise draw from the pool.
+                        if pick.is_multiple_of(2) { branch_bias } else { pick }
+                    } else {
+                        // Defenders bias toward defensive doctrines.
+                        [3usize, 5, 9][pick % 3]
+                    };
+                    TACTICS[idx % TACTICS.len()].to_string()
                 };
                 let battles: Vec<WarBattleRow> = front
                     .battles
@@ -11197,6 +11255,7 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     devastation_index: total_devastation / parcel_count as f64,
                     parcel_count,
                     destroyed_parcels: destroyed,
+                    country: country_name.to_string(),
                     damaged_parcels: damaged,
                 });
             }

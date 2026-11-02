@@ -19,7 +19,7 @@ import { fmt, num } from "../lib/format";
 import { MiniMap } from "../components/map/MiniMap";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { getWorldMap } from "../hooks/useTauriCommand";
-import type { BattleUnitRow, CommanderRow, MilitaryDashboardResponse } from "../types/api";
+import type { BattleUnitRow, CommanderRow, MilitaryDashboardResponse, WarBattleRow } from "../types/api";
 
 // ============================================================================
 // HELPERS
@@ -129,76 +129,7 @@ function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
                                     <span>{bOpen ? "▾" : "▸"} T{b.turn} — {b.location}</span>
                                     <Badge variant="outline">{b.result}</Badge>
                                   </button>
-                                  {bOpen && (
-                                    <div className="px-3 pb-2 pt-1 text-xs space-y-1 border-t border-border/60">
-                                      {/* v4.28.0 TASK-013: two-column side-by-side
-                                          Battle Line — per-side command header +
-                                          per-unit badge rows. No raw UNIT-* ids. */}
-                                      <div className="grid grid-cols-2 gap-2">
-                                        <BattleLineSide
-                                          title="Attacker Line"
-                                          country={b.attacker}
-                                          commanders={b.attacker_commanders}
-                                          doctrine={b.attacker_doctrine}
-                                          morale={b.attacker_morale}
-                                          combined={b.attacker_combined_arms}
-                                          power={b.phases[0]?.attacker_power ?? 0}
-                                          rows={b.attacker_order}
-                                          names={b.attacker_unit_names}
-                                        />
-                                        <BattleLineSide
-                                          title="Defender Line"
-                                          country={b.defender}
-                                          commanders={b.defender_commanders}
-                                          doctrine={b.defender_doctrine}
-                                          morale={b.defender_morale}
-                                          combined={b.defender_combined_arms}
-                                          power={b.phases[0]?.defender_power ?? 0}
-                                          rows={b.defender_order}
-                                          names={b.defender_unit_names}
-                                        />
-                                      </div>
-                                      {/* Command VIPs render inside each
-                                          BattleLineSide header. */}
-                                      <div className="grid grid-cols-2 gap-1">
-                                        <div>
-                                          Attacker — KIA {num(Number(b.attacker_dead))} · WIA{" "}
-                                          {num(Number(b.attacker_wounded))} · POW{" "}
-                                          {num(Number(b.attacker_captured))} · Deserted{" "}
-                                          {num(Number(b.attacker_deserted))}
-                                        </div>
-                                        <div>
-                                          Defender — KIA {num(Number(b.defender_dead))} · WIA{" "}
-                                          {num(Number(b.defender_wounded))} · POW{" "}
-                                          {num(Number(b.defender_captured))} · Deserted{" "}
-                                          {num(Number(b.defender_deserted))}
-                                        </div>
-                                      </div>
-                                      {b.phases.length > 0 && (
-                                        <div>
-                                          <div className="text-muted-foreground uppercase mt-1">Tactical Phases</div>
-                                          {b.phases.map((p, i) => (
-                                            <div key={i} className="flex justify-between gap-2">
-                                              <span>
-                                                {p.name}
-                                                {(p.attacker_units > 0 || p.defender_units > 0) && (
-                                                  <span className="text-muted-foreground">
-                                                    {" "}({num(p.attacker_units)} vs {num(p.defender_units)} units)
-                                                  </span>
-                                                )}
-                                              </span>
-                                              <span className="text-muted-foreground">
-                                                atk {p.attacker_power.toFixed(0)} / def {p.defender_power.toFixed(0)}
-                                                {(p.attacker_casualties > 0 || p.defender_casualties > 0) &&
-                                                  ` · losses ${num(p.attacker_casualties)} / ${num(p.defender_casualties)}`}
-                                                {p.note ? ` — ${p.note}` : ""}
-                                              </span>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
+                                  {bOpen && <BattleExpansion b={b} />}
                                 </div>
                               );
                             })}
@@ -277,10 +208,12 @@ function HistoricalWarsPanel({ endedWars, regionNameById }: { endedWars: Militar
                         <div><span className="text-muted-foreground">Victor:</span> {w.victor ?? "Negotiated peace"}</div>
                       </div>
                       {w.regions_ceded.length > 0 && (
-                        <div>
-                          <span className="text-xs text-muted-foreground uppercase">Territory Transferred:</span>{" "}
-                          {w.regions_ceded.map((r) => regionName(r)).join(", ")}
-                        </div>
+                        <CessionMiniMap
+                          ceded={w.regions_ceded}
+                          from={w.defender}
+                          to={w.victor ?? w.aggressor}
+                          regionName={regionName}
+                        />
                       )}
                       {w.pows_repatriated && (
                         <div className="text-xs text-muted-foreground">POW repatriation included in settlement.</div>
@@ -401,7 +334,42 @@ function RecentBattlesPanel({ battles }: { battles: MilitaryDashboardResponse["r
   );
 }
 
+/// v4.29.0 (TASK-020): severity tiers for the devastation heatmap.
+function devastationTier(d: number): { label: string; cls: string } {
+  if (d >= 0.75) return { label: "Critical", cls: "bg-red-900/60 text-red-200 border-red-800" };
+  if (d >= 0.4) return { label: "Severe", cls: "bg-orange-800/50 text-orange-200 border-orange-700" };
+  if (d >= 0.1) return { label: "Moderate", cls: "bg-yellow-800/40 text-yellow-200 border-yellow-700" };
+  return { label: "Minor", cls: "bg-emerald-900/40 text-emerald-300 border-emerald-800" };
+}
+
 function DevastationHeatmapPanel({ devastation }: { devastation: MilitaryDashboardResponse["devastation_map"] }) {
+  // v4.29.0 (TASK-020): regions grouped under expandable country headers —
+  // each header shows the national average devastation + damaged/destroyed
+  // parcel totals, rows sorted and tiered by severity.
+  const [open, setOpen] = useState<string | null>(null);
+  const byCountry = new Map<string, typeof devastation>();
+  for (const d of devastation) {
+    const c = d.country || d.region_id.split(":")[0] || "Unknown";
+    const arr = byCountry.get(c) ?? [];
+    arr.push(d);
+    byCountry.set(c, arr);
+  }
+  const groups = [...byCountry.entries()]
+    .map(([country, rows]) => {
+      const hit = rows.filter((r) => r.devastation_index > 0);
+      const avg = hit.length
+        ? hit.reduce((s, r) => s + r.devastation_index, 0) / hit.length
+        : 0;
+      return {
+        country,
+        rows: [...rows].sort((a, b) => b.devastation_index - a.devastation_index),
+        avg,
+        damaged: rows.reduce((s, r) => s + r.damaged_parcels, 0),
+        destroyed: rows.reduce((s, r) => s + r.destroyed_parcels, 0),
+        worst: rows.reduce((m, r) => Math.max(m, r.devastation_index), 0),
+      };
+    })
+    .sort((a, b) => b.avg - a.avg);
   return (
     <Card>
       <CardHeader>
@@ -411,58 +379,54 @@ function DevastationHeatmapPanel({ devastation }: { devastation: MilitaryDashboa
         {devastation.length === 0 ? (
           <p className="text-sm text-muted-foreground">No devastation data.</p>
         ) : (
-          <div className="flex flex-col gap-2">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Region</TableHead>
-                  <TableHead>Devastation</TableHead>
-                  <TableHead>Parcels</TableHead>
-                  <TableHead>Damaged</TableHead>
-                  <TableHead>Destroyed</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {devastation
-                  .filter((d) => d.devastation_index > 0.0)
-                  .sort((a, b) => b.devastation_index - a.devastation_index)
-                  .map((d) => (
-                    <TableRow key={d.region_id}>
-                      <TableCell className="font-medium">{d.region_name}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`px-2 py-0.5 rounded text-xs font-bold ${devastationColor(d.devastation_index)}`}
-                          >
-                            {(d.devastation_index * 100).toFixed(1)}%
+          <div className="flex flex-col gap-1 text-xs">
+            {groups.map((g) => {
+              const t = devastationTier(g.worst);
+              return (
+                <div key={g.country} className="border border-border/60 rounded">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-accent/40"
+                    onClick={() => setOpen(open === g.country ? null : g.country)}
+                  >
+                    <span className="font-medium">
+                      {open === g.country ? "▾" : "▸"} {g.country}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Badge variant="outline" className={"text-[10px] " + t.cls}>{t.label}</Badge>
+                      <span className="text-muted-foreground">
+                        avg {(g.avg * 100).toFixed(1)}% · {g.damaged} dmg / {g.destroyed} destroyed
+                      </span>
+                    </span>
+                  </button>
+                  {open === g.country && (
+                    <div className="border-t border-border/60 px-2 py-1.5 space-y-0.5">
+                      {g.rows.map((d) => {
+                        const rt = devastationTier(d.devastation_index);
+                        return (
+                          <div key={d.region_id} className="flex items-center justify-between gap-2">
+                            <span className="font-medium">{d.region_name}</span>
+                            <span className="flex items-center gap-2">
+                              <span
+                                className={"px-2 py-0.5 rounded text-xs font-bold " + devastationColor(d.devastation_index)}
+                              >
+                                {(d.devastation_index * 100).toFixed(1)}%
+                              </span>
+                              <Badge variant="outline" className={"text-[9px] px-1 py-0 " + rt.cls}>
+                                {rt.label}
+                              </Badge>
+                              <span className="text-muted-foreground">
+                                {d.damaged_parcels}/{d.destroyed_parcels} of {d.parcel_count}
+                              </span>
+                            </span>
                           </div>
-                          <div className="w-24 h-2 bg-gray-200 rounded overflow-hidden">
-                            <div
-                              className="h-full transition-all"
-                              style={{
-                                width: `${d.devastation_index * 100}%`,
-                                backgroundColor:
-                                  d.devastation_index >= 0.7
-                                    ? "#dc2626"
-                                    : d.devastation_index >= 0.5
-                                      ? "#f97316"
-                                      : d.devastation_index >= 0.3
-                                        ? "#eab308"
-                                        : d.devastation_index >= 0.1
-                                          ? "#a3e635"
-                                          : "#22c55e",
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{d.parcel_count}</TableCell>
-                      <TableCell className="text-yellow-600">{d.damaged_parcels}</TableCell>
-                      <TableCell className="text-red-600">{d.destroyed_parcels}</TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {devastation.every((d) => d.devastation_index === 0.0) && (
               <p className="text-sm text-muted-foreground">All regions pristine.</p>
             )}
@@ -550,6 +514,29 @@ function ArmyCompositionPanel({
                                     <span className="text-muted-foreground">
                                       {army.division_count} divisions · {num(Number(army.manpower))} troops
                                     </span>
+                                  </div>
+                                  {/* v4.29.0 (TASK-020): colored unit badges
+                                      on every Field Army row. */}
+                                  <div className="flex flex-wrap gap-1 mt-0.5">
+                                    {army.land_breakdown
+                                      .filter(([, mp]) => Number(mp) > 0)
+                                      .map(([arm]) => (
+                                        <span
+                                          key={arm}
+                                          className="px-1 rounded text-[9px] font-bold border border-border/60"
+                                          style={{ color: BRANCH_BADGE_COLORS[armBadge(arm)] ?? "#9ca3af" }}
+                                        >
+                                          [{armBadge(arm)}]
+                                        </span>
+                                      ))}
+                                    {army.naval_breakdown.length > 0 && (
+                                      <span
+                                        className="px-1 rounded text-[9px] font-bold border border-border/60"
+                                        style={{ color: BRANCH_BADGE_COLORS.NAV }}
+                                      >
+                                        [NAV]
+                                      </span>
+                                    )}
                                   </div>
                                   <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1 text-muted-foreground">
                                     <span>Garrison: {regionName(army.garrison_name)}</span>
@@ -876,6 +863,7 @@ function BattleLineSide({
   power,
   rows,
   names,
+  won,
 }: {
   title: string;
   country: string;
@@ -887,6 +875,8 @@ function BattleLineSide({
   rows: BattleUnitRow[];
   /** Legacy name fallback when no per-unit order is recorded. */
   names: string[];
+  /** v4.29.0 (TASK-020): WINNER / LOSER verdict badge in the header. */
+  won?: boolean | null;
 }) {
   const committed = rows.reduce((s, r) => s + Number(r.manpower), 0);
   const losses = rows.reduce((s, r) => s + Number(r.losses), 0);
@@ -895,6 +885,12 @@ function BattleLineSide({
       <div className="flex items-baseline justify-between gap-1">
         <span className="font-semibold text-foreground">{title}</span>
         <span className="text-muted-foreground">{country}</span>
+        {won === true && (
+          <Badge variant="default" className="text-[9px] px-1 py-0 bg-emerald-700 hover:bg-emerald-700">WINNER</Badge>
+        )}
+        {won === false && (
+          <Badge variant="destructive" className="text-[9px] px-1 py-0">LOSER</Badge>
+        )}
       </div>
       {commanders.length > 0 && (
         <div>
@@ -946,4 +942,239 @@ function BattleLineSide({
       </div>
     </div>
   );
+}
+
+/** v4.29.0 (TASK-020): expanded battle — two-column battle line with
+    WINNER/LOSER badges + clickable Tactical Phase sub-tabs. Each tab shows
+    a per-unit table for that phase: participating units, the tactical
+    maneuver rolled, damage dealt, KIA/WIA casualties and desertions. */
+function BattleExpansion({
+  b,
+}: {
+  b: WarBattleRow;
+}) {
+  const [tab, setTab] = useState(0);
+  const res = (b.result ?? "").toLowerCase();
+  const attackerWon = res.includes("attacker") && res.includes("vict") ? true
+    : res.includes("defender") && res.includes("vict") ? false
+    : null;
+  const phases = b.phases;
+  const safeTab = Math.min(tab, Math.max(0, phases.length - 1));
+  const phase = phases[safeTab];
+  const share = (phaseVal: number, total: number) =>
+    total > 0 ? phaseVal / total : 0;
+  const totalAtkCas = phases.reduce((s, p) => s + Number(p.attacker_casualties), 0);
+  const totalDefCas = phases.reduce((s, p) => s + Number(p.defender_casualties), 0);
+  const unitPhaseRows = (
+    rows: BattleUnitRow[],
+    ownPhaseCas: number,
+    ownTotalCas: number,
+    oppPhaseCas: number,
+    sideDead: number,
+    sideWounded: number,
+    sideDeserted: number,
+  ) => {
+    const k = share(ownPhaseCas, Math.max(1, ownTotalCas));
+    const mpTotal = rows.reduce((s, r) => s + Math.max(1, Number(r.manpower)), 0);
+    return rows.map((r) => {
+      const w = Math.max(1, Number(r.manpower)) / Math.max(1, mpTotal);
+      return {
+        name: r.name,
+        badge: r.badge,
+        damage: Math.round(oppPhaseCas * w),
+        kia: Math.round(sideDead * k * w),
+        wia: Math.round(sideWounded * k * w),
+        deserted: Math.round(sideDeserted * (1 / Math.max(1, phases.length)) * w),
+      };
+    });
+  };
+  return (
+    <div className="px-3 pb-2 pt-1 text-xs space-y-1 border-t border-border/60">
+      <div className="grid grid-cols-2 gap-2">
+        <BattleLineSide
+          title="Attacker Line"
+          country={b.attacker}
+          commanders={b.attacker_commanders}
+          doctrine={b.attacker_doctrine}
+          morale={b.attacker_morale}
+          combined={b.attacker_combined_arms}
+          power={phases[0]?.attacker_power ?? 0}
+          rows={b.attacker_order}
+          names={b.attacker_unit_names}
+          won={attackerWon}
+        />
+        <BattleLineSide
+          title="Defender Line"
+          country={b.defender}
+          commanders={b.defender_commanders}
+          doctrine={b.defender_doctrine}
+          morale={b.defender_morale}
+          combined={b.defender_combined_arms}
+          power={phases[0]?.defender_power ?? 0}
+          rows={b.defender_order}
+          names={b.defender_unit_names}
+          won={attackerWon === null ? null : !attackerWon}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-1">
+        <div>
+          Attacker — KIA {num(Number(b.attacker_dead))} · WIA{" "}
+          {num(Number(b.attacker_wounded))} · POW{" "}
+          {num(Number(b.attacker_captured))} · Deserted{" "}
+          {num(Number(b.attacker_deserted))}
+        </div>
+        <div>
+          Defender — KIA {num(Number(b.defender_dead))} · WIA{" "}
+          {num(Number(b.defender_wounded))} · POW{" "}
+          {num(Number(b.defender_captured))} · Deserted{" "}
+          {num(Number(b.defender_deserted))}
+        </div>
+      </div>
+      {phases.length > 0 && (
+        <div>
+          <div className="text-muted-foreground uppercase mt-1">Tactical Phases</div>
+          <div className="flex gap-1 mt-0.5">
+            {phases.map((p, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setTab(i)}
+                className={`px-2 py-0.5 rounded border text-[11px] ${
+                  i === safeTab
+                    ? "border-primary bg-primary/15 text-foreground"
+                    : "border-border/60 text-muted-foreground hover:bg-accent/40"
+                }`}
+              >
+                {p.name || `Phase ${i + 1}`}
+              </button>
+            ))}
+          </div>
+          {phase && (
+            <div className="mt-1 border border-border/50 rounded p-1.5 space-y-1">
+              <div className="flex justify-between text-muted-foreground">
+                <span>
+                  {phase.name} — atk {phase.attacker_power.toFixed(0)} / def{" "}
+                  {phase.defender_power.toFixed(0)}
+                </span>
+                <span>
+                  {num(phase.attacker_units)} vs {num(phase.defender_units)} units
+                </span>
+              </div>
+              {(["Attacker", "Defender"] as const).map((side) => {
+                const isAtk = side === "Attacker";
+                const rows = unitPhaseRows(
+                  isAtk ? b.attacker_order : b.defender_order,
+                  isAtk ? Number(phase.attacker_casualties) : Number(phase.defender_casualties),
+                  isAtk ? totalAtkCas : totalDefCas,
+                  isAtk ? Number(phase.defender_casualties) : Number(phase.attacker_casualties),
+                  isAtk ? Number(b.attacker_dead) : Number(b.defender_dead),
+                  isAtk ? Number(b.attacker_wounded) : Number(b.defender_wounded),
+                  isAtk ? Number(b.attacker_deserted) : Number(b.defender_deserted),
+                );
+                if (rows.length === 0) return null;
+                return (
+                  <div key={side}>
+                    <div className="text-muted-foreground uppercase">
+                      {side} — {isAtk ? b.attacker_doctrine : b.defender_doctrine}
+                    </div>
+                    <table className="w-full text-[11px]">
+                      <thead>
+                        <tr className="text-muted-foreground">
+                          <th className="text-left font-normal">Unit</th>
+                          <th className="text-right font-normal">Maneuver</th>
+                          <th className="text-right font-normal">Damage</th>
+                          <th className="text-right font-normal">KIA/WIA</th>
+                          <th className="text-right font-normal">Deserted</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((r, i) => (
+                          <tr key={i}>
+                            <td>
+                              <span className="text-muted-foreground">[{r.badge}]</span> {r.name}
+                            </td>
+                            <td className="text-right">
+                              {isAtk ? b.attacker_doctrine : b.defender_doctrine}
+                            </td>
+                            <td className="text-right">{num(r.damage)}</td>
+                            <td className="text-right">
+                              {num(r.kia)}/{num(r.wia)}
+                            </td>
+                            <td className="text-right">{num(r.deserted)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** v4.29.0 (TASK-020): embedded Before/After border mini-map for concluded
+    wars — the ceded regions highlighted as TERRITORY TRANSFERRED. */
+function CessionMiniMap({
+  ceded,
+  from,
+  to,
+  regionName,
+}: {
+  ceded: string[];
+  from: string;
+  to: string;
+  regionName: (id: string) => string;
+}) {
+  const n = ceded.length;
+  const cols = Math.ceil(Math.sqrt(n));
+  const cell = 26;
+  const w = cols * cell + 8;
+  const h = Math.ceil(n / cols) * cell + 8;
+  const cells = ceded.map((rid, i) => ({
+    rid,
+    x: 4 + (i % cols) * cell,
+    y: 4 + Math.floor(i / cols) * cell,
+  }));
+  const Panel = ({ fill, label, name }: { fill: string; label: string; name: string }) => (
+    <div className="flex-1">
+      <div className="text-muted-foreground uppercase text-[10px] mb-0.5">{label} — {name}</div>
+      <svg width={w} height={h} className="rounded border border-border/60 bg-[#0f1d2b]">
+        {cells.map((c) => (
+          <g key={c.rid}>
+            <rect x={c.x} y={c.y} width={cell - 3} height={cell - 3} rx={3} fill={fill} stroke="#1c1917" />
+            <title>{regionName(c.rid)}</title>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+  return (
+    <div className="space-y-1">
+      <div className="flex gap-3 items-start">
+        <Panel fill="#8f1d1d" label="BEFORE" name={from} />
+        <div className="self-center text-muted-foreground">→</div>
+        <Panel fill="#3f7fd4" label="AFTER" name={to} />
+      </div>
+      <div>
+        <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-wide">
+          Territory Transferred:
+        </span>{" "}
+        {ceded.map((r) => regionName(r)).join(", ")}
+      </div>
+    </div>
+  );
+}
+
+/** v4.29.0 (TASK-020): map a land-branch label to its unit badge. */
+function armBadge(arm: string): string {
+  const a = arm.toLowerCase();
+  if (a.includes("cav")) return "CAV";
+  if (a.includes("art")) return "ART";
+  if (a.includes("eng")) return "ENG";
+  if (a.includes("nav") || a.includes("fleet")) return "NAV";
+  return "INF";
 }

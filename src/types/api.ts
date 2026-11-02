@@ -1521,7 +1521,12 @@ destroyed_parcels: number,
 /**
  * Number of parcels above damage threshold.
  */
-damaged_parcels: number, };
+damaged_parcels: number, 
+/**
+ * v4.29.0 (TASK-020): owning country — the heatmap groups regions
+ * under expandable country headers.
+ */
+country: string, };
 
 /**
  * A single disaster event for the Peacetime Disasters panel.
@@ -2709,7 +2714,17 @@ dominant_party: string,
 /**
  * Winning faction's precinct share (0–1).
  */
-party_share: number, };
+party_share: number, 
+/**
+ * v4.29.0 (TASK-018): dominant NATIONAL parliamentary party in this
+ * precinct + its national seat share — powers the Party Support
+ * sub-toggle (National Parties vs Regional Council Factions).
+ */
+national_party: string, 
+/**
+ * National party's seat share (0–1).
+ */
+national_share: number, };
 
 /**
  * A single 2D point in world-map space (procedural units, not lat/lon).

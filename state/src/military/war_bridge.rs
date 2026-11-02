@@ -667,6 +667,31 @@ fn process_war_pair(
                 &corridor,
                 &zone_parcels,
             );
+            // v4.29.0 (TASK-020): wartime conscription escalation — a
+            // belligerent never stays on the Peacetime standing-army law.
+            // Escalation: Selective while at war; UniversalDraft once war
+            // casualties exceed a quarter of the standing manpower the
+            // country started with (front armies below ~75% strength);
+            // TotalMobilization only when casualties pass half.
+            let standing = country.order_of_battle.total_manpower().max(1) as f64;
+            let losses = country.war_economy.total_casualties.max(0) as f64;
+            country.war_economy.conscription_level = if losses > standing * 0.5 {
+                crate::military::war_economy::ConscriptionLevel::TotalMobilization
+            } else if losses > standing * 0.25 {
+                crate::military::war_economy::ConscriptionLevel::UniversalDraft
+            } else {
+                crate::military::war_economy::ConscriptionLevel::Selective
+            };
+            // Draw from the reserve pool to reinforce depleted regiments.
+            let cfg = crate::military::war_economy::WarEconomyConfig::default();
+            let _ = crate::military::war_economy::execute_conscription(
+                &mut country.regions,
+                &mut country.order_of_battle,
+                &mut country.war_economy,
+                &cfg,
+                &country.name.clone(),
+                current_turn,
+            );
         }
     }
 
@@ -1346,6 +1371,82 @@ fn conclude_war(
         }
         // Keep region ordering deterministic for downstream passes.
         ac.regions.sort_by(|a, b| a.id.cmp(&b.id));
+        // v4.29.0 (TASK-017): annexation synchronization — repartition
+        // both countries' megaregions over their post-cession region
+        // sets with the same flood-fill the generator used, so every
+        // megaregion stays a single connected component on the k-NN map
+        // graph and no region falls into the UI's orphaned "Unassigned"
+        // bucket. Existing Megaregion objects keep their ids, names and
+        // governance; only the `regions` partition is rewritten.
+        let repartition = |
+            country_name: &str,
+            member_ids: Vec<String>,
+            mgs: &mut Vec<crate::society::geography::Megaregion>,
+            state_structure: crate::politics::state_structure::StateStructure,
+        | {
+            let mut union = member_ids;
+            union.sort_by_key(|a| {
+                crate::society::geography::map_region_sort_key(a)
+            });
+            union.dedup();
+            if union.is_empty() {
+                return;
+            }
+            let clusters: Vec<Vec<String>> = if union.len() <= 3 {
+                vec![union.clone()]
+            } else {
+                let sites = crate::society::geography::megaregion_sites(&union);
+                let adj = crate::society::geography::knn_adjacency(&sites, 3);
+                crate::society::geography::flood_fill_clusters(
+                    &union, &sites, &adj, 4,
+                )
+            };
+            for (i, chunk) in clusters.iter().enumerate() {
+                if let Some(mg) = mgs.get_mut(i) {
+                    mg.regions = chunk.clone();
+                } else {
+                    let meg_id = format!("MEG-{country_name}-{:02}", i + 1);
+                    mgs.push(crate::society::geography::Megaregion {
+                        id: meg_id.clone(),
+                        name: format!("{country_name} Marches {}", i + 1),
+                        country: country_name.to_string(),
+                        regions: chunk.clone(),
+                        population: 0,
+                        gdp: 0.0,
+                        governance: Some(
+                            crate::politics::local_government::initialize_megaregion_governance(
+                                &meg_id,
+                                country_name,
+                                state_structure,
+                            ),
+                        ),
+                    });
+                }
+            }
+            for mg in mgs.iter_mut().skip(clusters.len()) {
+                mg.regions.clear();
+            }
+            mgs.retain(|m| !m.regions.is_empty());
+        };
+        // Partition the actual holdings — every region a country owns
+        // lands in one of its megaregions, so `unassigned == 0` holds
+        // even for regions orphaned before this treaty.
+        let loser_members: Vec<String> =
+            dc.regions.iter().map(|r| r.id.clone()).collect();
+        let victor_members: Vec<String> =
+            ac.regions.iter().map(|r| r.id.clone()).collect();
+        repartition(
+            &defender,
+            loser_members,
+            &mut dc.megaregions,
+            dc.politics.state_structure,
+        );
+        repartition(
+            &aggressor,
+            victor_members,
+            &mut ac.megaregions,
+            ac.politics.state_structure,
+        );
         regions_ceded = transferred.clone();
     } else {
         regions_ceded = Vec::new();
