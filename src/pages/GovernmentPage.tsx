@@ -5,6 +5,7 @@ import { getGovernment } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { DynastyTree } from "../components/DynastyTree";
+import { FinancePage } from "./FinancePage";
 import { fmt } from "../lib/format";
 
 export function GovernmentPage() {
@@ -399,6 +400,19 @@ export function GovernmentPage() {
       ),
     });
   }
+
+  // v4.30.0 (TASK-023): Public Finance embedded here — it was removed
+  // from the left sidebar navigation. Rendered without the page chrome
+  // (the outer padding/heading) so it reads as a Government sub-tab.
+  tabs.push({
+    label: "Public Finance",
+    value: "public-finance",
+    content: (
+      <div className="-m-6">
+        <FinancePage />
+      </div>
+    ),
+  });
 
   return (
     <div className="p-6 space-y-4">

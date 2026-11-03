@@ -49,14 +49,16 @@ function PanZoomViewport({ children }: { children: React.ReactNode }) {
     e.preventDefault();
     e.stopPropagation();
     if (!Number.isFinite(e.deltaY) || e.deltaY === 0) return;
+    // v4.30.0 (TASK-023): React releases `currentTarget` once the handler
+    // returns, so it must be read BEFORE the deferred setView updater —
+    // inside it, currentTarget is null → getBoundingClientRect crash.
+    const rect = e.currentTarget?.getBoundingClientRect();
+    if (!rect || rect.width === 0 || !Number.isFinite(rect.left)) return;
+    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    const cx = e.clientX - rect.left - rect.width / 2;
+    const cy = e.clientY - rect.top - rect.height / 2;
     setView((v) => {
-      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
       const z = Math.min(3.0, Math.max(0.35, v.z * factor));
-      // Zoom toward the viewport center — keep the focal point stable.
-      const rect = e.currentTarget.getBoundingClientRect();
-      if (!rect || rect.width === 0 || !Number.isFinite(rect.left)) return v;
-      const cx = e.clientX - rect.left - rect.width / 2;
-      const cy = e.clientY - rect.top - rect.height / 2;
       const k = z / v.z;
       if (!Number.isFinite(cx) || !Number.isFinite(cy) || !Number.isFinite(k)) return v;
       return sanitizeView({ x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k, z }, v);
@@ -519,7 +521,7 @@ function MemberCard({
   // scaled transform layer — bottom-row cards were clipped in half.
   const [tip, setTip] = useState<{ x: number; y: number; flip: boolean } | null>(null);
   const showTip = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
+    const r = e.currentTarget?.getBoundingClientRect();
     if (!r || !Number.isFinite(r.left)) return;
     setTip({ x: r.left + r.width / 2, y: r.top, flip: r.top < 120 });
   }, []);

@@ -248,6 +248,12 @@ non_performing_loans: number, operating_wages: number, net_profit: number, };
 export type BankPageResponse = { rows: Array<BankRow>, total_count: number, };
 
 /**
+ * v4.30.0 (TASK-026): one turn of per-bank financial results for the
+ * 24-turn multi-line chart inside an expanded bank row.
+ */
+export type BankProfitPointDto = { turn: number, net_interest_income: number, provisioning_cost: number, net_profit: number, };
+
+/**
  * A row in the Banking tab's commercial bank list.
  */
 export type BankRow = { id: string, name: string, bank_type: string, reserves: number, deposits: number, loans: number, securities: number, is_dspw: boolean, ldr: number, };
@@ -264,7 +270,12 @@ central_bank: CentralBankDto, };
 /**
  * Phase 54: Banking history response for sparkline tooltips.
  */
-export type BankingHistoryResponse = { turns: Array<number>, total_reserves: Array<number>, total_deposits: Array<number>, total_loans: Array<number>, };
+export type BankingHistoryResponse = { turns: Array<number>, total_reserves: Array<number>, total_deposits: Array<number>, total_loans: Array<number>, 
+/**
+ * v4.30.0 (TASK-026): remaining seven KPI series for the ten banking
+ * cards + per-bank profit/provisioning history for the expanded drawer.
+ */
+total_consumer_debt: Array<number>, dspw_bank_count: Array<number>, cb_rate: Array<number>, m0: Array<number>, m3: Array<number>, cb_fx_reserves: Array<number>, cb_gold_reserves: Array<number>, bank_profits: { [key in string]: Array<BankProfitPointDto> }, };
 
 /**
  * One deterministic tactical phase of a battle (v4.24.0).
@@ -356,7 +367,12 @@ manpower: bigint,
 /**
  * Attributed casualties (manpower share of the side's total).
  */
-losses: bigint, };
+losses: bigint, 
+/**
+ * v4.30.0 (TASK-024): per-unit tactical maneuver rolled for the
+ * phase tables — deterministic, varied across units.
+ */
+maneuver: string, };
 
 /**
  * v4.18: Bill detail payload for the expandable drawer — provisions,
@@ -1541,9 +1557,17 @@ event_id: string,
  */
 disaster_type: string, 
 /**
+ * v4.30.0 (TASK-024): country the event belongs to.
+ */
+country: string, 
+/**
  * Region where it occurred.
  */
 region_id: string, 
+/**
+ * v4.30.0 (TASK-024): resolved region display name.
+ */
+region_name: string, 
 /**
  * Turn.
  */
@@ -1555,7 +1579,11 @@ devastation_impact: number,
 /**
  * Casualties.
  */
-casualties: bigint, };
+casualties: bigint, 
+/**
+ * v4.30.0 (TASK-024): relief-response note.
+ */
+relief_response: string, };
 
 /**
  * Summary of a household durable cohort for the region drill-down.
@@ -2724,7 +2752,12 @@ national_party: string,
 /**
  * National party's seat share (0–1).
  */
-national_share: number, };
+national_share: number, 
+/**
+ * v4.30.0 (TASK-022): clean label — `Parcel #28 — Highland Ward`
+ * instead of the raw `ParcelId(28v1)` slotmap key.
+ */
+display_name: string, };
 
 /**
  * A single 2D point in world-map space (procedural units, not lat/lon).
@@ -3928,7 +3961,12 @@ region_name: string,
 /**
  * `[min_x, min_y, max_x, max_y]` of the parcel grid.
  */
-bounds: Array<number>, parcels: Array<MapParcelDto>, };
+bounds: Array<number>, parcels: Array<MapParcelDto>, 
+/**
+ * v4.30.0 (TASK-022): organic region contour the parcels are
+ * clipped inside — drawn as the map backdrop outline.
+ */
+region_boundary: Array<MapPoint>, };
 
 /**
  * Phase 34: A region row for the Regions tab.

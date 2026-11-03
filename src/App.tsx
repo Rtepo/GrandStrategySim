@@ -55,7 +55,8 @@ import { useUpdater } from "./hooks/useUpdater";
 const NAV_ITEMS = [
   { to: "/macro", label: "Macro", icon: TrendingUp },
   { to: "/market", label: "Market", icon: LayoutDashboard },
-  { to: "/finance", label: "Finance", icon: Banknote },
+  // v4.30.0 (TASK-023): Finance removed from the left sidebar — it now
+  // lives as the "Public Finance" sub-tab inside Government.
   { to: "/banking", label: "Banking", icon: Landmark },
   { to: "/stock-exchange", label: "Stock Exchange", icon: CandlestickChart },
   { to: "/funds", label: "Funds", icon: PiggyBank },

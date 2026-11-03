@@ -2387,6 +2387,9 @@ pub struct MapParcelDto {
     pub national_party: String,
     /// National party's seat share (0–1).
     pub national_share: f64,
+    /// v4.30.0 (TASK-022): clean label — `Parcel #28 — Highland Ward`
+    /// instead of the raw `ParcelId(28v1)` slotmap key.
+    pub display_name: String,
 }
 
 /// A region's cadastral parcel layout for the Regions-page drill-down map.
@@ -2400,6 +2403,9 @@ pub struct RegionParcelMapDto {
     /// `[min_x, min_y, max_x, max_y]` of the parcel grid.
     pub bounds: Vec<f64>,
     pub parcels: Vec<MapParcelDto>,
+    /// v4.30.0 (TASK-022): organic region contour the parcels are
+    /// clipped inside — drawn as the map backdrop outline.
+    pub region_boundary: Vec<MapPoint>,
 }
 
 /// `ZoningDesignation` → stable snake_case label (mirrors serde naming).
@@ -2425,6 +2431,29 @@ fn water_access_label(t: crate::society::cadastre::WaterAccessType) -> &'static 
         W::Lake => "lake",
         W::Sea => "sea",
     }
+}
+
+/// v4.30.0 (TASK-022): human parcel label — `Parcel #28 — Highland Ward`
+/// with the ward name derived from the parcel's zone/terrain.
+fn parcel_display_name(seq: usize, use_class: &str, terrain: &str) -> String {
+    let ward = match use_class {
+        "commercial" => "Market Quarter",
+        "industrial" => "Ironworks Quarter",
+        "resource_mines" => "Minefield",
+        "residential" => "Hearth Ward",
+        "water" => "Riverside",
+        "devastated" => "Ashen Fields",
+        _ => match terrain {
+            "mountains" | "highlands" => "Highland Ward",
+            "forest" => "Greenward",
+            "wetlands" => "Fen Ward",
+            "steppe" => "Steppe Ward",
+            "coast" | "river" | "lake" => "Shore Ward",
+            "farmland" | "plains" => "Pasture Ward",
+            _ => "Commons",
+        },
+    };
+    format!("Parcel #{seq} — {ward}")
 }
 
 /// `ParcelOwnerType` → stable snake_case label (mirrors serde naming).
@@ -2461,24 +2490,82 @@ pub fn build_region_parcel_map(
     let n = pids.len();
 
     const GRID: f64 = 100.0;
-    let cols = ((n as f64).sqrt().ceil() as usize).max(1);
-    let rows = n.div_ceil(cols).max(1);
-    let cell_w = GRID / cols as f64;
-    let cell_h = GRID / rows as f64;
+    // v4.30.0 (TASK-022): organic region contour — parcels clip inside
+    // the region's boundary shape instead of a bare square. Deterministic
+    // radial blob seeded by region id (18 vertices, ±40% radius noise).
+    let contour: Vec<(f64, f64)> = (0..18)
+        .map(|k| {
+            let ang = (k as f64 / 18.0) * std::f64::consts::TAU;
+            let r = 30.0 + hash_unit(&format!("ctr:{region_id}:{k}"), 251) * 20.0;
+            (50.0 + r * ang.cos(), 50.0 + r * ang.sin())
+        })
+        .collect();
 
-    // Jittered lattice shared between neighbouring cells — no gaps/overlaps.
-    let mut lattice = vec![vec![(0.0_f64, 0.0_f64); cols + 1]; rows + 1];
-    for (r, row) in lattice.iter_mut().enumerate() {
-        for (c, cell) in row.iter_mut().enumerate() {
-            let on_rim = r == 0 || c == 0 || r == rows || c == cols;
-            let amp = if on_rim { 0.08 } else { 0.30 } * cell_w.min(cell_h);
-            let jx =
-                (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 3) - 0.5) * 2.0 * amp;
-            let jy =
-                (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 4) - 0.5) * 2.0 * amp;
-            *cell = (c as f64 * cell_w + jx, r as f64 * cell_h + jy);
+    // Grid sizing: the contour covers ~40–60% of the 100² box, so start
+    // at 2.2× the cell count and densify until every parcel fits inside.
+    let (mut cols, mut rows) = (1usize, 1usize);
+    let mut lattice: Vec<Vec<(f64, f64)>> = Vec::new();
+    let mut inside: Vec<bool> = Vec::new();
+    loop {
+        cols = (cols as f64 * 1.25).ceil() as usize + 2;
+        rows = n.div_ceil(cols).max(1);
+        if rows == 0 {
+            rows = 1;
+        }
+        let cell_w = GRID / cols as f64;
+        let cell_h = GRID / rows as f64;
+        lattice = vec![vec![(0.0_f64, 0.0_f64); cols + 1]; rows + 1];
+        for (r, row) in lattice.iter_mut().enumerate() {
+            for (c, cell) in row.iter_mut().enumerate() {
+                let on_rim = r == 0 || c == 0 || r == rows || c == cols;
+                let amp = if on_rim { 0.08 } else { 0.30 } * cell_w.min(cell_h);
+                let jx =
+                    (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 3) - 0.5) * 2.0 * amp;
+                let jy =
+                    (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 4) - 0.5) * 2.0 * amp;
+                *cell = (c as f64 * cell_w + jx, r as f64 * cell_h + jy);
+            }
+        }
+        inside = (0..rows * cols)
+            .map(|i| {
+                let (r, c) = (i / cols, i % cols);
+                let cx = (lattice[r][c].0
+                    + lattice[r][c + 1].0
+                    + lattice[r + 1][c + 1].0
+                    + lattice[r + 1][c].0)
+                    / 4.0;
+                let cy = (lattice[r][c].1
+                    + lattice[r][c + 1].1
+                    + lattice[r + 1][c + 1].1
+                    + lattice[r + 1][c].1)
+                    / 4.0;
+                point_in_polygon((cx, cy), &contour)
+            })
+            .collect();
+        if inside.iter().filter(|b| **b).count() >= n || cols > 200 {
+            break;
         }
     }
+    // Border zone: an inside cell that 4-neighbours an outside cell (or
+    // the grid rim) — only parcels truly touching the region boundary.
+    let border_mask: Vec<bool> = (0..rows * cols)
+        .map(|i| {
+            if !inside[i] {
+                return false;
+            }
+            let (r, c) = (i / cols, i % cols);
+            [
+                r.checked_sub(1).map(|rr| rr * cols + c),
+                (r + 1 < rows).then(|| (r + 1) * cols + c),
+                c.checked_sub(1).map(|cc| r * cols + cc),
+                (c + 1 < cols).then(|| r * cols + c + 1),
+            ]
+            .iter()
+            .any(|nb| nb.map(|j| !inside[j]).unwrap_or(true))
+        })
+        .collect();
+    let cell_w = GRID / cols as f64;
+    let cell_h = GRID / rows as f64;
 
     // Industrial parcels in an extraction region render as resource mines.
     let has_extraction = region.extraction_limits.values().any(|v| *v > 0);
@@ -2538,7 +2625,15 @@ pub fn build_region_parcel_map(
             m
         };
         // BFS-grow each zone class from its seed over unassigned cells.
-        let mut cell_zone: Vec<&'static str> = vec![""; n];
+        // v4.30.0 (TASK-022): cells outside the region contour are
+        // pre-claimed so zones only grow on real territory.
+        let m_cells = rows * cols;
+        let mut cell_zone: Vec<&'static str> = vec![""; m_cells];
+        for (i, z) in cell_zone.iter_mut().enumerate() {
+            if !inside[i] {
+                *z = "outside";
+            }
+        }
         let seed_pref = |cls: &str| -> (f64, f64) {
             // Preferred seed location in normalized grid coords.
             match cls {
@@ -2620,14 +2715,14 @@ pub fn build_region_parcel_map(
                     ] {
                         if nr < rows && nc < cols {
                             let ni = nr * cols + nc;
-                            if ni < n && cell_zone[ni].is_empty() {
+                            if ni < m_cells && cell_zone[ni].is_empty() {
                                 frontier.push_back(ni);
                             }
                         }
                     }
                     if frontier.is_empty() {
                         // Zone ran out of neighbours — jump to next free cell.
-                        if let Some(free) = (0..n).find(|&c| cell_zone[c].is_empty()) {
+                        if let Some(free) = (0..m_cells).find(|&c| cell_zone[c].is_empty()) {
                             frontier.push_back(free);
                         }
                     }
@@ -2644,6 +2739,8 @@ pub fn build_region_parcel_map(
         cell_zone.iter().map(|s| s.to_string()).collect()
     };
     // Reorder pids so the parcel rendered in cell i belongs to cell_class[i].
+    let m_cells = rows * cols;
+    let inside_cells: Vec<usize> = (0..m_cells).filter(|&i| inside[i]).collect();
     let mut ordered: Vec<crate::society::cadastre::ParcelId> = Vec::with_capacity(n);
     {
         let mut cursors: std::collections::BTreeMap<String, usize> =
@@ -2669,7 +2766,8 @@ pub fn build_region_parcel_map(
                 (*pid, cls.to_string())
             })
             .collect();
-        for cls_name in &cell_class {
+        for &cell_idx in inside_cells.iter().take(n) {
+            let cls_name = &cell_class[cell_idx];
             let start = cursors.entry(cls_name.clone()).or_insert(0);
             let pid = classified
                 .iter()
@@ -2700,7 +2798,10 @@ pub fn build_region_parcel_map(
         let Some(p) = country.cadastre.get(*pid) else {
             continue;
         };
-        let (r, c) = (i / cols, i % cols);
+        // v4.30.0 (TASK-022): parcel i occupies the i-th inside-contour
+        // cell (row order) — outside cells never receive a parcel.
+        let cell_idx = inside_cells.get(i).copied().unwrap_or(0);
+        let (r, c) = (cell_idx / cols, cell_idx % cols);
         let polygon = vec![
             MapPoint {
                 x: lattice[r][c].0,
@@ -2883,7 +2984,11 @@ pub fn build_region_parcel_map(
             legal_certainty: p.legal_certainty,
             infrastructure_access: p.infrastructure_access,
             is_frozen: p.is_frozen,
-            is_border_zone: p.is_border_zone,
+            // v4.30.0 (TASK-022): TRUE border zone — only parcels whose
+            // cell touches the region boundary, not the random 10%
+            // cadastre flag (which kept marking interior parcels).
+            is_border_zone: border_mask[cell_idx],
+            display_name: parcel_display_name(i + 1, use_class, terrain),
             land_use_tag: p.land_use_tag.clone(),
             water_access: water_access_label(p.topography.water_access).to_string(),
             terrain: terrain.to_string(),
@@ -2904,6 +3009,10 @@ pub fn build_region_parcel_map(
         },
         bounds: vec![0.0, 0.0, GRID, GRID],
         parcels,
+        region_boundary: contour
+            .iter()
+            .map(|&(x, y)| MapPoint { x, y })
+            .collect(),
     })
 }
 

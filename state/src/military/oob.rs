@@ -902,7 +902,7 @@ pub fn generate_fleet(
 }
 
 /// Returns the ordinal suffix for a number (1st, 2nd, 3rd, 4th, etc.).
-fn ordinal(n: usize) -> String {
+pub fn ordinal(n: usize) -> String {
     let suffix = match n % 10 {
         1 if n % 100 != 11 => "st",
         2 if n % 100 != 12 => "nd",

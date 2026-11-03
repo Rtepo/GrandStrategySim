@@ -749,6 +749,13 @@ pub struct Country {
     /// Phase 59: National zoning quota set by the central government (player as PM).
     #[serde(default)]
     pub national_zoning_quota: crate::society::cadastre::NationalZoningQuota,
+    /// v4.30.0 (TASK-024): rolling disaster-event log. `trigger_disasters`
+    /// emits events every turn but they were previously dropped after
+    /// `eprintln!` — the Peacetime Disasters panel read an empty vec.
+    /// Persisted (ring buffer, most recent last) so the snapshot can
+    /// report region, casualties and devastation per event.
+    #[serde(default)]
+    pub disaster_log: std::collections::VecDeque<crate::society::disasters::DisasterEvent>,
     /// Phase 63.3: National subsurface rights law (default by tradition, changeable via legislation).
     #[serde(default)]
     pub subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw,
@@ -945,6 +952,7 @@ impl Country {
             legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
             externality_config: crate::society::cadastre::ExternalityConfig::default(),
             national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
+            disaster_log: std::collections::VecDeque::new(),
             subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
             global_reputation: crate::international::reputation::GlobalReputation::default(),
             geopolitical_doctrine:
@@ -1386,6 +1394,7 @@ impl CountryBuilder {
             legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
             externality_config: crate::society::cadastre::ExternalityConfig::default(),
             national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
+            disaster_log: std::collections::VecDeque::new(),
             subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
             global_reputation: crate::international::reputation::GlobalReputation::default(),
             geopolitical_doctrine:

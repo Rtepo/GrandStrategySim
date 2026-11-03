@@ -1,11 +1,12 @@
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getPaginatedBanks, getBankingAggregates, getBankingHistory, getBankDetail } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button } from "../components/ui";
 import { Sparkline } from "../components/charts/Sparkline";
+import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
-import type { CentralBankDto } from "../types/api";
+import type { CentralBankDto, BankProfitPointDto } from "../types/api";
 import { fmt } from "../lib/format";
 
 const PAGE_SIZE = 20;
@@ -35,6 +36,10 @@ export function BankingPage() {
     queryFn: () => getPaginatedBanks(selectedCountry!, offset, PAGE_SIZE),
     enabled: !!selectedCountry,
   });
+
+  // v4.30.0 (TASK-026): pinned KPI — clicking a card pins a full-width
+  // historical chart below the KPI grid.
+  const [pinnedKpi, setPinnedKpi] = useState<string | null>(null);
 
   if (!selectedCountry) return <div className="p-6 text-muted-foreground">Select a country from the sidebar.</div>;
   if (aggLoading) return <div className="p-6 text-muted-foreground">Loading banking data...</div>;
@@ -72,39 +77,15 @@ export function BankingPage() {
       )}
 
       {tab === "commercial" && aggregates && (
-        <div className="grid grid-cols-5 gap-3">
-          <SparklineStatCard
-            label="Bank Reserves"
-            value={fmt(aggregates.total_bank_reserves)}
-            data={history?.total_reserves ?? []}
-            labels={history?.turns ?? []}
-            color="#3b82f6"
-          />
-          <SparklineStatCard
-            label="Bank Deposits"
-            value={fmt(aggregates.total_bank_deposits)}
-            data={history?.total_deposits ?? []}
-            labels={history?.turns ?? []}
-            color="#10b981"
-          />
-          <SparklineStatCard
-            label="Bank Loans"
-            value={fmt(aggregates.total_bank_loans)}
-            data={history?.total_loans ?? []}
-            labels={history?.turns ?? []}
-            color="#f59e0b"
-          />
-          <StatCard label="Consumer Debt" value={fmt(aggregates.total_consumer_debt)} />
-          <StatCard label="DSPW Banks" value={String(aggregates.dspw_bank_count)} />
-          <StatCard label="CB Rate" value={`${(aggregates.central_bank_rate * 100).toFixed(2)}%`} />
-          <StatCard label="M0" value={fmt(aggregates.m0)} />
-          <StatCard label="M3" value={fmt(aggregates.m3)} />
-          <StatCard label="FX Reserves" value={fmt(aggregates.cb_fx_reserves_total)} />
-          <StatCard label="Gold" value={fmt(aggregates.cb_gold_reserves)} />
-        </div>
+        <BankingKpiGrid
+          aggregates={aggregates}
+          history={history}
+          pinnedKpi={pinnedKpi}
+          onPin={setPinnedKpi}
+        />
       )}
       {tab === "commercial" && hasHistory && (
-        <p className="text-xs text-muted-foreground">Double-click a sparkline to pin/unpin it.</p>
+        <p className="text-xs text-muted-foreground">Click a card to pin its full history chart below the grid.</p>
       )}
 
       {tab === "commercial" && (
@@ -133,6 +114,7 @@ export function BankingPage() {
                     key={b.id}
                     bank={b}
                     country={selectedCountry}
+                    profitSeries={history?.bank_profits?.[b.id] ?? []}
                     expanded={expandedBankId === b.id}
                     onToggle={() => setExpandedBankId(expandedBankId === b.id ? null : b.id)}
                   />
@@ -394,11 +376,13 @@ type BankRowT = import("../types/api").BankRow;
 function BankTableRow({
   bank,
   country,
+  profitSeries,
   expanded,
   onToggle,
 }: {
   bank: BankRowT;
   country: string;
+  profitSeries: BankProfitPointDto[];
   expanded: boolean;
   onToggle: () => void;
 }) {
@@ -427,7 +411,7 @@ function BankTableRow({
       {expanded && (
         <TableRow className="bg-muted/30">
           <TableCell colSpan={8} className="p-0">
-            <BankDetailPanel country={country} bankId={bank.id} />
+            <BankDetailPanel country={country} bankId={bank.id} profitSeries={profitSeries} />
           </TableCell>
         </TableRow>
       )}
@@ -436,7 +420,15 @@ function BankTableRow({
 }
 
 /** v4.19 WS2: Balance-sheet breakdown + income statement for one bank. */
-function BankDetailPanel({ country, bankId }: { country: string; bankId: string }) {
+function BankDetailPanel({
+  country,
+  bankId,
+  profitSeries,
+}: {
+  country: string;
+  bankId: string;
+  profitSeries: BankProfitPointDto[];
+}) {
   const { data: d, isLoading } = useQuery({
     queryKey: ["bank-detail", country, bankId],
     queryFn: () => getBankDetail(country, bankId),
@@ -446,7 +438,23 @@ function BankDetailPanel({ country, bankId }: { country: string; bankId: string 
 
   const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
   return (
-    <div className="grid grid-cols-3 gap-4 p-4 text-sm">
+    <div className="p-4 space-y-4">
+      {/* v4.30.0 (TASK-026): asset-structure donut + 24-turn results chart. */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Structure of Assets &amp; Reserves</CardTitle></CardHeader>
+          <CardContent>
+            <BankAssetDonut d={d} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Financial Results — last 24 turns</CardTitle></CardHeader>
+          <CardContent>
+            <BankProfitChart series={profitSeries} />
+          </CardContent>
+        </Card>
+      </div>
+      <div className="grid grid-cols-3 gap-4 text-sm">
       <div>
         <h4 className="mb-2 font-semibold text-foreground">Assets</h4>
         <Dl label="Cash / CB Reserves" value={fmt(d.reserves_at_central_bank)} />
@@ -482,6 +490,7 @@ function BankDetailPanel({ country, bankId }: { country: string; bankId: string 
         <Dl label="Net Profit" value={fmt(d.net_profit)} bold />
       </div>
     </div>
+    </div>
   );
 }
 
@@ -505,6 +514,184 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
+/** v4.30.0 (TASK-026): donut of one bank's asset & reserve structure. */
+function BankAssetDonut({ d }: { d: import("../types/api").BankDetail }) {
+  const option = useMemo(() => {
+    const slices = [
+      { name: "Cash / CB Reserves", value: d.reserves_at_central_bank + d.cb_deposit_facility_balance, color: "#3b82f6" },
+      { name: "Corporate Loans", value: d.corporate_loans, color: "#10b981" },
+      { name: "Consumer Loans", value: d.consumer_loans, color: "#f59e0b" },
+      { name: "Interbank Loans", value: d.interbank_loans_given, color: "#a855f7" },
+      { name: "Gov/CB Securities", value: d.securities + d.mbs_holdings_value, color: "#38bdf8" },
+      { name: "Real Estate", value: d.real_estate, color: "#9ca3af" },
+    ].filter((s) => s.value > 0);
+    return {
+      tooltip: {
+        trigger: "item" as const,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        formatter: (p: any) => `${p.name}: ${fmt(Number(p.value) || 0)} (${Number(p.percent || 0).toFixed(1)}%)`,
+      },
+      legend: { bottom: 0, textStyle: { color: "#cbd5e1", fontSize: 10 }, itemWidth: 10, itemHeight: 8 },
+      series: [
+        {
+          type: "pie" as const,
+          radius: ["40%", "66%"],
+          center: ["50%", "44%"],
+          label: { show: true, formatter: "{d}%", color: "#e2e8f0", fontSize: 10 },
+          labelLine: { length: 6, length2: 5 },
+          data: slices.map((s) => ({ name: s.name, value: s.value, itemStyle: { color: s.color } })),
+        },
+      ],
+    };
+  }, [d]);
+  return <EChart option={option} style={{ height: 260 }} />;
+}
+
+/** v4.30.0 (TASK-026): NII / provisioning / net profit over the last 24 turns. */
+function BankProfitChart({ series }: { series: BankProfitPointDto[] }) {
+  const option = useMemo(() => {
+    const pts = series.slice(-24);
+    const names = ["Net Interest Income", "Provisioning / NPL Cost", "Net Profit"];
+    const keys: (keyof BankProfitPointDto)[] = [
+      "net_interest_income",
+      "provisioning_cost",
+      "net_profit",
+    ];
+    const colors = ["#38bdf8", "#ef4444", "#10b981"];
+    return {
+      tooltip: { trigger: "axis" as const },
+      legend: { bottom: 0, textStyle: { color: "#cbd5e1", fontSize: 10 }, itemWidth: 10, itemHeight: 8 },
+      grid: { left: 60, right: 12, top: 12, bottom: 34 },
+      xAxis: {
+        type: "category" as const,
+        data: pts.map((p) => `T${p.turn}`),
+        axisLabel: { color: "#94a3b8", fontSize: 9 },
+      },
+      yAxis: {
+        type: "value" as const,
+        axisLabel: { color: "#94a3b8", fontSize: 9, formatter: (v: number) => fmt(v) },
+      },
+      series: names.map((name, i) => ({
+        name,
+        type: "line" as const,
+        data: pts.map((p) => p[keys[i]]),
+        itemStyle: { color: colors[i] },
+        lineStyle: { color: colors[i], width: 2 },
+        symbol: "none",
+        smooth: true,
+      })),
+    };
+  }, [series]);
+  if (series.length === 0)
+    return <div className="text-sm text-muted-foreground p-2">No financial history recorded yet — advance a turn.</div>;
+  return <EChart option={option} style={{ height: 260 }} />;
+}
+
+/** v4.30.0 (TASK-026): the ten top banking KPI cards — every card carries a
+    mini-sparkline and clicking pins a full-width history chart below. */
+function BankingKpiGrid({
+  aggregates,
+  history,
+  pinnedKpi,
+  onPin,
+}: {
+  aggregates: import("../types/api").BankingAggregates;
+  history: import("../types/api").BankingHistoryResponse | undefined;
+  pinnedKpi: string | null;
+  onPin: (k: string | null) => void;
+}) {
+  const cards = [
+    { key: "reserves", label: "Bank Reserves", value: fmt(aggregates.total_bank_reserves), data: history?.total_reserves ?? [], color: "#3b82f6" },
+    { key: "deposits", label: "Bank Deposits", value: fmt(aggregates.total_bank_deposits), data: history?.total_deposits ?? [], color: "#10b981" },
+    { key: "loans", label: "Bank Loans", value: fmt(aggregates.total_bank_loans), data: history?.total_loans ?? [], color: "#f59e0b" },
+    { key: "consumer", label: "Consumer Debt", value: fmt(aggregates.total_consumer_debt), data: history?.total_consumer_debt ?? [], color: "#ef4444" },
+    { key: "dspw", label: "DSPW Banks", value: String(aggregates.dspw_bank_count), data: history?.dspw_bank_count ?? [], color: "#a855f7" },
+    { key: "cbrate", label: "CB Rate", value: `${(aggregates.central_bank_rate * 100).toFixed(2)}%`, data: (history?.cb_rate ?? []).map((v) => v * 100), color: "#38bdf8" },
+    { key: "m0", label: "M0", value: fmt(aggregates.m0), data: history?.m0 ?? [], color: "#14b8a6" },
+    { key: "m3", label: "M3", value: fmt(aggregates.m3), data: history?.m3 ?? [], color: "#22c55e" },
+    { key: "fx", label: "FX Reserves", value: fmt(aggregates.cb_fx_reserves_total), data: history?.cb_fx_reserves ?? [], color: "#eab308" },
+    { key: "gold", label: "Gold", value: fmt(aggregates.cb_gold_reserves), data: history?.cb_gold_reserves ?? [], color: "#f97316" },
+  ];
+  const pinned = cards.find((c) => c.key === pinnedKpi);
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-5 gap-3">
+        {cards.map((c) => (
+          <SparklineStatCard
+            key={c.key}
+            label={c.label}
+            value={c.value}
+            data={c.data}
+            labels={history?.turns ?? []}
+            color={c.color}
+            pinned={pinnedKpi === c.key}
+            onTogglePin={() => onPin(pinnedKpi === c.key ? null : c.key)}
+          />
+        ))}
+      </div>
+      {pinned && pinned.data.length > 0 && (
+        <PinnedKpiChart label={pinned.label} data={pinned.data} labels={history?.turns ?? []} color={pinned.color} />
+      )}
+    </div>
+  );
+}
+
+/** v4.30.0 (TASK-026): full-width pinned history chart for one KPI card. */
+function PinnedKpiChart({
+  label,
+  data,
+  labels,
+  color,
+}: {
+  label: string;
+  data: number[];
+  labels: number[];
+  color: string;
+}) {
+  const option = useMemo(
+    () => ({
+      tooltip: {
+        trigger: "axis" as const,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        formatter: (ps: any) => `T${ps[0].axisValue} — ${fmt(Number(ps[0].data) || 0)}`,
+      },
+      grid: { left: 70, right: 16, top: 16, bottom: 30 },
+      xAxis: {
+        type: "category" as const,
+        data: labels.slice(-data.length),
+        axisLabel: { color: "#94a3b8", fontSize: 10 },
+      },
+      yAxis: {
+        type: "value" as const,
+        axisLabel: { color: "#94a3b8", fontSize: 10, formatter: (v: number) => fmt(v) },
+      },
+      series: [
+        {
+          name: label,
+          type: "line" as const,
+          data,
+          itemStyle: { color },
+          lineStyle: { color, width: 2 },
+          areaStyle: { color, opacity: 0.12 },
+          symbol: "none",
+          smooth: true,
+        },
+      ],
+    }),
+    [label, data, labels, color],
+  );
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm">{label} — historical</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <EChart option={option} style={{ height: 220 }} />
+      </CardContent>
+    </Card>
+  );
+}
+
 /** Phase 54: Stat card with an embedded sparkline shown on hover. */
 function SparklineStatCard({
   label,
@@ -512,25 +699,29 @@ function SparklineStatCard({
   data,
   labels,
   color,
+  pinned,
+  onTogglePin,
 }: {
   label: string;
   value: string;
   data: number[];
   labels: number[];
   color: string;
+  /** v4.30.0 (TASK-026): card click toggles the pinned full-width chart. */
+  pinned?: boolean;
+  onTogglePin?: () => void;
 }) {
-  const [showChart, setShowChart] = useState(false);
   const hasData = data.length > 0;
 
   return (
     <Card
-      onMouseEnter={() => setShowChart(true)}
-      onMouseLeave={() => setShowChart(false)}
+      className={`cursor-pointer ${pinned ? "ring-1 ring-primary" : ""}`}
+      onClick={onTogglePin}
     >
       <CardContent className="p-3">
         <div className="text-xs text-muted-foreground">{label}</div>
         <div className="text-lg font-bold text-foreground mt-1">{value}</div>
-        {hasData && showChart && (
+        {hasData && (
           <div className="mt-2">
             <Sparkline
               data={data}
@@ -538,7 +729,7 @@ function SparklineStatCard({
               color={color}
               label={label}
               width={180}
-              height={50}
+              height={40}
             />
           </div>
         )}

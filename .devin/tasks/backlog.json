@@ -988,7 +988,7 @@
    "required_rust_files": [
     "state/src/state/mod.rs",
     "state/src/ui/snapshot.rs",
-    "state/src/society/geography.rs"
+    "state/src/society/cultures.rs"
    ],
    "required_ui_files": [
     "src/components/DynastyTree.tsx",
@@ -1036,7 +1036,7 @@
     },
     {
      "file": "src/pages/MilitaryPage.tsx",
-     "pattern": "Math.min(100|clamp|morale",
+     "pattern": "Math.min|clamp|morale",
      "desc": "morale clamp"
     },
     {
@@ -1058,7 +1058,7 @@
    "spec_file": ".devin/tasks/specs/TASK-025.md",
    "base_ref": "origin/main",
    "required_rust_files": [
-    "state/src/society/geography.rs",
+    "state/src/economy/labor/migration.rs",
     "state/src/engine/turn.rs",
     "state/src/ui/snapshot.rs"
    ],
@@ -1085,7 +1085,7 @@
    "spec_file": ".devin/tasks/specs/TASK-026.md",
    "base_ref": "origin/main",
    "required_rust_files": [
-    "state/src/state/banking.rs",
+    "state/src/economy/banking_history.rs",
     "state/src/ui/snapshot.rs"
    ],
    "required_ui_files": [

@@ -1006,10 +1006,26 @@ fn add_conscript_to_oob(
     unit: MilitaryUnit,
     country_name: &str,
 ) {
-    use crate::military::oob::{Army, Division, Regiment};
+    use crate::military::oob::{country_adjective, ordinal, Army, Division, Regiment};
 
     // Find or create the conscript reserve army
     let conscript_army_id = format!("ARMY-{}-CONSCRIPT", country_name);
+    // v4.30.0 (TASK-024): conscript regiments get real numbered names
+    // ("4th Dacian Reserve Infantry"), not 8 identical "Conscript
+    // Regiment" rows. Sequence = existing conscript regiments + 1.
+    let conscript_seq = oob
+        .armies
+        .iter()
+        .flat_map(|a| &a.divisions)
+        .flat_map(|d| &d.regiments)
+        .filter(|r| {
+            r.id.starts_with(&format!("REG-{}-CONSCRIPT-", country_name))
+        })
+        .count()
+        + 1;
+    let conscript_reg_name =
+        format!("{} {} Reserve Infantry", ordinal(conscript_seq), country_adjective(country_name));
+    let conscript_reg_id = format!("REG-{}-CONSCRIPT-{:03}", country_name, conscript_seq);
 
     let army_idx = oob.armies.iter().position(|a| a.id == conscript_army_id);
     match army_idx {
@@ -1021,8 +1037,8 @@ fn add_conscript_to_oob(
                     reg.add_unit(unit);
                 } else {
                     let mut reg = Regiment::new(
-                        format!("REG-{}-CONSCRIPT-001", country_name),
-                        "Conscript Regiment".to_string(),
+                        conscript_reg_id.clone(),
+                        conscript_reg_name.clone(),
                         unit.home_region.clone(),
                     );
                     reg.add_unit(unit);
@@ -1031,14 +1047,14 @@ fn add_conscript_to_oob(
             } else {
                 let home_region = unit.home_region.clone();
                 let mut reg = Regiment::new(
-                    format!("REG-{}-CONSCRIPT-001", country_name),
-                    "Conscript Regiment".to_string(),
+                    conscript_reg_id.clone(),
+                    conscript_reg_name.clone(),
                     home_region.clone(),
                 );
                 reg.add_unit(unit);
                 let mut div = Division::new(
-                    format!("DIV-{}-CONSCRIPT-001", country_name),
-                    "Conscript Division".to_string(),
+                    format!("DIV-{}-CONSCRIPT-{:03}", country_name, conscript_seq),
+                    format!("{} Reserve Division", country_adjective(country_name)),
                     home_region,
                 );
                 div.add_regiment(reg);
@@ -1047,8 +1063,8 @@ fn add_conscript_to_oob(
         }
         None => {
             let mut reg = Regiment::new(
-                format!("REG-{}-CONSCRIPT-001", country_name),
-                "Conscript Regiment".to_string(),
+                conscript_reg_id.clone(),
+                conscript_reg_name.clone(),
                 unit.home_region.clone(),
             );
             reg.add_unit(unit);

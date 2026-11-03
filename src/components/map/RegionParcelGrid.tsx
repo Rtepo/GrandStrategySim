@@ -11,6 +11,7 @@ import { useState } from "react";
 import { Badge, Button } from "../ui";
 import { fmt } from "../../lib/format";
 import { partyColor } from "../../lib/partyVisuals";
+import { councilFactionColor } from "../../lib/palette";
 import type { MapParcelDto, RegionParcelMapDto } from "../../types/api";
 
 export type ParcelMode = "zoning" | "party" | "terrain";
@@ -78,8 +79,12 @@ const PARCEL_TERRAIN_LABELS: Record<string, string> = {
 function parcelFill(p: MapParcelDto, mode: ParcelMode, partyView: PartyView = "regional"): string {
   switch (mode) {
     case "party":
+      // v4.30.0 (TASK-022): regional wards use the canonical council
+      // palette — no more Moderates≡Optimates purple collision.
       return (partyView === "national" ? p.national_party : p.dominant_party)
-        ? partyColor(null, partyView === "national" ? p.national_party : p.dominant_party)
+        ? (partyView === "national"
+            ? partyColor(null, p.national_party)
+            : councilFactionColor(p.dominant_party))
         : "#3d4757";
     case "terrain":
       return PARCEL_TERRAIN_COLORS[p.terrain] ?? "#3d4757";
@@ -148,7 +153,9 @@ export function RegionParcelGrid({
     mode === "party"
       ? key === "No council"
         ? "#3d4757"
-        : partyColor(null, key)
+        : partyView === "national"
+          ? partyColor(null, key)
+          : councilFactionColor(key)
       : mode === "terrain"
         ? (PARCEL_TERRAIN_COLORS[key] ?? "#3d4757")
         : (PARCEL_USE_COLORS[key] ?? PARCEL_USE_COLORS.unplanned);
@@ -208,6 +215,16 @@ export function RegionParcelGrid({
         viewBox={`0 0 1000 560`}
         className="w-full h-64 rounded bg-[#0f1d2b] border border-border"
       >
+        {/* v4.30.0 (TASK-022): the organic region contour the parcels are
+            clipped inside — the map no longer renders as a rectangle. */}
+        {parcelMap.region_boundary?.length > 0 && (
+          <polygon
+            points={parcelMap.region_boundary.map((v) => `${toX(v.x)},${toY(v.y)}`).join(" ")}
+            fill="#16283a"
+            stroke="#3b4f66"
+            strokeWidth={2}
+          />
+        )}
         {parcelMap.parcels.map((p) => {
           const pts = p.polygon.map((v) => `${toX(v.x)},${toY(v.y)}`).join(" ");
           const selected = selectedParcel?.id === p.id;
@@ -222,7 +239,7 @@ export function RegionParcelGrid({
               className="cursor-pointer hover:opacity-90"
               onClick={() => onSelectParcel(selected ? null : p)}
             >
-              <title>{`${parcelLabel(p, mode, partyView)} — ${fmt(p.size_hectares)} ha — ${p.owner_type}`}</title>
+              <title>{`${p.display_name ?? p.id} — ${parcelLabel(p, mode, partyView)} — ${fmt(p.size_hectares)} ha — ${p.owner_type}`}</title>
             </polygon>
           );
         })}
@@ -240,7 +257,7 @@ export function RegionParcelGrid({
       </div>
       {selectedParcel && (
         <div className="grid grid-cols-4 gap-2 text-xs border border-border rounded p-2">
-          <div><span className="text-muted-foreground">Parcel:</span> {selectedParcel.id}</div>
+          <div><span className="text-muted-foreground">Parcel:</span> {selectedParcel.display_name ?? selectedParcel.id}</div>
           <div><span className="text-muted-foreground">Zoning:</span> {PARCEL_USE_LABELS[selectedParcel.use_class] ?? selectedParcel.zoning}</div>
           <div><span className="text-muted-foreground">Terrain:</span> {PARCEL_TERRAIN_LABELS[selectedParcel.terrain] ?? selectedParcel.terrain}</div>
           {selectedParcel.dominant_party && (

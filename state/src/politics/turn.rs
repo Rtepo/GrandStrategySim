@@ -1713,6 +1713,46 @@ pub fn run_election_if_due(
     );
     country.politics.ministry_config = Some(new_config);
 
+    // v4.30.0 (TASK-023): 100% VIP-backed ministers. Cabinet reshuffles
+    // mint fresh minister names via `generate_unique_vip`, but only the
+    // genesis bootstrap registered ministers — reshuffled names never
+    // entered `vip_registry`, so `minister_vip_id` came back null and
+    // the Government tab lost its VIP link. Register any unregistered
+    // minister names now (genesis names already present are skipped).
+    if let (Some(mc), Some(registry)) = (
+        country.politics.ministry_config.as_ref(),
+        country.politics.vip_registry.as_mut(),
+    ) {
+        for ministry in &mc.ministries {
+            if ministry.minister_name.is_empty()
+                || registry.get_by_name(&ministry.minister_name).is_some()
+            {
+                continue;
+            }
+            let ideology = active_parties
+                .get(&ministry.minister_party)
+                .map(|p| p.ideology.clone())
+                .unwrap_or_else(|| "Centrist".to_string());
+            let (traits, main_trait) = assign_core_traits(&mut rng);
+            registry.register_new(Vip {
+                full_name: ministry.minister_name.clone(),
+                gender: names::generate_full_vip(&cultural_group, &mut rng).gender,
+                age: 40 + rng.gen_range(0..30),
+                health: crate::politics::vip_registry::VipHealth {
+                    physical_health: 1.0,
+                    mental_health: 1.0,
+                },
+                traits,
+                main_trait,
+                ideology,
+                nationality: country.name.clone(),
+                roles: vec![VipRoleExtended::Minister],
+                base_influence: 30 + rng.gen_range(0..30),
+                ..Default::default()
+            });
+        }
+    }
+
     // Phase 43: Initialize the parliamentary committee system.
     // This was never called before, so committee_system was always None and
     // the Parliament tab showed no committees.

@@ -3581,6 +3581,51 @@ fn best_freight_method(
     Some((building_name, method))
 }
 
+/// v4.30.0 (TASK-025): newest era-eligible *passenger* transport method —
+/// mirrors `best_freight_method`. Without it every TransportLogistics
+/// genesis building produced only FreightCapacity, so zero PassengerTransport
+/// ever entered inventory and cross-border migration was hard-blocked at
+/// zero (people cannot teleport — Rule 19).
+fn best_passenger_method(
+    sector: Sector,
+    start_year: u32,
+    registries: &Registries,
+) -> Option<(String, ActiveProductionMethod)> {
+    let sector_key = sector_json_name(sector);
+    let building_name = default_building_name(sector);
+    let building_methods = registries.production_methods.get(&sector_key)?;
+    let best = building_methods
+        .production
+        .iter()
+        .filter(|(name, _)| !is_decree_conversion_method(name))
+        .filter(|(_, pm)| pm.year <= start_year)
+        .filter(|(_, pm)| {
+            pm.outputs
+                .iter()
+                .any(|(c, _)| *c == Commodity::PassengerTransport)
+        })
+        .filter(|(_, pm)| match &pm.required_tech {
+            None => true,
+            Some(tech_id) => registries
+                .tech_tree
+                .get(tech_id)
+                .map(|node| node.year <= start_year)
+                .unwrap_or(false),
+        })
+        .max_by(|(an, a), (bn, b)| a.year.cmp(&b.year).then(an.cmp(bn)))
+        .map(|(_, pm)| pm)?;
+    let mut method = method_from_ratios(
+        best.experts_ratio,
+        best.skilled_ratio,
+        best.basic_ratio,
+        best.inputs.iter().map(|(c, q)| (*c, *q)).collect(),
+        best.outputs.iter().map(|(c, q)| (*c, *q)).collect(),
+        best.year,
+    );
+    method.seat_type = best.seat_type;
+    Some((building_name, method))
+}
+
 /// Phase 44: Diversified production method selector.
 ///
 /// Instead of picking the single highest-year method for an entire sector
@@ -6073,8 +6118,16 @@ fn create_seed_company(
         // Freight-critical seed: the max-year generic selector picks the
         // newest *passenger* method, which leaves zero FreightCapacity
         // producers and starves the cross-region freight gate.
-        best_freight_method(sector, start_year, registries)
-            .unwrap_or_else(|| best_registry_method(sector, start_year, registries))
+        // v4.30.0 (TASK-025): ~45% of transport buildings carry the newest
+        // passenger method instead — without ANY PassengerTransport
+        // producers, international migration was capped at zero.
+        if rng.gen::<f64>() < 0.45 {
+            best_passenger_method(sector, start_year, registries)
+                .unwrap_or_else(|| best_registry_method(sector, start_year, registries))
+        } else {
+            best_freight_method(sector, start_year, registries)
+                .unwrap_or_else(|| best_registry_method(sector, start_year, registries))
+        }
     } else {
         best_registry_method(sector, start_year, registries)
     };

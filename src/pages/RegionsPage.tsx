@@ -11,7 +11,9 @@ import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, Ta
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { MiniMap } from "../components/map/MiniMap";
+import { WaterCard } from "../components/map/WaterCard";
 import type { MapMode } from "../components/map/WorldMapSvg";
+import type { WaterBodyDto } from "../types/api";
 import { RegionParcelGrid } from "../components/map/RegionParcelGrid";
 import { fmt, num, humanize } from "../lib/format";
 import type { CouncilResolutionRow, CouncilRollCallRow, MapParcelDto, RegionParcelMapDto } from "../types/api";
@@ -26,23 +28,10 @@ const safeStr = (v: string | null | undefined): string => v ?? "—";
 const safeNum = (v: number | null | undefined): number => v ?? 0;
 const safeArr = <T,>(v: T[] | null | undefined): T[] => v ?? [];
 
-/**
- * v4.23 WS7: Canonical council-faction colors. The hash fallback in
- * `partyColor` collides for "Optimates" and "Moderates" (both → indigo
- * #6366f1), making the hemicycle wedges and faction rows indistinguishable.
- * Canonical Roman-council palette: Populares red, Moderates amber,
- * Optimates navy. Unknown/estate faction names still hash deterministically.
- */
-const COUNCIL_FACTION_COLORS: Record<string, string> = {
-  Populares: "#ef4444", // red
-  Moderates: "#f59e0b", // amber
-  Optimates: "#1e3a8a", // navy
-};
-
-/** Resolve a council faction's display color (canonical map → hash fallback). */
-function councilFactionColor(name: string): string {
-  return COUNCIL_FACTION_COLORS[name] ?? partyColor(null, name);
-}
+// v4.30.0 (TASK-022): canonical faction/unit colors now live in the
+// shared palette module so Parliament, the parcel map and military UIs
+// can never drift apart (v4.29 Moderates≡Optimates purple bug).
+import { councilFactionColor } from "../lib/palette";
 
 /// v4.22 WS3.2: Council faction pairs → hemicycle seat entries. Faction names
 /// are free-form (estate/party labels); color is deterministic by name hash and
@@ -98,6 +87,8 @@ export function RegionsPage() {
     enabled: !!selectedCountry && !!selectedRegionId,
   });
   const [selectedParcel, setSelectedParcel] = useState<MapParcelDto | null>(null);
+  // v4.30.0 (TASK-021): clicked lake/sea detail on the interactive map.
+  const [waterDetail, setWaterDetail] = useState<WaterBodyDto | null>(null);
 
   // v4.27.0 TASK-005: country-map mode switcher — Political &
   // Infrastructure / Megaregions / Internal Migration / Party Support.
@@ -186,7 +177,32 @@ export function RegionsPage() {
               }}
             />
           ) : (
-            <MiniMap onlyCountry={selectedCountry} mode={countryMapMode} heightClass="h-64" />
+            <div className="space-y-2">
+              {/* v4.30.0 (TASK-021): interactive pan/zoom country map —
+                  dynamic ownership, clickable regions & lakes. */}
+              <MiniMap
+                onlyCountry={selectedCountry}
+                mode={countryMapMode}
+                heightClass="h-64"
+                interactive
+                showLabels
+                onRegionClick={(r) => {
+                  setSelectedRegionId(r.id);
+                  setSelectedMegaregionId(null);
+                  setWaterDetail(null);
+                }}
+                onWaterClick={setWaterDetail}
+              />
+              {waterDetail && (
+                <WaterCard
+                  water={waterDetail}
+                  regionNameById={
+                    new Map((regions ?? []).map((r) => [r.id, r.display_name ?? r.id]))
+                  }
+                  onClose={() => setWaterDetail(null)}
+                />
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
