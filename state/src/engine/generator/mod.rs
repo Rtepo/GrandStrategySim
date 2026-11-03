@@ -623,6 +623,15 @@ pub fn generate_world(
                 .cloned()
                 .collect();
             if coastal.is_empty() {
+                // v4.31.0 (TASK-027): genuinely landlocked — EVERY land
+                // region carries a foreign `LandBorder` edge, so no rim
+                // region faces open water. Record it authoritatively so
+                // the map layer (and release gates) never paints
+                // offshore islands for this country. The fallback bay
+                // below stays — freight routing needs sea reachability.
+                if let Some(cty) = state.countries.get_mut(cname.as_str()) {
+                    cty.is_landlocked = true;
+                }
                 if let Some(outer) = ids.last() {
                     coastal.push(outer.clone());
                 }
@@ -839,6 +848,7 @@ fn generate_country(
 
     let mut country = Country {
         name: name.to_string(),
+        is_landlocked: false,
         budget: treasury,
         macro_indicators: macro_data,
         tax_rates,

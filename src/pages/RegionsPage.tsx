@@ -193,6 +193,13 @@ export function RegionsPage() {
                 }}
                 onWaterClick={setWaterDetail}
               />
+              {/* v4.31.0 (TASK-028): grey = neighbouring foreign land on
+                  the same continent (lost regions + other countries);
+                  roads/cities render only on currently owned regions. */}
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span className="inline-block w-3 h-3 rounded-sm border border-border" style={{ backgroundColor: "#1e293b" }} />
+                Foreign territory (not owned)
+              </div>
               {waterDetail && (
                 <WaterCard
                   water={waterDetail}

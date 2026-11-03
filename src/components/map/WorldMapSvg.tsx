@@ -213,6 +213,16 @@ function polyPoints(r: MapRegionDto): string {
   return r.polygon.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
 }
 
+/** Signed shoelace area — label font sizes scale ∝ √area (TASK-027). */
+function polyArea(pts: { x: number; y: number }[]): number {
+  let a = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const j = (i + 1) % pts.length;
+    a += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+  }
+  return a / 2;
+}
+
 function boundaryPath(c: CountryMapDto): string {
   return (
     c.boundary.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ") + " Z"
@@ -284,6 +294,65 @@ export function WorldMapSvg({
       .filter((f) => ownedIds.has(f.from_region) || ownedIds.has(f.to_region));
     return [{ ...base, regions: owned, flows }];
   }, [snapshot, onlyCountry]);
+
+  // v4.31.0 (TASK-028): muted grey neighbours — every non-owned region
+  // on the same continent renders as dark-slate land (#1e293b) so the
+  // full coastline stays visible in the country-scoped view instead of
+  // collapsing to blue ocean.
+  const greyRegions = useMemo(() => {
+    if (!onlyCountry) return [] as MapRegionDto[];
+    const owned = new Set(
+      snapshot.countries
+        .flatMap((g) => g.regions)
+        .filter((r) => r.country === onlyCountry)
+        .map((r) => r.id),
+    );
+    const homeContinent = snapshot.countries.find(
+      (g) => g.country === onlyCountry,
+    )?.regions[0]?.continent;
+    if (homeContinent === undefined) return [];
+    return snapshot.countries
+      .flatMap((g) => g.regions)
+      .filter(
+        (r) => !owned.has(r.id) && Number(r.continent) === Number(homeContinent),
+      );
+  }, [snapshot, onlyCountry]);
+
+  // v4.31.0 (TASK-028): owned-region id set + centroid keys — city dots
+  // and road/rail segments that ended up inside lost regions are
+  // clipped out so no infrastructure floats on foreign land/water.
+  const ownedRegionIds = useMemo(() => {
+    if (!onlyCountry) return null;
+    return new Set(countries[0]?.regions.map((r) => r.id) ?? []);
+  }, [onlyCountry, countries]);
+
+  const ownedCentroidKeys = useMemo(() => {
+    if (!ownedRegionIds) return null;
+    const s = new Set<string>();
+    for (const c of countries)
+      for (const r of c.regions)
+        s.add(`${r.centroid.x.toFixed(3)},${r.centroid.y.toFixed(3)}`);
+    return s;
+  }, [countries, ownedRegionIds]);
+
+  // Mean polygon areas — label font sizes scale ∝ √area so small
+  // countries/regions never collide with neighbours (TASK-027).
+  const [meanRegionArea, meanCountryArea] = useMemo(() => {
+    let tot = 0;
+    let n = 0;
+    const perC: number[] = [];
+    for (const c of countries) {
+      let a = 0;
+      for (const r of c.regions) {
+        const ar = Math.abs(polyArea(r.polygon));
+        a += ar;
+        tot += ar;
+        n++;
+      }
+      perC.push(a);
+    }
+    return [n ? tot / n : 1, perC.length ? tot / perC.length : 1];
+  }, [countries]);
 
   const bounds = useMemo(() => {
     if (!onlyCountry) return snapshot.bounds;
@@ -383,7 +452,9 @@ export function WorldMapSvg({
 
   const spanX = bounds[2] - bounds[0] || 1;
   const spanY = bounds[3] - bounds[1] || 1;
-  const pad = Math.max(spanX, spanY) * 0.03;
+  // v4.31.0 (TASK-027): larger canvas margins — labels at the rim no
+  // longer clip, and the world reads bigger on the page.
+  const pad = Math.max(spanX, spanY) * 0.05;
 
   // v4.29.0 (TASK-017): zoom-adaptive LOD viewport. Wheel zooms (clamped
   // [0.6, 6]) around the cursor, drag pans. Label tiers:
@@ -527,6 +598,20 @@ export function WorldMapSvg({
       {seaLaneEdges.map((e) => (
         <SeaLane key={`sl-${e.from_region}-${e.to_region}`} edge={e} centroids={centroidById} strokeW={strokeW} />
       ))}
+      {/* v4.31.0 (TASK-028): grey foreign neighbours — same-continent
+          non-owned land renders muted (#1e293b) under the country's own
+          regions so the continent coastline is preserved. */}
+      {greyRegions.map((r) => (
+        <polygon
+          key={`grey-${r.id}`}
+          points={polyPoints(r)}
+          fill="#1e293b"
+          fillOpacity={0.9}
+          stroke="#334155"
+          strokeWidth={strokeW * 0.7}
+          pointerEvents="none"
+        />
+      ))}
       {countries.map((c) => {
         const dimmed = !!highlightCountry && c.country !== highlightCountry;
         const atWar = c.at_war_with.length > 0;
@@ -636,14 +721,21 @@ export function WorldMapSvg({
                       pointerEvents="none"
                     />
                   )}
-                  {/* Region name — capital names always, others when the
-                      cells are sparse enough to stay readable. */}
-                  {!compact && ((labelsOn && zoomIn) || r.is_capital_district || hovered) && (
+                  {/* v4.31.0 (TASK-027): region/capital names hide at low
+                      zoom (country names stay readable); font size clamps
+                      ∝ √polygon area so small cells get small labels. */}
+                  {!compact && ((labelsOn && zoomIn) || hovered) && (
                     <text
                       x={r.centroid.x}
                       y={r.centroid.y + (r.is_capital_district ? starR * 2.2 : labelSize * 0.4)}
                       textAnchor="middle"
-                      fontSize={r.is_capital_district ? labelSize * 1.05 : labelSize * 0.9}
+                      fontSize={(() => {
+                        const rel = Math.sqrt(
+                          Math.abs(polyArea(r.polygon)) / Math.max(1e-9, meanRegionArea),
+                        );
+                        const base = r.is_capital_district ? 1.05 : 0.9;
+                        return labelSize * base * Math.min(1.4, Math.max(0.5, rel));
+                      })()}
                       fill="#f1f5f9"
                       stroke="#0a1622"
                       strokeWidth={labelSize * 0.14}
@@ -669,7 +761,21 @@ export function WorldMapSvg({
                 urban population. */}
             {mode === "infrastructure" && (
               <g pointerEvents="none">
-                {c.routes.map((rt, ri) => (
+                {/* v4.31.0 (TASK-028): in the country-scoped view, clip
+                    road/rail segments whose endpoints sit in regions the
+                    country no longer owns — no ghost arteries across
+                    lost (grey) land or water. */}
+                {c.routes
+                  .filter((rt) => {
+                    if (!ownedCentroidKeys) return true;
+                    const a = rt.points[0];
+                    const b = rt.points[rt.points.length - 1];
+                    return (
+                      ownedCentroidKeys.has(`${a.x.toFixed(3)},${a.y.toFixed(3)}`) &&
+                      ownedCentroidKeys.has(`${b.x.toFixed(3)},${b.y.toFixed(3)}`)
+                    );
+                  })
+                  .map((rt, ri) => (
                   <polyline
                     key={`rt-${c.country}-${ri}`}
                     points={rt.points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")}
@@ -680,7 +786,11 @@ export function WorldMapSvg({
                     opacity={0.85}
                   />
                 ))}
-                {c.cities.map((city) => {
+                {c.cities
+                  .filter(
+                    (city) => !ownedRegionIds || ownedRegionIds.has(city.region_id),
+                  )
+                  .map((city) => {
                   const maxCity = Math.max(1, ...c.cities.map((x) => Number(x.population)));
                   const r = starR * (0.8 + 2.2 * Math.sqrt(Number(city.population) / maxCity));
                   return (
@@ -736,19 +846,25 @@ export function WorldMapSvg({
               })()}
             {/* Country name — v4.30.0 (TASK-021): centroid of CURRENTLY
                 owned regions (conquests shift it, annexation hides it)
-                instead of the immutable genesis anchor. */}
+                instead of the immutable genesis anchor.
+                v4.31.0 (TASK-027): font size clamps ∝ √country area. */}
             {!compact &&
               (() => {
                 const owned = c.regions.filter((r) => r.country === c.country);
                 if (owned.length === 0) return null;
                 const lx = owned.reduce((s, r) => s + r.centroid.x, 0) / owned.length;
                 const ly = owned.reduce((s, r) => s + r.centroid.y, 0) / owned.length;
+                const cArea = owned.reduce(
+                  (s, r) => s + Math.abs(polyArea(r.polygon)),
+                  0,
+                );
+                const rel = Math.sqrt(cArea / Math.max(1e-9, meanCountryArea));
                 return (
                   <text
                     x={lx}
                     y={ly - starR * 4}
                 textAnchor="middle"
-                fontSize={labelSize * 1.5}
+                fontSize={labelSize * 1.5 * Math.min(1.3, Math.max(0.55, rel))}
                 fontWeight={700}
                 fill="#ffffff"
                 stroke="#0a1622"

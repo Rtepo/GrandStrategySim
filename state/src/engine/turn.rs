@@ -13769,6 +13769,16 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
         };
         let mut profit_points: Vec<(String, crate::economy::banking_history::BankProfitPoint)> =
             Vec::new();
+        // v4.31.0 (TASK-030): per-turn treasury/asset-allocation pass —
+        // redeploy idle CB liquidity above the reserve_req+5% buffer into
+        // the bond portfolio so Cash/CB Reserves stays < ~25% of assets
+        // (banks parked 54%–97% in the CB deposit facility before).
+        if let Some(ents) = entities.get_mut(country_name) {
+            crate::economy::banking::treasury_allocation_pass(
+                &mut ents.companies,
+                country.central_bank.reserve_requirement_ratio,
+            );
+        }
         if let Some(ents) = entities.get(country_name) {
             for c in &ents.companies {
                 if c.bank_type.is_none() {
@@ -13795,38 +13805,26 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
                 // Per-bank results for the expanded-drawer multi-line chart:
                 // NII via the same run-rate math as `build_bank_detail`,
                 // provisioning proxied by newly impaired loan balance.
-                let interbank_given: f64 = bs.interbank_loans_given.values().sum();
-                let interbank_taken: f64 = bs.interbank_loans_taken.values().sum();
-                let interest_income: f64 = bs
-                    .loans_issued
-                    .iter()
-                    .map(|l| l.outstanding_balance * l.interest_rate)
-                    .sum::<f64>()
-                    + bs.consumer_loans_outstanding * (rates.reference_rate + 0.04)
-                    + interbank_given * rates.reference_rate;
-                let interest_expense: f64 = bs.deposits * rates.deposit_rate
-                    + bs.cb_lombard_loans * rates.lombard_rate
-                    + interbank_taken * rates.reference_rate
-                    + bs.issued_bonds * (rates.reference_rate + 0.01);
-                let provisioning_cost: f64 = bs
-                    .loans_issued
-                    .iter()
-                    .filter(|l| {
-                        matches!(
-                            l.status,
-                            crate::state::banking::LoanStatus::Overdue
-                                | crate::state::banking::LoanStatus::Default
-                        )
-                    })
-                    .map(|l| l.outstanding_balance)
-                    .sum();
+                // v4.31.0 (TASK-030): same canonical income statement as
+                // `build_bank_detail` — the 24-turn chart's net-profit
+                // line now reflects the real formula instead of a dead
+                // `-wages` proxy.
+                let operating_wages =
+                    c.wages_paid_this_turn + c.arrears_accrued_this_turn;
+                let bank_type = c.bank_type.clone().unwrap_or_default();
+                let is = crate::economy::banking::income_statement(
+                    bs,
+                    &bank_type,
+                    rates,
+                    operating_wages,
+                );
                 profit_points.push((
                     c.id.clone(),
                     crate::economy::banking_history::BankProfitPoint {
                         turn,
-                        net_interest_income: interest_income - interest_expense,
-                        provisioning_cost,
-                        net_profit: c.realized_profit_this_turn,
+                        net_interest_income: is.interest_income - is.interest_expense,
+                        provisioning_cost: is.npl_cost,
+                        net_profit: is.net_profit,
                     },
                 ));
             }
@@ -13839,6 +13837,45 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
         for (bank_id, point) in profit_points {
             history.record_bank_profit(&bank_id, point);
         }
+    }
+
+    // v4.31.0 (TASK-032): pastoral dynamics (seed herds, sedentarize)
+    // plus the 12-series Society KPI history — every Society card gets
+    // a real sparkline + pinned trend chart like Banking.
+    for (country_name, country) in state.countries.iter_mut() {
+        crate::society::update_pastoral_dynamics(country);
+        let demo = &country.macro_indicators.demographics;
+        let sample = crate::society::SocietyKpiSample {
+            population: country.budget.population as f64,
+            average_age: demo.average_age,
+            median_age: demo.median_age,
+            birth_rate: demo.birth_rate,
+            death_rate: demo.death_rate,
+            fertility: if demo.birth_rate > 0.0 {
+                demo.birth_rate * 1.3
+            } else {
+                0.0
+            },
+            life_expectancy: country.macro_indicators.health_statistics.average_lifespan,
+            literacy_rate: country
+                .macro_indicators
+                .education_statistics
+                .literacy_rate,
+            higher_education_rate: country
+                .macro_indicators
+                .education_statistics
+                .higher_education_rate,
+            net_migration_rate: demo.net_migration,
+            urban_share: demo.city_urban,
+            rural_share: demo.rural,
+            nomad_share: demo.nomads,
+            nomad_herds: demo.nomad_herds,
+        };
+        state
+            .society_history
+            .entry(country_name.clone())
+            .or_default()
+            .record(turn, sample);
     }
 
     #[cfg(feature = "diagnostic")]

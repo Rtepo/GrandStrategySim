@@ -18,23 +18,34 @@ export function BankingPage() {
   // v4.27.0 (TASK-010): Commercial Banks | Central Bank sub-tabs.
   const [tab, setTab] = useState<"commercial" | "central">("commercial");
 
+  // v4.31.0 (TASK-030): turn-keyed queries — banking data only changes
+  // when a turn advances (runTurn bumps turnNonce + invalidates), so
+  // keying on turnNonce with staleTime:Infinity ends the periodic
+  // refetch/flicker of the interest-rate chart between turns.
+  const turn = useGameStore((s) => s.turnNonce);
+
   const { data: aggregates, isLoading: aggLoading } = useQuery({
-    queryKey: ["banking-aggregates", selectedCountry],
+    queryKey: ["banking-aggregates", selectedCountry, turn],
     queryFn: () => getBankingAggregates(selectedCountry!),
     enabled: !!selectedCountry,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 
   const { data: history } = useQuery({
-    queryKey: ["banking-history", selectedCountry],
+    queryKey: ["banking-history", selectedCountry, turn],
     queryFn: () => getBankingHistory(selectedCountry!),
     enabled: !!selectedCountry,
-    staleTime: 30_000,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 
   const { data: banksData, isLoading: banksLoading } = useQuery({
-    queryKey: ["banks", selectedCountry, offset, PAGE_SIZE],
+    queryKey: ["banks", selectedCountry, offset, PAGE_SIZE, turn],
     queryFn: () => getPaginatedBanks(selectedCountry!, offset, PAGE_SIZE),
     enabled: !!selectedCountry,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 
   // v4.30.0 (TASK-026): pinned KPI — clicking a card pins a full-width
@@ -429,9 +440,12 @@ function BankDetailPanel({
   bankId: string;
   profitSeries: BankProfitPointDto[];
 }) {
+  const turn = useGameStore((s) => s.turnNonce);
   const { data: d, isLoading } = useQuery({
-    queryKey: ["bank-detail", country, bankId],
+    queryKey: ["bank-detail", country, bankId, turn],
     queryFn: () => getBankDetail(country, bankId),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
   if (isLoading) return <div className="p-4 text-sm text-muted-foreground">Loading bank detail...</div>;
   if (!d) return <div className="p-4 text-sm text-muted-foreground">No detail available.</div>;
@@ -483,9 +497,14 @@ function BankDetailPanel({
       <div>
         <h4 className="mb-2 font-semibold text-foreground">Income Statement (turn)</h4>
         <Dl label="Interest Income" value={fmt(d.interest_income)} />
+        {/* v4.31.0 (TASK-030): fee & trading income + calibrated
+            provisioning — net profit now follows the real formula
+            (II + fees − IE − NPL − wages), never just −wages. */}
+        <Dl label="Fee & Trading Income" value={fmt(d.fee_income)} />
         <Dl label="Interest Expense" value={fmt(d.interest_expense)} />
         <Dl label="Net Interest Margin" value={pct(d.net_interest_margin)} />
-        <Dl label="NPL / Provisions" value={fmt(d.non_performing_loans)} />
+        <Dl label="NPL Provisioning" value={fmt(d.npl_cost)} />
+        <Dl label="Impaired Loans" value={fmt(d.non_performing_loans)} />
         <Dl label="Operating Wages" value={fmt(d.operating_wages)} />
         <Dl label="Net Profit" value={fmt(d.net_profit)} bold />
       </div>

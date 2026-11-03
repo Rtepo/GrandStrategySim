@@ -191,6 +191,7 @@ pub fn spawn_rebel_proto_state(
     // Create rebel proto-state with inherited systems
     let mut rebel_country = crate::state::Country {
         name: rebel_name,
+        is_landlocked: mother_country.is_landlocked,
         budget: mother_country.budget.clone(), // Inherit treasury structure
         macro_indicators: mother_country.macro_indicators.clone(), // Inherit macro data
         tax_rates: mother_country.tax_rates.clone(), // Inherit tax system

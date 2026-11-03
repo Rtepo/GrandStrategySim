@@ -230,6 +230,11 @@ pub struct Demographics {
     /// Nomadic population share.
     #[serde(default)]
     pub nomads: f64,
+    /// v4.31.0 (TASK-032): livestock headcount herded by the nomadic
+    /// population (sheep, goats, horses, camels — ~2.4 head per
+    /// pastoralist). Updated per turn by `society::update_pastoral_dynamics`.
+    #[serde(default)]
+    pub nomad_herds: f64,
     /// Foreign students present.
     #[serde(default)]
     pub foreign_students: f64,

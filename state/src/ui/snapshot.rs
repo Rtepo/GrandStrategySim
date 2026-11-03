@@ -3044,7 +3044,16 @@ pub struct BankDetail {
     pub net_interest_margin: f64,
     /// Outstanding principal on loans past Current status.
     pub non_performing_loans: f64,
+    /// v4.31.0 (TASK-030): fee & trading income run-rate (deposit fees
+    /// + investment-bank underwriting/trading/advisory legs).
+    pub fee_income: f64,
+    /// v4.31.0 (TASK-030): loan-loss provisioning charge — 0.2%–1.5%
+    /// of performing loans per turn (was 10% → banks looked dead).
+    pub npl_cost: f64,
     pub operating_wages: f64,
+    /// v4.31.0 (TASK-030): interest_income + fee_income
+    /// - interest_expense - npl_cost - operating_wages (no longer the
+    /// company-level realized-profit proxy that read as `-wages`).
     pub net_profit: f64,
 }
 
@@ -3092,6 +3101,103 @@ pub struct CompanyDetail {
     /// Phase 87+: Financial summary (last turn, quarter, year).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub financial_summary: Option<CompanyFinancialSummary>,
+    /// v4.31.0 (TASK-031): per-turn financial history (up to 24 turns) for
+    /// the expandable drawer's performance chart.
+    #[serde(default)]
+    pub financial_history_24: Vec<CompanyYearFinancials>,
+    /// v4.31.0 (TASK-031): shareholder register for the donut chart.
+    #[serde(default)]
+    pub shareholders: Vec<CompanyShareholderDto>,
+    /// v4.31.0 (TASK-031): in-progress capital expenditure (construction
+    /// escrow plus the last turn's fixed-capital growth).
+    #[serde(default)]
+    pub capex_history: Vec<CompanyCapexDto>,
+    /// v4.31.0 (TASK-031): accounting balance sheet (assets vs
+    /// liabilities & equity) rendered in the expanded drawer and exported
+    /// to .xml by `export_company_balance_sheet_xml`.
+    #[serde(default)]
+    pub balance_sheet: CompanyBalanceSheetDto,
+}
+
+/// v4.31.0 (TASK-031): one turn of company financials for the 24-turn chart.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CompanyYearFinancials {
+    /// Turn index the record was booked on.
+    pub year: u32,
+    /// Turn revenue.
+    pub revenue: f64,
+    /// Operating costs including the wage bill (COGS + wages).
+    pub operating_costs: f64,
+    /// Wage expense subset of `operating_costs`.
+    pub wage_expense: f64,
+    /// Interest expense.
+    pub interest: f64,
+    /// Taxes paid.
+    pub taxes: f64,
+    /// EBITDA proxy: revenue − (operating costs − wages) − wages = revenue
+    /// − operating costs (no depreciation model, so EBITDA ≈ EBIT).
+    pub ebitda: f64,
+    /// Net profit after interest + taxes.
+    pub net_profit: f64,
+}
+
+/// v4.31.0 (TASK-031): one shareholder row (id, shares, percent of float).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CompanyShareholderDto {
+    /// Shareholder id (VIP id, fund id, `state_treasury`, or `public_float`).
+    pub holder: String,
+    /// Display name resolved via the VIP registry when possible.
+    pub name: String,
+    /// Shares held.
+    pub shares: u64,
+    /// Percent of `shares_count` (0–100).
+    pub pct: f64,
+}
+
+/// v4.31.0 (TASK-031): one CapEx/investment log row.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CompanyCapexDto {
+    /// Turn the investment was booked.
+    pub turn: u32,
+    /// Description (e.g. "New factory line", "Warehouse expansion").
+    pub label: String,
+    /// Cash committed.
+    pub cost: f64,
+    /// `true` when still in construction escrow.
+    pub in_progress: bool,
+}
+
+/// v4.31.0 (TASK-031): accounting balance sheet (assets vs liabilities+equity).
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct CompanyBalanceSheetDto {
+    /// Cash & equivalents (available + debit/credit settlement cash).
+    pub cash: f64,
+    /// Raw + finished inventory (liquid capital).
+    pub inventory: f64,
+    /// Property / plant / equipment (fixed capital).
+    pub ppe: f64,
+    /// Accounts receivable (credit extended to buyers).
+    pub receivables: f64,
+    /// Total assets.
+    pub total_assets: f64,
+    /// Bank loans outstanding.
+    pub bank_loans: f64,
+    /// Corporate bonds issued.
+    pub bonds_issued: f64,
+    /// Accounts payable (procurement + open-bid credit).
+    pub accounts_payable: f64,
+    /// Wage arrears owed to workers.
+    pub wage_payable: f64,
+    /// Paid-in capital (share capital).
+    pub paid_in_capital: f64,
+    /// Retained earnings (residual).
+    pub retained_earnings: f64,
+    /// Total liabilities + equity (balances `total_assets`).
+    pub total_liabilities_equity: f64,
 }
 
 /// Phase 87+: A single financial record (income, expenses, net profit).
@@ -5682,17 +5788,15 @@ pub fn build_bank_detail(
     // contract rate; liabilities accrue at the CB standing-facility corridor
     // (deposits at the deposit rate, Lombard at the penalty rate, interbank
     // at the reference rate, issued bonds at reference + 1% credit spread).
-    let interest_income: f64 = bs
-        .loans_issued
-        .iter()
-        .map(|l| l.outstanding_balance * l.interest_rate)
-        .sum::<f64>()
-        + bs.consumer_loans_outstanding * (rates.reference_rate + 0.04)
-        + interbank_given * rates.reference_rate;
-    let interest_expense: f64 = bs.deposits * rates.deposit_rate
-        + bs.cb_lombard_loans * rates.lombard_rate
-        + interbank_taken * rates.reference_rate
-        + bs.issued_bonds * (rates.reference_rate + 0.01);
+    // v4.31.0 (TASK-030): canonical income statement — interest income
+    // (incl. securities yield), fee & trading income, calibrated NPL
+    // provisioning, and the real net_profit formula. Replaces the
+    // `realized_profit_this_turn` proxy that read as `-Operating Wages`.
+    let operating_wages = c.wages_paid_this_turn + c.arrears_accrued_this_turn;
+    let bank_type = c.bank_type.clone().unwrap_or_default();
+    let is = crate::economy::banking::income_statement(bs, &bank_type, rates, operating_wages);
+    let interest_income = is.interest_income;
+    let interest_expense = is.interest_expense;
     let interest_bearing_assets =
         corporate_loans + bs.consumer_loans_outstanding + interbank_given + bs.securities;
     let net_interest_margin = if interest_bearing_assets > 0.0 {
@@ -5744,8 +5848,10 @@ pub fn build_bank_detail(
         interest_expense,
         net_interest_margin,
         non_performing_loans,
-        operating_wages: c.wages_paid_this_turn + c.arrears_accrued_this_turn,
-        net_profit: c.realized_profit_this_turn,
+        fee_income: is.fee_income,
+        npl_cost: is.npl_cost,
+        operating_wages,
+        net_profit: is.net_profit,
     })
 }
 
@@ -6464,6 +6570,119 @@ fn build_company_detail(
         Some(compute_financial_summary(&c.financial_history))
     };
 
+    // v4.31.0 (TASK-031): 24-turn financial history for the drawer chart.
+    let financial_history_24: Vec<CompanyYearFinancials> = c
+        .financial_history
+        .iter()
+        .rev()
+        .take(24)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .map(|v| {
+            let revenue = v.get("revenue").and_then(|x| x.as_f64()).unwrap_or(0.0);
+            let operating_costs = v
+                .get("operating_costs")
+                .and_then(|x| x.as_f64())
+                .unwrap_or(0.0);
+            let interest = v.get("interest").and_then(|x| x.as_f64()).unwrap_or(0.0);
+            let taxes = v.get("taxes").and_then(|x| x.as_f64()).unwrap_or(0.0);
+            let wage_expense = v
+                .get("wage_expense")
+                .and_then(|x| x.as_f64())
+                .unwrap_or(0.0);
+            CompanyYearFinancials {
+                year: v.get("year").and_then(|x| x.as_u64()).unwrap_or(0) as u32,
+                revenue,
+                operating_costs,
+                wage_expense,
+                interest,
+                taxes,
+                ebitda: revenue - operating_costs,
+                net_profit: v
+                    .get("net_profit")
+                    .and_then(|x| x.as_f64())
+                    .unwrap_or(revenue - operating_costs - interest - taxes),
+            }
+        })
+        .collect();
+
+    // v4.31.0 (TASK-031): shareholder register with VIP names resolved.
+    let total_shares = c.shares_count.max(1) as f64;
+    let shareholders: Vec<CompanyShareholderDto> = {
+        let mut rows: Vec<CompanyShareholderDto> = c
+            .shareholders
+            .iter()
+            .map(|(holder, shares)| {
+                let name = country
+                    .politics
+                    .vip_registry
+                    .as_ref()
+                    .and_then(|r| r.get(holder).map(|v| v.full_name.clone()))
+                    .unwrap_or_else(|| holder.clone());
+                CompanyShareholderDto {
+                    holder: holder.clone(),
+                    name,
+                    shares: *shares,
+                    pct: *shares as f64 / total_shares * 100.0,
+                }
+            })
+            .collect();
+        rows.sort_by_key(|r| std::cmp::Reverse(r.shares));
+        rows
+    };
+
+    // v4.31.0 (TASK-031): CapEx log — construction escrow as the live
+    // investment plus fixed-capital growth entries derived from history.
+    let mut capex_history: Vec<CompanyCapexDto> = Vec::new();
+    if c.construction_escrow > 0.0 {
+        capex_history.push(CompanyCapexDto {
+            turn: c.founded_turn,
+            label: "Construction in progress".to_string(),
+            cost: c.construction_escrow,
+            in_progress: true,
+        });
+    }
+    // Fixed-capital steps (new factory lines / warehouse expansions) are
+    // booked as retained-earnings reinvestment; report the current PP&E
+    // book value as the cumulative capex baseline.
+    if c.fixed_capital > 0.0 {
+        capex_history.push(CompanyCapexDto {
+            turn: c.founded_turn,
+            label: "Property, plant & equipment (book value)".to_string(),
+            cost: c.fixed_capital,
+            in_progress: false,
+        });
+    }
+
+    // v4.31.0 (TASK-031): accounting balance sheet.
+    let cash = c.available_cash + c.debit_cash + c.credit_cash;
+    let inventory = c.liquid_capital;
+    // Receivable proxy: cash committed in unfilled market bid orders.
+    let receivables: f64 = c.unfilled_bid_prices.values().sum();
+    let ppe = c.fixed_capital;
+    let total_assets = cash + inventory + ppe + receivables + c.construction_escrow;
+    let accounts_payable = c.procurement_credit + c.open_bid_credit;
+    let bank_loans = c.liabilities.max(0.0);
+    let bonds_issued = 0.0;
+    let paid_in_capital = c.company_capital;
+    let total_liabilities = bank_loans + bonds_issued + accounts_payable + c.wage_arrears;
+    let retained_earnings = total_assets - total_liabilities - paid_in_capital;
+    let balance_sheet = CompanyBalanceSheetDto {
+        cash,
+        inventory,
+        ppe,
+        receivables,
+        total_assets,
+        bank_loans,
+        bonds_issued,
+        accounts_payable,
+        wage_payable: c.wage_arrears,
+        paid_in_capital,
+        retained_earnings,
+        total_liabilities_equity: total_liabilities + paid_in_capital + retained_earnings,
+    };
+
     Some(CompanyDetail {
         id: c.id.clone(),
         name: c.name.clone(),
@@ -6498,6 +6717,10 @@ fn build_company_detail(
         building_count: c.building_ids.len(),
         available_cash: c.available_cash,
         financial_summary,
+        financial_history_24,
+        shareholders,
+        capex_history,
+        balance_sheet,
     })
 }
 
@@ -9907,6 +10130,13 @@ pub struct WarRow {
     pub occupied_regions: Vec<String>,
     /// v4.24.0: Per-war battle ledger (expandable per battle).
     pub battles: Vec<WarBattleRow>,
+    /// v4.31.0 (TASK-029): commanding generals/admirals on the aggressor
+    /// side (aggregated across the war's battle ledger, fate-badged).
+    #[serde(default)]
+    pub attacker_commanders: Vec<CommanderRow>,
+    /// v4.31.0 (TASK-029): commanding officers on the defender side.
+    #[serde(default)]
+    pub defender_commanders: Vec<CommanderRow>,
 }
 
 /// One battle inside an expanded war row (v4.24.0).
@@ -10076,6 +10306,13 @@ pub struct EndedWarRow {
     /// v4.27.0 (TASK-007): civilian lives lost in war-touched regions.
     #[serde(default)]
     pub civilian_casualties: i64,
+    /// v4.31.0 (TASK-029): commanding generals/admirals on the aggressor
+    /// side — standing OOB leadership, fate-badged.
+    #[serde(default)]
+    pub attacker_commanders: Vec<CommanderRow>,
+    /// v4.31.0 (TASK-029): commanding officers on the defender side.
+    #[serde(default)]
+    pub defender_commanders: Vec<CommanderRow>,
 }
 
 /// A single battle row for the Military dashboard.
@@ -10217,6 +10454,10 @@ pub struct CommanderRow {
     pub rank: String,
     /// Echelon the VIP commands ("Army", "Division", "Regiment").
     pub echelon: String,
+    /// v4.31.0 (TASK-029): Wikipedia-style fate badge —
+    /// `"KIA"` | `"POW"` | `"Deserted"` | `""` (no recorded fate).
+    #[serde(default)]
+    pub fate: String,
 }
 
 /// KIA/WIA/POW/Missing casualty rollup for a country (v4.24.0).
@@ -10301,6 +10542,24 @@ pub struct DisasterRow {
     pub casualties: i64,
     /// v4.30.0 (TASK-024): relief-response note.
     pub relief_response: String,
+    /// v4.31.0 (TASK-029): total financial damage ($).
+    #[serde(default)]
+    pub financial_damage: f64,
+    /// v4.31.0 (TASK-029): buildings destroyed.
+    #[serde(default)]
+    pub buildings_destroyed: u32,
+    /// v4.31.0 (TASK-029): buildings damaged.
+    #[serde(default)]
+    pub buildings_damaged: u32,
+    /// v4.31.0 (TASK-029): central-government relief share of damage (0–100).
+    #[serde(default)]
+    pub coverage_central_pct: f64,
+    /// v4.31.0 (TASK-029): regional-treasury share of damage (0–100).
+    #[serde(default)]
+    pub coverage_regional_pct: f64,
+    /// v4.31.0 (TASK-029): corporate/private-loss share of damage (0–100).
+    #[serde(default)]
+    pub coverage_private_pct: f64,
 }
 
 /// POW camp statistics for a single country.
@@ -10663,32 +10922,59 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     let combined = (branches.len().min(3) as f64) / 3.0;
                     (rows, morale, combined)
                 };
+                let vip_lookup = |vid: &str| {
+                    state.countries.values().find_map(|c| {
+                        c.politics
+                            .vip_registry
+                            .as_ref()
+                            .and_then(|reg| reg.vips.get(vid))
+                    })
+                };
                 let vip_name_of = |vid: &str| -> String {
-                    state
-                        .countries
-                        .values()
-                        .find_map(|c| {
-                            c.politics
-                                .vip_registry
-                                .as_ref()
-                                .and_then(|reg| reg.vips.get(vid))
-                                .map(|v| v.full_name.clone())
-                        })
+                    vip_lookup(vid)
+                        .map(|v| v.full_name.clone())
                         .unwrap_or_else(|| vid.to_string())
                 };
-                let cmd_rows = |pairs: &[(String, String)]| -> Vec<CommanderRow> {
+                // v4.31.0 (TASK-029): `fate` carries the side's battle
+                // outcome so Wikipedia-style badges can be computed via
+                // `war_economy::commander_fate` from real recorded data.
+                let cmd_rows = |pairs: &[(String, String)],
+                                side_lost: bool,
+                                side_captured: i64,
+                                side_deserted: i64,
+                                side_engaged: i64|
+                 -> Vec<CommanderRow> {
                     pairs
                         .iter()
-                        .map(|(vid, echelon)| CommanderRow {
-                            vip_id: vid.clone(),
-                            name: vip_name_of(vid),
-                            rank: match echelon.as_str() {
-                                "Army" => "General",
-                                "Division" => "Lieutenant General",
-                                _ => "Colonel",
+                        .enumerate()
+                        .map(|(i, (vid, echelon))| {
+                            let dead_in_battle = vip_lookup(vid).is_some_and(|v| {
+                                v.is_dead
+                                    && matches!(
+                                        v.death_cause,
+                                        Some(crate::politics::vip_registry::DeathCause::Battle)
+                                    )
+                            });
+                            CommanderRow {
+                                vip_id: vid.clone(),
+                                name: vip_name_of(vid),
+                                rank: match echelon.as_str() {
+                                    "Army" => "General",
+                                    "Division" => "Lieutenant General",
+                                    _ => "Colonel",
+                                }
+                                .to_string(),
+                                echelon: echelon.clone(),
+                                fate: crate::military::war_economy::commander_fate(
+                                    dead_in_battle,
+                                    side_lost,
+                                    side_captured,
+                                    side_deserted,
+                                    side_engaged,
+                                    i == 0,
+                                )
+                                .to_string(),
                             }
-                            .to_string(),
-                            echelon: echelon.clone(),
                         })
                         .collect()
                 };
@@ -10791,8 +11077,27 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                             .iter()
                             .map(|u| unit_display(&b.defender, u))
                             .collect(),
-                        attacker_commanders: cmd_rows(&b.attacker_commanders),
-                        defender_commanders: cmd_rows(&b.defender_commanders),
+                        attacker_commanders: cmd_rows(
+                            &b.attacker_commanders,
+                            matches!(
+                                b.result,
+                                crate::military::fronts::BattleResult::DefenderVictory
+                            ),
+                            b.captured_by_defender,
+                            b.attacker_casualties.deserters,
+                            b.attacker_forces.iter().map(|f| f.initial_manpower).sum(),
+                        ),
+                        defender_commanders: cmd_rows(
+                            &b.defender_commanders,
+                            matches!(
+                                b.result,
+                                crate::military::fronts::BattleResult::AttackerVictory
+                                    | crate::military::fronts::BattleResult::PyrrhicVictory
+                            ),
+                            b.captured_by_attacker,
+                            b.defender_casualties.deserters,
+                            b.defender_forces.iter().map(|f| f.initial_manpower).sum(),
+                        ),
                         attacker_doctrine: doctrine_of(&b.attacker_forces, true),
                         defender_doctrine: doctrine_of(&b.defender_forces, false),
                         attacker_order,
@@ -10835,6 +11140,45 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     defender_casualties: front.get_country_casualties(&ddf),
                     contested_region: contested,
                     occupied_regions: occupied,
+                    attacker_commanders: {
+                        // War-level roster = union of this side's command
+                        // pairs across every recorded battle (a country can
+                        // attack in one battle and defend in another).
+                        let mut seen = std::collections::BTreeSet::new();
+                        let pairs: Vec<(String, String)> = front
+                            .battles
+                            .iter()
+                            .flat_map(|b| {
+                                if b.attacker == agg {
+                                    b.attacker_commanders.clone()
+                                } else if b.defender == agg {
+                                    b.defender_commanders.clone()
+                                } else {
+                                    Vec::new()
+                                }
+                            })
+                            .filter(|p| seen.insert(p.0.clone()))
+                            .collect();
+                        cmd_rows(&pairs, false, 0, 0, 0)
+                    },
+                    defender_commanders: {
+                        let mut seen = std::collections::BTreeSet::new();
+                        let pairs: Vec<(String, String)> = front
+                            .battles
+                            .iter()
+                            .flat_map(|b| {
+                                if b.attacker == ddf {
+                                    b.attacker_commanders.clone()
+                                } else if b.defender == ddf {
+                                    b.defender_commanders.clone()
+                                } else {
+                                    Vec::new()
+                                }
+                            })
+                            .filter(|p| seen.insert(p.0.clone()))
+                            .collect();
+                        cmd_rows(&pairs, false, 0, 0, 0)
+                    },
                     battles,
                 }
             });
@@ -10990,11 +11334,34 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
             let mut push_cmd = |vid: &Option<String>, echelon: &str| {
                 if let Some(id) = vid {
                     if seen_cmd.insert(id.clone()) {
+                        // v4.31.0 (TASK-029): KIA fate badge from the real
+                        // VIP death record (DeathCause::Battle only).
+                        let dead_in_battle = state
+                            .countries
+                            .values()
+                            .find_map(|c| {
+                                c.politics
+                                    .vip_registry
+                                    .as_ref()
+                                    .and_then(|reg| reg.vips.get(id))
+                            })
+                            .is_some_and(|v| {
+                                v.is_dead
+                                    && matches!(
+                                        v.death_cause,
+                                        Some(crate::politics::vip_registry::DeathCause::Battle)
+                                    )
+                            });
                         commanders.push(CommanderRow {
                             vip_id: id.clone(),
                             name: vip_name(&Some(id.clone())).unwrap_or_else(|| id.clone()),
                             rank: rank.to_string(),
                             echelon: echelon.to_string(),
+                            fate: if dead_in_battle {
+                                "KIA".to_string()
+                            } else {
+                                String::new()
+                            },
                         });
                     }
                 }
@@ -11292,6 +11659,11 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                 participants: o.participants,
                 material_destruction: o.material_destruction,
                 civilian_casualties: o.civilian_casualties,
+                // v4.31.0 (TASK-029): war header rosters — standing OOB
+                // leadership of each belligerent (KIA-badged where the VIP
+                // died in battle).
+                attacker_commanders: oob_commanders_for(state, &ws.aggressor),
+                defender_commanders: oob_commanders_for(state, &ws.defender),
             }
         })
         .collect();
@@ -11409,6 +11781,42 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     format!("Emergency relief deployed — {} casualties", ev.casualties)
                 } else {
                     "Damage assessment & repairs underway".to_string()
+                },
+                // v4.31.0 (TASK-029): financial damage = devastation share
+                // of average regional output; coverage split is a
+                // deterministic relief policy mix (central 40–60%,
+                // regional 15–30%, remainder private/corporate loss).
+                financial_damage: ev.devastation_impact.clamp(0.0, 1.0)
+                    * country.macro_indicators.gdp_breakdown.official_gdp.max(0.0)
+                    / (country.regions.len().max(1) as f64),
+                buildings_destroyed: if ev.building_id.is_some() {
+                    1
+                } else {
+                    (ev.devastation_impact * 3.0).round() as u32
+                },
+                buildings_damaged: (ev.devastation_impact * 8.0).round() as u32,
+                coverage_central_pct: {
+                    let h = ev
+                        .id
+                        .bytes()
+                        .fold(0u64, |a, b| a.wrapping_mul(31).wrapping_add(b as u64));
+                    40.0 + (h % 21) as f64
+                },
+                coverage_regional_pct: {
+                    let h = ev
+                        .id
+                        .bytes()
+                        .fold(0u64, |a, b| a.wrapping_mul(31).wrapping_add(b as u64));
+                    15.0 + ((h / 7) % 16) as f64
+                },
+                coverage_private_pct: {
+                    let h = ev
+                        .id
+                        .bytes()
+                        .fold(0u64, |a, b| a.wrapping_mul(31).wrapping_add(b as u64));
+                    let central = 40.0 + (h % 21) as f64;
+                    let regional = 15.0 + ((h / 7) % 16) as f64;
+                    (100.0 - central - regional).max(0.0)
                 },
             });
         }
@@ -12111,4 +12519,81 @@ fn funding_model_str(f: &crate::politics::laws::EducationTierFunding) -> (String
         EducationTierFunding::Subsidized { rate } => ("subsidized".to_string(), *rate),
         EducationTierFunding::FreeMarket => ("free_market".to_string(), 0.0),
     }
+}
+
+/// v4.31.0 (TASK-029): standing OOB command roster for a country — army,
+/// division, then regiment echelons, deduplicated, KIA-badged. Used by
+/// historical-war headers which keep no per-battle commander ledger.
+fn oob_commanders_for(
+    state: &crate::state::GameState,
+    country_name: &str,
+) -> Vec<CommanderRow> {
+    let Some(country) = state.countries.get(country_name) else {
+        return Vec::new();
+    };
+    let name_of = |vid: &str| -> String {
+        state
+            .countries
+            .values()
+            .find_map(|c| {
+                c.politics
+                    .vip_registry
+                    .as_ref()
+                    .and_then(|reg| reg.vips.get(vid))
+            })
+            .map(|v| v.full_name.clone())
+            .unwrap_or_else(|| vid.to_string())
+    };
+    let dead_in_battle = |vid: &str| -> bool {
+        state
+            .countries
+            .values()
+            .find_map(|c| {
+                c.politics
+                    .vip_registry
+                    .as_ref()
+                    .and_then(|reg| reg.vips.get(vid))
+            })
+            .is_some_and(|v| {
+                v.is_dead
+                    && matches!(
+                        v.death_cause,
+                        Some(crate::politics::vip_registry::DeathCause::Battle)
+                    )
+            })
+    };
+    let mut seen = std::collections::BTreeSet::new();
+    let mut out = Vec::new();
+    let mut push = |vid: &Option<String>, echelon: &str| {
+        if let Some(id) = vid {
+            if seen.insert(id.clone()) {
+                out.push(CommanderRow {
+                    vip_id: id.clone(),
+                    name: name_of(id),
+                    rank: match echelon {
+                        "Army" => "General",
+                        "Division" => "Lieutenant General",
+                        _ => "Colonel",
+                    }
+                    .to_string(),
+                    echelon: echelon.to_string(),
+                    fate: if dead_in_battle(id) {
+                        "KIA".to_string()
+                    } else {
+                        String::new()
+                    },
+                });
+            }
+        }
+    };
+    for army in &country.order_of_battle.armies {
+        push(&army.commander_id, "Army");
+        for div in &army.divisions {
+            push(&div.commander_id, "Division");
+            for reg in &div.regiments {
+                push(&reg.commander_id, "Regiment");
+            }
+        }
+    }
+    out
 }

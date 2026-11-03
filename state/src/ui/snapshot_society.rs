@@ -629,6 +629,38 @@ pub struct SocietySnapshotDto {
     pub nomad_share: f64,
     /// Per-class standard-of-living rows (rural + urban classes).
     pub classes: Vec<ClassLivingRow>,
+    /// v4.31.0 (TASK-032): rolling 12-series KPI history powering the
+    /// card sparklines and the click-to-pin trend chart.
+    #[serde(default)]
+    pub kpi_history: SocietyHistoryDto,
+}
+
+/// v4.31.0 (TASK-032): one KPI card's historical series — the age card
+/// additionally carries the median as `secondary_*` so the pinned chart
+/// draws both lines.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct SocietyKpiSeriesDto {
+    /// Stable series key matching the Society card (`population`, `age`, …).
+    pub key: String,
+    /// Card label ("Population", "Avg / Median Age", …).
+    pub label: String,
+    /// Line colour for the sparkline/pinned chart.
+    pub color: String,
+    /// Per-turn values aligned with `SocietyHistoryDto.turns`.
+    pub values: Vec<f64>,
+    /// Optional second line (Median Age on the age card).
+    pub secondary_label: String,
+    pub secondary_values: Vec<f64>,
+}
+
+/// v4.31.0 (TASK-032): the twelve Society KPI series with turn labels —
+/// exactly 12 `series` entries, one per KPI card.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct SocietyHistoryDto {
+    pub turns: Vec<u32>,
+    pub series: Vec<SocietyKpiSeriesDto>,
 }
 
 /// Stable-population pyramid interpolation into ten-year bands.
@@ -972,6 +1004,9 @@ pub fn build_society_snapshot(country: &Country) -> SocietySnapshotDto {
         rural_share: demo.rural,
         nomad_share: demo.nomads,
         classes: class_rows,
+        // v4.31.0 (TASK-032): filled by `get_society_snapshot` from
+        // `game_state.society_history` (built per-turn in `turn.rs`).
+        kpi_history: SocietyHistoryDto::default(),
     }
 }
 
@@ -1021,6 +1056,120 @@ fn migration_breakdown(country: &Country, immigration: bool) -> Vec<MigrationBre
             }
         })
         .collect()
+}
+
+/// v4.31.0 (TASK-032): convert the engine's `SocietyKpiHistory` into
+/// the twelve card-aligned series the Society page renders as
+/// sparklines / pinned trend charts. `series.len()` is always 12.
+pub fn build_society_history_dto(
+    hist: Option<&crate::society::SocietyKpiHistory>,
+) -> SocietyHistoryDto {
+    let (turns, samples) = match hist {
+        Some(h) => (h.turns.clone(), h.samples.as_slice()),
+        None => (Vec::new(), &[][..]),
+    };
+    let col = |f: &dyn Fn(&crate::society::SocietyKpiSample) -> f64| -> Vec<f64> {
+        samples.iter().map(f).collect()
+    };
+    let series = vec![
+        SocietyKpiSeriesDto {
+            key: "population".to_string(),
+            label: "Population".to_string(),
+            color: "#38bdf8".to_string(),
+            values: col(&|s| s.population),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+        SocietyKpiSeriesDto {
+            key: "age".to_string(),
+            label: "Avg / Median Age".to_string(),
+            color: "#a78bfa".to_string(),
+            values: col(&|s| s.average_age),
+            secondary_label: "Median Age".to_string(),
+            secondary_values: col(&|s| s.median_age),
+        },
+        SocietyKpiSeriesDto {
+            key: "birth_rate".to_string(),
+            label: "Birth Rate".to_string(),
+            color: "#34d399".to_string(),
+            values: col(&|s| s.birth_rate),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+        SocietyKpiSeriesDto {
+            key: "mortality_rate".to_string(),
+            label: "Mortality Rate".to_string(),
+            color: "#f87171".to_string(),
+            values: col(&|s| s.death_rate),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+        SocietyKpiSeriesDto {
+            key: "fertility".to_string(),
+            label: "Fertility (est.)".to_string(),
+            color: "#fbbf24".to_string(),
+            values: col(&|s| s.fertility),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+        SocietyKpiSeriesDto {
+            key: "life_expectancy".to_string(),
+            label: "Life Expectancy".to_string(),
+            color: "#22d3ee".to_string(),
+            values: col(&|s| s.life_expectancy),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+        SocietyKpiSeriesDto {
+            key: "literacy".to_string(),
+            label: "Literacy".to_string(),
+            color: "#818cf8".to_string(),
+            values: col(&|s| s.literacy_rate),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+        SocietyKpiSeriesDto {
+            key: "net_migration".to_string(),
+            label: "Net Migration".to_string(),
+            color: "#fb923c".to_string(),
+            values: col(&|s| s.net_migration_rate),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+        SocietyKpiSeriesDto {
+            key: "urban".to_string(),
+            label: "Urban".to_string(),
+            color: "#4ade80".to_string(),
+            values: col(&|s| s.urban_share),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+        SocietyKpiSeriesDto {
+            key: "rural".to_string(),
+            label: "Rural".to_string(),
+            color: "#a3e635".to_string(),
+            values: col(&|s| s.rural_share),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+        SocietyKpiSeriesDto {
+            key: "nomadic".to_string(),
+            label: "Nomadic".to_string(),
+            color: "#d6b656".to_string(),
+            values: col(&|s| s.nomad_share),
+            secondary_label: "Nomad herds".to_string(),
+            secondary_values: col(&|s| s.nomad_herds),
+        },
+        SocietyKpiSeriesDto {
+            key: "higher_education".to_string(),
+            label: "Higher Education".to_string(),
+            color: "#e879f9".to_string(),
+            values: col(&|s| s.higher_education_rate),
+            secondary_label: String::new(),
+            secondary_values: Vec::new(),
+        },
+    ];
+    SocietyHistoryDto { turns, series }
 }
 
 #[allow(dead_code)]

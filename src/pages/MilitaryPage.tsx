@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { invoke } from "@tauri-apps/api/core";
@@ -53,6 +53,54 @@ function warExhaustionColor(exhaustion: number): string {
 // ============================================================================
 // SUB-COMPONENTS
 // ============================================================================
+
+/** v4.31.0 (TASK-029): Wikipedia-style commander fate badge. */
+function FateBadge({ fate }: { fate?: string }) {
+  if (!fate) return null;
+  if (fate === "KIA")
+    return (
+      <span className="ml-1 text-[10px] font-semibold text-red-400" title="Killed in Action">
+        † KIA
+      </span>
+    );
+  if (fate === "POW")
+    return (
+      <span className="ml-1 text-[10px] font-semibold text-sky-300" title="Captured">
+        🏳️ POW
+      </span>
+    );
+  if (fate === "Deserted")
+    return (
+      <span className="ml-1 text-[10px] font-semibold text-amber-400" title="Deserted">
+        ⚠️ Deserted
+      </span>
+    );
+  return null;
+}
+
+/** v4.31.0 (TASK-029): one side's command roster for a war header. */
+function CmdList({ commanders, label }: { commanders?: CommanderRow[]; label: string }) {
+  if (!commanders || commanders.length === 0) return null;
+  return (
+    <span className="text-[11px]">
+      <span className="text-muted-foreground">{label}: </span>
+      {commanders.slice(0, 4).map((c, i) => (
+        <span key={c.vip_id + i}>
+          {i > 0 && ", "}
+          <VipHoverCard vipId={c.vip_id}>
+            <span className="underline decoration-dotted cursor-pointer text-foreground">
+              {c.rank} {c.name}
+            </span>
+          </VipHoverCard>
+          <FateBadge fate={c.fate} />
+        </span>
+      ))}
+      {commanders.length > 4 && (
+        <span className="text-muted-foreground"> +{commanders.length - 4}</span>
+      )}
+    </span>
+  );
+}
 
 function WarsPanel({
   wars,
@@ -117,6 +165,12 @@ function WarsPanel({
                         <span className="text-sky-300 font-medium">{w.defender}</span>
                         <span className="text-muted-foreground"> (Defender) · {w.regions.length} regions ·{" "}
                         {w.battle_count} battles</span>
+                      </span>
+                      {/* v4.31.0 (TASK-029): commanding generals/admirals
+                          on both sides in every war header. */}
+                      <span className="block mt-0.5 space-x-3">
+                        <CmdList commanders={w.attacker_commanders} label={`${w.aggressor} command`} />
+                        <CmdList commanders={w.defender_commanders} label={`${w.defender} command`} />
                       </span>
                     </span>
                     <Badge variant="outline">{w.last_battle_result}</Badge>
@@ -207,6 +261,12 @@ function HistoricalWarsPanel({ endedWars, regionNameById, regionShapes }: { ende
                       <span className="text-muted-foreground text-xs"> (Initiator) vs </span>
                       <span className="text-sky-300">{w.defender}</span>
                       <span className="text-muted-foreground text-xs"> (Defender)</span>
+                      {/* v4.31.0 (TASK-029): commander rosters in
+                          historical war headers too. */}
+                      <span className="block mt-0.5 space-x-3">
+                        <CmdList commanders={w.attacker_commanders} label={`${w.aggressor} command`} />
+                        <CmdList commanders={w.defender_commanders} label={`${w.defender} command`} />
+                      </span>
                     </span>
                     <span className="text-xs text-muted-foreground">
                       T{w.start_turn}–T{w.end_turn}
@@ -743,7 +803,46 @@ function RegionMoraleBlock({ regionId, classes }: { regionId: string; classes: M
   );
 }
 
+/** v4.31.0 (TASK-029): color-coded disaster-type badge palette —
+ *  Earthquake amber, Factory Fire / Wildfire red-orange, Explosion
+ *  crimson, Chemical Spill purple, Flood blue, Epidemic emerald. */
+const DISASTER_COLORS: Record<string, string> = {
+  Earthquake: "#f59e0b",
+  "Factory Fire": "#f97316",
+  Wildfire: "#ea580c",
+  Explosion: "#dc2626",
+  "Chemical Spill": "#a855f7",
+  Flood: "#3b82f6",
+  Epidemic: "#10b981",
+};
+
+function DisasterTypeBadge({ t }: { t: string }) {
+  const c = DISASTER_COLORS[t] ?? "#64748b";
+  return (
+    <span
+      className="inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold border"
+      style={{ color: c, borderColor: c, backgroundColor: `${c}1f` }}
+    >
+      {t}
+    </span>
+  );
+}
+
+/** v4.31.0 (TASK-029): disasters grouped under expandable country
+ *  headers; each row expands to damage + cost-coverage detail. */
 function DisastersPanel({ disasters }: { disasters: MilitaryDashboardResponse["disasters"] }) {
+  const [openCountry, setOpenCountry] = useState<string | null>(null);
+  const [openEvent, setOpenEvent] = useState<string | null>(null);
+  const byCountry = useMemo(() => {
+    const m = new Map<string, typeof disasters>();
+    for (const d of [...disasters].reverse()) {
+      const arr = m.get(d.country) ?? [];
+      arr.push(d);
+      m.set(d.country, arr);
+    }
+    return [...m.entries()];
+  }, [disasters]);
+
   return (
     <Card>
       <CardHeader>
@@ -753,34 +852,93 @@ function DisastersPanel({ disasters }: { disasters: MilitaryDashboardResponse["d
         {disasters.length === 0 ? (
           <p className="text-sm text-muted-foreground">No recent disasters.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Turn</TableHead>
-                <TableHead>Country</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Region</TableHead>
-                <TableHead>Devastation</TableHead>
-                <TableHead>Casualties</TableHead>
-                <TableHead>Relief Response</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[...disasters].reverse().map((d) => (
-                <TableRow key={d.event_id}>
-                  <TableCell>{d.turn}</TableCell>
-                  <TableCell>{d.country}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{d.disaster_type}</Badge>
-                  </TableCell>
-                  <TableCell>{d.region_name || d.region_id}</TableCell>
-                  <TableCell>{(d.devastation_impact * 100).toFixed(1)}%</TableCell>
-                  <TableCell className="text-red-600">{Number(d.casualties)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{d.relief_response}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="space-y-2">
+            {byCountry.map(([country, rows]) => {
+              const open = openCountry === country;
+              const dead = rows.reduce((s, d) => s + Number(d.casualties), 0);
+              const dmg = rows.reduce((s, d) => s + d.financial_damage, 0);
+              return (
+                <div key={country} className="border border-border rounded-md">
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-accent/50"
+                    onClick={() => setOpenCountry(open ? null : country)}
+                  >
+                    <span className="font-medium text-sm">
+                      {open ? "▾" : "▸"} {country}
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {rows.length} event{rows.length === 1 ? "" : "s"} ·{" "}
+                        {num(dead)} casualties · ${num(Math.round(dmg))} damage
+                      </span>
+                    </span>
+                  </button>
+                  {open && (
+                    <div className="border-t border-border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Turn</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Region</TableHead>
+                            <TableHead>Devastation</TableHead>
+                            <TableHead>Casualties</TableHead>
+                            <TableHead>Relief Response</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {rows.map((d) => (
+                            <Fragment key={d.event_id}>
+                              <TableRow
+                                className="cursor-pointer"
+                                onClick={() =>
+                                  setOpenEvent(openEvent === d.event_id ? null : d.event_id)
+                                }
+                              >
+                                <TableCell>{d.turn}</TableCell>
+                                <TableCell>
+                                  <DisasterTypeBadge t={d.disaster_type} />
+                                </TableCell>
+                                <TableCell>{d.region_name || d.region_id}</TableCell>
+                                <TableCell>{(d.devastation_impact * 100).toFixed(1)}%</TableCell>
+                                <TableCell className="text-red-600">{num(Number(d.casualties))}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground">
+                                  {openEvent === d.event_id ? "▾" : "▸"} {d.relief_response}
+                                </TableCell>
+                              </TableRow>
+                              {openEvent === d.event_id && (
+                                <TableRow className="hover:bg-transparent">
+                                  <TableCell colSpan={6} className="bg-accent/20">
+                                    {/* Coverage / damage detail drawer. */}
+                                    <div className="grid grid-cols-3 gap-4 text-xs py-1">
+                                      <div>
+                                        <span className="text-muted-foreground">Total Financial Damage:</span>{" "}
+                                        <span className="text-red-400 font-semibold">
+                                          ${num(Math.round(d.financial_damage))}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Buildings:</span>{" "}
+                                        {d.buildings_destroyed} destroyed · {d.buildings_damaged} damaged
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Cost Coverage:</span>{" "}
+                                        Central Relief {d.coverage_central_pct.toFixed(0)}% · Regional{" "}
+                                        {d.coverage_regional_pct.toFixed(0)}% · Corporate/Private{" "}
+                                        {d.coverage_private_pct.toFixed(0)}%
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </Fragment>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </CardContent>
     </Card>
@@ -965,6 +1123,8 @@ function BattleLineSide({
                   {c.rank} {c.name}
                 </span>
               </VipHoverCard>
+              {/* v4.31.0 (TASK-029): fate badge after the officer's name. */}
+              <FateBadge fate={c.fate} />
             </span>
           ))}
         </div>
@@ -1253,7 +1413,6 @@ function CessionMiniMap({
     }
   const spanX = maxX - minX || 1;
   const spanY = maxY - minY || 1;
-  const scale = Math.min(150 / spanX, 110 / spanY);
 
   const Panel = ({
     label,
@@ -1271,26 +1430,52 @@ function CessionMiniMap({
         className="rounded border border-border/60 bg-[#0f1d2b] w-full"
         style={{ aspectRatio: `${spanX + 8} / ${spanY + 8}`, maxHeight: 130 }}
       >
+        {/* v4.31.0 (TASK-029): clean anti-aliased render — 1px non-scaling
+            strokes (kills the jagged MS-Paint look) + a subtle hatched
+            glow overlay on the transferred border regions. */}
+        <defs>
+          <pattern
+            id={`hatch-${label}`}
+            width="6"
+            height="6"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
+            <rect width="6" height="6" fill="transparent" />
+            <line x1="0" y1="0" x2="0" y2="6" stroke={cededFill} strokeWidth="1" opacity="0.55" />
+          </pattern>
+        </defs>
         {shapes.map((s) => {
           const isCeded = cededSet.has(s.id);
           const owner = isCeded ? cededOwner : s.owner;
           const fill = isCeded
-            ? cededFill
+            ? `url(#hatch-${label})`
             : owner === from
               ? "#8f1d1d"
               : owner === to
                 ? "#3f7fd4"
                 : "#334155";
           return (
-            <polygon
-              key={`${label}-${s.id}`}
-              points={s.points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")}
-              fill={fill}
-              stroke={isCeded ? "#fde047" : "#0a1622"}
-              strokeWidth={isCeded ? 1.4 / scale * 6 : 0.7 / scale * 6}
-            >
-              <title>{`${regionName(s.id)} — ${owner}${isCeded ? " (ceded)" : ""}`}</title>
-            </polygon>
+            <g key={`${label}-${s.id}`}>
+              <polygon
+                points={s.points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")}
+                fill={isCeded ? `${cededFill}55` : fill}
+                stroke={isCeded ? "#fde047" : "#0a1622"}
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+                shapeRendering="geometricPrecision"
+              >
+                <title>{`${regionName(s.id)} — ${owner}${isCeded ? " (ceded)" : ""}`}</title>
+              </polygon>
+              {isCeded && (
+                <polygon
+                  points={s.points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")}
+                  fill={`url(#hatch-${label})`}
+                  stroke="none"
+                  pointerEvents="none"
+                />
+              )}
+            </g>
           );
         })}
       </svg>

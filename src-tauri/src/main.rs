@@ -53,6 +53,7 @@ fn main() {
             commands::securities_queries::get_capital_gains_summary,
             commands::bank_queries::get_paginated_banks,
             commands::bank_queries::get_bank_detail,
+            commands::bank_queries::export_company_balance_sheet_xml,
             commands::bank_queries::get_banking_aggregates,
             commands::bank_queries::get_banking_history,
             commands::region_queries::get_regions,

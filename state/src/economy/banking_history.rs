@@ -50,9 +50,14 @@ pub struct BankProfitPoint {
     pub turn: u32,
     /// Interest income minus interest expense (per-turn run-rate).
     pub net_interest_income: f64,
-    /// Impaired loan balance driving provisioning/NPL cost.
+    /// Calibrated NPL provisioning charge for the turn — 0.2%–1.5% of
+    /// the performing book via `economy::banking::npl_provisioning`
+    /// (v4.31.0 TASK-030; was the raw impaired balance, ~10%/turn).
     pub provisioning_cost: f64,
-    /// Realized net profit for the turn.
+    /// Net profit for the turn from the canonical income statement:
+    /// interest_income + fee_income - interest_expense - npl_cost
+    /// - operating_wages (v4.31.0 TASK-030; was `realized_profit_this_turn`
+    /// which for banks reads as `-wages`).
     pub net_profit: f64,
 }
 

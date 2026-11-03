@@ -1,6 +1,11 @@
 /**
  * v4.28.0 (TASK-012) — Shared cadastral parcel grid.
  *
+ * v4.31.0 (TASK-028): parcels are now true 2D Voronoi cells (jittered
+ * seed lattice + Lloyd relaxation) clipped to the region boundary —
+ * compact aspect ratios replace the old barcode strips; ~60% interior
+ * parcels ringed by ~40% border-zone parcels.
+ *
  * Extracted from `RegionsPage` so both the Regions drill-down and the
  * Land → Climate tab render the same 36–60 parcel lattice. Three modes:
  *  - `zoning`  — zoning class (industrial orange, residential violet, …)
@@ -272,7 +277,11 @@ export function RegionParcelGrid({
             <div><span className="text-muted-foreground">Water:</span> {selectedParcel.water_access}</div>
           )}
           {selectedParcel.is_frozen && <Badge variant="destructive">Frozen</Badge>}
-          {selectedParcel.is_border_zone && <Badge variant="outline">Border Zone</Badge>}
+          {selectedParcel.is_border_zone ? (
+            <Badge variant="outline">Border Zone</Badge>
+          ) : (
+            <Badge variant="outline">Interior</Badge>
+          )}
         </div>
       )}
     </div>

@@ -240,7 +240,23 @@ reserve_ratio: number, interest_income: number, interest_expense: number, net_in
 /**
  * Outstanding principal on loans past Current status.
  */
-non_performing_loans: number, operating_wages: number, net_profit: number, };
+non_performing_loans: number, 
+/**
+ * v4.31.0 (TASK-030): fee & trading income run-rate (deposit fees
+ * + investment-bank underwriting/trading/advisory legs).
+ */
+fee_income: number, 
+/**
+ * v4.31.0 (TASK-030): loan-loss provisioning charge — 0.2%–1.5%
+ * of performing loans per turn (was 10% → banks looked dead).
+ */
+npl_cost: number, operating_wages: number, 
+/**
+ * v4.31.0 (TASK-030): interest_income + fee_income
+ * - interest_expense - npl_cost - operating_wages (no longer the
+ * company-level realized-profit proxy that read as `-wages`).
+ */
+net_profit: number, };
 
 /**
  * Response for paginated bank queries.
@@ -850,7 +866,12 @@ rank: string,
 /**
  * Echelon the VIP commands ("Army", "Division", "Regiment").
  */
-echelon: string, };
+echelon: string, 
+/**
+ * v4.31.0 (TASK-029): Wikipedia-style fate badge —
+ * `"KIA"` | `"POW"` | `"Deserted"` | `""` (no recorded fate).
+ */
+fate: string, };
 
 /**
  * v4.18: A bill currently under committee review, for the Committees tab.
@@ -936,6 +957,80 @@ demand_volume: number, };
 export type CommoditySpotRow = { commodity_id: string, spot_price: number, open_interest: bigint, history: Array<number>, };
 
 /**
+ * v4.31.0 (TASK-031): accounting balance sheet (assets vs liabilities+equity).
+ */
+export type CompanyBalanceSheetDto = { 
+/**
+ * Cash & equivalents (available + debit/credit settlement cash).
+ */
+cash: number, 
+/**
+ * Raw + finished inventory (liquid capital).
+ */
+inventory: number, 
+/**
+ * Property / plant / equipment (fixed capital).
+ */
+ppe: number, 
+/**
+ * Accounts receivable (credit extended to buyers).
+ */
+receivables: number, 
+/**
+ * Total assets.
+ */
+total_assets: number, 
+/**
+ * Bank loans outstanding.
+ */
+bank_loans: number, 
+/**
+ * Corporate bonds issued.
+ */
+bonds_issued: number, 
+/**
+ * Accounts payable (procurement + open-bid credit).
+ */
+accounts_payable: number, 
+/**
+ * Wage arrears owed to workers.
+ */
+wage_payable: number, 
+/**
+ * Paid-in capital (share capital).
+ */
+paid_in_capital: number, 
+/**
+ * Retained earnings (residual).
+ */
+retained_earnings: number, 
+/**
+ * Total liabilities + equity (balances `total_assets`).
+ */
+total_liabilities_equity: number, };
+
+/**
+ * v4.31.0 (TASK-031): one CapEx/investment log row.
+ */
+export type CompanyCapexDto = { 
+/**
+ * Turn the investment was booked.
+ */
+turn: number, 
+/**
+ * Description (e.g. "New factory line", "Warehouse expansion").
+ */
+label: string, 
+/**
+ * Cash committed.
+ */
+cost: number, 
+/**
+ * `true` when still in construction escrow.
+ */
+in_progress: boolean, };
+
+/**
  * A full company detail for the detail view.
  */
 export type CompanyDetail = { id: string, name: string, sector: string, region: string, legal_form: string, ceo_vip_id: string | null, 
@@ -950,7 +1045,27 @@ ceo_ideology: string | null, union_id: string | null, fulfilled_fte: number, fte
 /**
  * Phase 87+: Financial summary (last turn, quarter, year).
  */
-financial_summary: CompanyFinancialSummary | null, };
+financial_summary: CompanyFinancialSummary | null, 
+/**
+ * v4.31.0 (TASK-031): per-turn financial history (up to 24 turns) for
+ * the expandable drawer's performance chart.
+ */
+financial_history_24: Array<CompanyYearFinancials>, 
+/**
+ * v4.31.0 (TASK-031): shareholder register for the donut chart.
+ */
+shareholders: Array<CompanyShareholderDto>, 
+/**
+ * v4.31.0 (TASK-031): in-progress capital expenditure (construction
+ * escrow plus the last turn's fixed-capital growth).
+ */
+capex_history: Array<CompanyCapexDto>, 
+/**
+ * v4.31.0 (TASK-031): accounting balance sheet (assets vs
+ * liabilities & equity) rendered in the expanded drawer and exported
+ * to .xml by `export_company_balance_sheet_xml`.
+ */
+balance_sheet: CompanyBalanceSheetDto, };
 
 /**
  * Filter for the Company explorer list.
@@ -998,6 +1113,65 @@ export type CompanyPageResponse = { rows: Array<CompanyRow>, total_count: number
  * A row in the Company explorer list (compact form for table display).
  */
 export type CompanyRow = { id: string, name: string, sector: string, region: string, fulfilled_fte: number, average_wage: number, seasonal_state: string, wage_arrears: number, };
+
+/**
+ * v4.31.0 (TASK-031): one shareholder row (id, shares, percent of float).
+ */
+export type CompanyShareholderDto = { 
+/**
+ * Shareholder id (VIP id, fund id, `state_treasury`, or `public_float`).
+ */
+holder: string, 
+/**
+ * Display name resolved via the VIP registry when possible.
+ */
+name: string, 
+/**
+ * Shares held.
+ */
+shares: bigint, 
+/**
+ * Percent of `shares_count` (0–100).
+ */
+pct: number, };
+
+/**
+ * v4.31.0 (TASK-031): one turn of company financials for the 24-turn chart.
+ */
+export type CompanyYearFinancials = { 
+/**
+ * Turn index the record was booked on.
+ */
+year: number, 
+/**
+ * Turn revenue.
+ */
+revenue: number, 
+/**
+ * Operating costs including the wage bill (COGS + wages).
+ */
+operating_costs: number, 
+/**
+ * Wage expense subset of `operating_costs`.
+ */
+wage_expense: number, 
+/**
+ * Interest expense.
+ */
+interest: number, 
+/**
+ * Taxes paid.
+ */
+taxes: number, 
+/**
+ * EBITDA proxy: revenue − (operating costs − wages) − wages = revenue
+ * − operating costs (no depreciation model, so EBITDA ≈ EBIT).
+ */
+ebitda: number, 
+/**
+ * Net profit after interest + taxes.
+ */
+net_profit: number, };
 
 /**
  * Generic composition entry (ethnicity or religion share).
@@ -1583,7 +1757,31 @@ casualties: bigint,
 /**
  * v4.30.0 (TASK-024): relief-response note.
  */
-relief_response: string, };
+relief_response: string, 
+/**
+ * v4.31.0 (TASK-029): total financial damage ($).
+ */
+financial_damage: number, 
+/**
+ * v4.31.0 (TASK-029): buildings destroyed.
+ */
+buildings_destroyed: number, 
+/**
+ * v4.31.0 (TASK-029): buildings damaged.
+ */
+buildings_damaged: number, 
+/**
+ * v4.31.0 (TASK-029): central-government relief share of damage (0–100).
+ */
+coverage_central_pct: number, 
+/**
+ * v4.31.0 (TASK-029): regional-treasury share of damage (0–100).
+ */
+coverage_regional_pct: number, 
+/**
+ * v4.31.0 (TASK-029): corporate/private-loss share of damage (0–100).
+ */
+coverage_private_pct: number, };
 
 /**
  * Summary of a household durable cohort for the region drill-down.
@@ -1802,7 +2000,16 @@ material_destruction: number,
 /**
  * v4.27.0 (TASK-007): civilian lives lost in war-touched regions.
  */
-civilian_casualties: bigint, };
+civilian_casualties: bigint, 
+/**
+ * v4.31.0 (TASK-029): commanding generals/admirals on the aggressor
+ * side — standing OOB leadership, fate-badged.
+ */
+attacker_commanders: Array<CommanderRow>, 
+/**
+ * v4.31.0 (TASK-029): commanding officers on the defender side.
+ */
+defender_commanders: Array<CommanderRow>, };
 
 /**
  * Role-gated: foreign observers see only public aggregate data (national
@@ -2888,7 +3095,19 @@ net_migration: bigint,
  * v4.27.0: Urban-class population — drives city-dot scaling in the
  * Political & Infrastructure mode.
  */
-urban_population: bigint, };
+urban_population: bigint, 
+/**
+ * v4.31.0 (TASK-027): regional capital city name shown in the
+ * Region Overview inspector (cultural name of the region's capital
+ * district city, or the national capital for capital regions).
+ */
+capital_city_name: string, 
+/**
+ * v4.31.0 (TASK-028): continent index this region sits on — the
+ * country-scoped map uses it to render same-continent foreign
+ * neighbours as muted grey land instead of open ocean.
+ */
+continent: bigint, };
 
 /**
  * v4.27.0: A primary transport artery between regional hubs. Points run
@@ -4200,6 +4419,39 @@ industrial_emissions: number,
 mortality_multiplier: number, };
 
 /**
+ * v4.31.0 (TASK-032): the twelve Society KPI series with turn labels —
+ * exactly 12 `series` entries, one per KPI card.
+ */
+export type SocietyHistoryDto = { turns: Array<number>, series: Array<SocietyKpiSeriesDto>, };
+
+/**
+ * v4.31.0 (TASK-032): one KPI card's historical series — the age card
+ * additionally carries the median as `secondary_*` so the pinned chart
+ * draws both lines.
+ */
+export type SocietyKpiSeriesDto = { 
+/**
+ * Stable series key matching the Society card (`population`, `age`, …).
+ */
+key: string, 
+/**
+ * Card label ("Population", "Avg / Median Age", …).
+ */
+label: string, 
+/**
+ * Line colour for the sparkline/pinned chart.
+ */
+color: string, 
+/**
+ * Per-turn values aligned with `SocietyHistoryDto.turns`.
+ */
+values: Array<number>, 
+/**
+ * Optional second line (Median Age on the age card).
+ */
+secondary_label: string, secondary_values: Array<number>, };
+
+/**
  * Per-country demographic snapshot — all fields sourced from real state.
  */
 export type SocietySnapshotDto = { 
@@ -4318,7 +4570,12 @@ nomad_share: number,
 /**
  * Per-class standard-of-living rows (rural + urban classes).
  */
-classes: Array<ClassLivingRow>, };
+classes: Array<ClassLivingRow>, 
+/**
+ * v4.31.0 (TASK-032): rolling 12-series KPI history powering the
+ * card sparklines and the click-to-pin trend chart.
+ */
+kpi_history: SocietyHistoryDto, };
 
 /**
  * Phase 81 Wave 2: Spot market clearing info for a region.
@@ -4974,7 +5231,16 @@ occupied_regions: Array<string>,
 /**
  * v4.24.0: Per-war battle ledger (expandable per battle).
  */
-battles: Array<WarBattleRow>, };
+battles: Array<WarBattleRow>, 
+/**
+ * v4.31.0 (TASK-029): commanding generals/admirals on the aggressor
+ * side (aggregated across the war's battle ledger, fate-badged).
+ */
+attacker_commanders: Array<CommanderRow>, 
+/**
+ * v4.31.0 (TASK-029): commanding officers on the defender side.
+ */
+defender_commanders: Array<CommanderRow>, };
 
 /**
  * Phase 84: Waste grid snapshot for UI display.

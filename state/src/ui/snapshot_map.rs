@@ -126,6 +126,14 @@ pub struct MapRegionDto {
     /// v4.27.0: Urban-class population — drives city-dot scaling in the
     /// Political & Infrastructure mode.
     pub urban_population: i64,
+    /// v4.31.0 (TASK-027): regional capital city name shown in the
+    /// Region Overview inspector (cultural name of the region's capital
+    /// district city, or the national capital for capital regions).
+    pub capital_city_name: String,
+    /// v4.31.0 (TASK-028): continent index this region sits on — the
+    /// country-scoped map uses it to render same-continent foreign
+    /// neighbours as muted grey land instead of open ocean.
+    pub continent: i64,
 }
 
 /// v4.27.0: A major city marker — dot scaled by urban population, rendered
@@ -544,6 +552,101 @@ fn cell_touches_boundary(
 // ============================================================================
 
 /// Ray-cast point-in-polygon test (even-odd rule).
+/// v4.31.0 (TASK-027): translate a lake/sea feature away from the
+/// region's anchor site so the site (city/capital/label/road terminus)
+/// never sits inside water.
+fn shift_feature_off_site(f: &mut MapFeatureDto, site: (f64, f64)) {
+    let raw: Vec<(f64, f64)> = f.points.iter().map(|p| (p.x, p.y)).collect();
+    if raw.len() < 3 || !point_in_polygon(site, &raw) {
+        return;
+    }
+    let (lx, ly) = polygon_centroid(&raw);
+    let (mut dx, mut dy) = (lx - site.0, ly - site.1);
+    let len = (dx * dx + dy * dy).sqrt();
+    if len < 1e-9 {
+        let a = hash_unit(&format!("lake-dir:{}", f.region_id), 233)
+            * std::f64::consts::TAU;
+        dx = a.cos();
+        dy = a.sin();
+    } else {
+        dx /= len;
+        dy /= len;
+    }
+    let r = raw.iter().fold(0.0_f64, |m, p| {
+        m.max(((p.0 - lx).powi(2) + (p.1 - ly).powi(2)).sqrt())
+    });
+    let shift = r * 1.15 + REGION_SPACING * 0.15;
+    for p in &mut f.points {
+        p.x += dx * shift;
+        p.y += dy * shift;
+    }
+}
+
+/// v4.31.0 (TASK-027): if `site` lies inside any of the region's lakes,
+/// return the region cell vertex farthest from the lake's centre on dry
+/// land — otherwise return the site. Anchors the capital star, region
+/// label, and road/rail termini.
+fn lake_free_anchor(
+    site: (f64, f64),
+    cell: &[(f64, f64)],
+    lakes: Option<&Vec<Vec<MapPoint>>>,
+) -> MapPoint {
+    let mut p = (site.0, site.1);
+    if let Some(ls) = lakes {
+        for lake in ls {
+            let raw: Vec<(f64, f64)> = lake.iter().map(|v| (v.x, v.y)).collect();
+            if raw.len() < 3 || !point_in_polygon(p, &raw) {
+                continue;
+            }
+            let (lx, ly) = polygon_centroid(&raw);
+            let mut best = p;
+            let mut bd = -1.0;
+            for v in cell {
+                if point_in_polygon(*v, &raw) {
+                    continue;
+                }
+                let d = (v.0 - lx).powi(2) + (v.1 - ly).powi(2);
+                if d > bd {
+                    bd = d;
+                    best = *v;
+                }
+            }
+            p = best;
+        }
+    }
+    MapPoint { x: p.0, y: p.1 }
+}
+
+/// v4.31.0 (TASK-027): walk a point out of any lake polygons (route
+/// bezier midpoints) — steps away from each lake's centre until dry.
+fn lift_point_off_lakes(pt: &MapPoint, lakes: &[Vec<MapPoint>]) -> MapPoint {
+    let mut q = (pt.x, pt.y);
+    for lake in lakes {
+        let raw: Vec<(f64, f64)> = lake.iter().map(|v| (v.x, v.y)).collect();
+        if raw.len() < 3 {
+            continue;
+        }
+        for _ in 0..14 {
+            if !point_in_polygon(q, &raw) {
+                break;
+            }
+            let (lx, ly) = polygon_centroid(&raw);
+            let (mut dx, mut dy) = (q.0 - lx, q.1 - ly);
+            let len = (dx * dx + dy * dy).sqrt();
+            if len < 1e-9 {
+                dx = 1.0;
+                dy = 0.0;
+            } else {
+                dx /= len;
+                dy /= len;
+            }
+            q.0 += dx * REGION_SPACING * 0.2;
+            q.1 += dy * REGION_SPACING * 0.2;
+        }
+    }
+    MapPoint { x: q.0, y: q.1 }
+}
+
 fn point_in_polygon(p: (f64, f64), poly: &[(f64, f64)]) -> bool {
     if poly.len() < 3 {
         return false;
@@ -1083,14 +1186,27 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         });
         let coord_mean = (mx / n as f64, my / n as f64);
 
+        // v4.31.0 (TASK-027): when every stored coord is identical (or
+        // non-finite), `coord_scale` collapses to 0/NaN and ALL sites
+        // land on the anchor — every Voronoi cell degenerates to a dot
+        // and the whole country vanishes (Lechia "capital floating over
+        // empty ocean"). Fall back to the ring plan in that case.
+        let use_coords =
+            coords_usable && coord_scale.is_finite() && coord_scale > 1e-9;
         let mut sites = Vec::with_capacity(n);
         let mut non_capital = 0usize;
         for region in &layout.regions {
-            if coords_usable {
-                sites.push((
+            let coord_site = if use_coords {
+                let s = (
                     layout.anchor.0 + (region.coord_x - coord_mean.0) * coord_scale,
                     layout.anchor.1 + (region.coord_y - coord_mean.1) * coord_scale,
-                ));
+                );
+                (s.0.is_finite() && s.1.is_finite()).then_some(s)
+            } else {
+                None
+            };
+            if let Some(s) = coord_site {
+                sites.push(s);
             } else if region.is_capital || non_capital >= ring_plan.len() {
                 if region.is_capital {
                     sites.push(layout.anchor);
@@ -1133,7 +1249,21 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         //     every land region keeps a proper polygon.
         // --------------------------------------------------------------
         let n_regions = layout.regions.len();
-        if n_regions >= 6 {
+        // v4.31.0 (TASK-027): landlocked countries may never own
+        // offshore islands — the flag is recorded authoritatively at
+        // generation, and the geometric check (country cell touching the
+        // continent's sea frontier) covers legacy saves pre-flag.
+        let landlocked = state
+            .countries
+            .get(layout.name.as_str())
+            .map(|c| c.is_landlocked)
+            .unwrap_or(false)
+            || !cell_touches_boundary(
+                &layout.boundary,
+                &layout.continent_boundary,
+                (layout.radius * 1e-3).powi(2),
+            );
+        if n_regions >= 6 && !landlocked {
             // Candidate rim regions: non-capital sites farthest from the
             // anchor (outer ring). Island quota is hash-stable per country.
             let quota = 1 + (hash_unit(&format!("isle-n:{}", layout.name), 97)
@@ -1504,6 +1634,11 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     let mut min_poly_verts = usize::MAX;
     let mut shared_land_borders: u32 = 0;
     let mut degenerate_regions: u32 = 0;
+    // v4.31.0 (TASK-027): every generated lake/inland-sea polygon keyed
+    // by owning region — centroids, labels and road/rail midpoints are
+    // nudged off these so nothing renders inside water.
+    let mut region_lakes: std::collections::HashMap<String, Vec<Vec<MapPoint>>> =
+        std::collections::HashMap::new();
 
     // v4.27.0 inland-sea placement: per continent, the largest interior
     // (non-coastal) cell — picked deterministically by area.
@@ -1512,7 +1647,10 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     for (li, layout) in layouts.iter().enumerate() {
         let mut best: Option<(usize, f64)> = None;
         for (idx, cell) in region_cells[li].iter().enumerate() {
-            if layout.islands.contains(&idx) || cell.len() < 3 {
+            if layout.islands.contains(&idx)
+                || cell.len() < 3
+                || layout.regions[idx].is_capital
+            {
                 continue;
             }
             let coastal = region_engine_coastal(&layout.regions[idx])
@@ -1619,13 +1757,23 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
 
             // Inland lake on a deterministic subset of roomy interior
             // cells (v4.27.0: raised coverage 16%→24%).
+            // v4.31.0 (TASK-027): never cover a capital district — the
+            // capital star must sit on land. Generated lakes are also
+            // shifted off the region site below so no centroid/label/
+            // road terminus ever sits inside water.
             if !is_island
                 && !is_coastal
+                && !region.is_capital
                 && hash_unit(&format!("lake:{}", region.id), 71) < 0.24
             {
-                if let Some(lake) =
+                if let Some(mut lake) =
                     lake_feature(cell, &region.id, &layout.name, 0.18, "lake")
                 {
+                    shift_feature_off_site(&mut lake, site);
+                    region_lakes
+                        .entry(region.id.clone())
+                        .or_default()
+                        .push(lake.points.clone());
                     features_out.push(lake);
                 }
             }
@@ -1639,11 +1787,17 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             // interior cell (deterministic pick by area).
             if !is_island
                 && !is_coastal
+                && !region.is_capital
                 && inland_sea_pick.contains(&(color_index, idx))
             {
-                if let Some(sea) =
+                if let Some(mut sea) =
                     lake_feature(cell, &region.id, &layout.name, 0.33, "inland_sea")
                 {
+                    shift_feature_off_site(&mut sea, site);
+                    region_lakes
+                        .entry(region.id.clone())
+                        .or_default()
+                        .push(sea.points.clone());
                     features_out.push(sea);
                 }
             }
@@ -1678,7 +1832,12 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                     region.display_name.clone()
                 },
                 polygon,
-                centroid: MapPoint { x: site.0, y: site.1 },
+                // v4.31.0 (TASK-027): the centroid anchors the capital
+                // star, region label, and road/rail termini — it must
+                // never sit inside water. If the site fell inside a
+                // generated lake, move it to the lake's farthest
+                // land-side cell vertex.
+                centroid: lake_free_anchor(site, cell, region_lakes.get(&region.id)),
                 is_capital_district: region.is_capital,
                 is_coastal,
                 is_city_region: region.city_metadata.is_some(),
@@ -1701,6 +1860,12 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 party_share,
                 net_migration: region_net_migration(region),
                 urban_population,
+                capital_city_name: cultural_city_name(
+                    &layout.name,
+                    &region.id,
+                    region.is_capital,
+                ),
+                continent: layout.continent as i64,
             });
         }
 
@@ -1798,10 +1963,18 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 if !route_seen.insert((a.clone(), b.clone())) {
                     return;
                 }
-                let mid = MapPoint {
+                let mut mid = MapPoint {
                     x: (pa.x + pb.x) * 0.5,
                     y: (pa.y + pb.y) * 0.5,
                 };
+                // v4.31.0 (TASK-027): the bezier control point must not
+                // sit inside a lake — the road would render across open
+                // water. Nudge it to the nearest dry point.
+                for rid in [a.as_str(), b.as_str()] {
+                    if let Some(ls) = region_lakes.get(rid) {
+                        mid = lift_point_off_lakes(&mid, ls);
+                    }
+                }
                 routes.push(MapRouteDto {
                     kind: kind.to_string(),
                     points: vec![pa, mid, pb],
@@ -1814,10 +1987,15 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
         // Rail: capital ↔ three largest urban hubs.
         if let Some(cap) = cities.iter().find(|c| c.is_capital) {
             for c in cities.iter().filter(|c| !c.is_capital).take(3) {
-                let mid = MapPoint {
+                let mut mid = MapPoint {
                     x: (cap.point.x + c.point.x) * 0.5,
                     y: (cap.point.y + c.point.y) * 0.5,
                 };
+                for rid in [cap.region_id.as_str(), c.region_id.as_str()] {
+                    if let Some(ls) = region_lakes.get(rid) {
+                        mid = lift_point_off_lakes(&mid, ls);
+                    }
+                }
                 routes.push(MapRouteDto {
                     kind: "rail".to_string(),
                     points: vec![cap.point.clone(), mid, c.point.clone()],
@@ -1927,6 +2105,29 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
             }
             let hub = hubs[&c].clone();
             let (cx, cy) = centers[&c];
+            // v4.31.0 (TASK-027): sea labels anchor on OPEN WATER — the
+            // continent centre is land (it sits on capitals/cities). Push
+            // the label anchor outward to the mid sea band (blob × ~1.16)
+            // along the ray away from the world centre.
+            let (wx, wy) = {
+                let n = centers.len() as f64;
+                centers
+                    .values()
+                    .fold((0.0, 0.0), |(ax, ay), p| (ax + p.0 / n, ay + p.1 / n))
+            };
+            let (mut dx, mut dy) = (cx - wx, cy - wy);
+            let dlen = (dx * dx + dy * dy).sqrt();
+            if dlen < 1e-9 {
+                let a = hash_unit(&format!("sea-dir-{c}"), 47) * std::f64::consts::TAU;
+                dx = a.cos();
+                dy = a.sin();
+            } else {
+                dx /= dlen;
+                dy /= dlen;
+            }
+            let cr = radii[&c];
+            let label_cx = cx + dx * cr * 1.16;
+            let label_cy = cy + dy * cr * 1.16;
             let mut sea_boundary: Vec<MapPoint> = layout
                 .continent_boundary
                 .iter()
@@ -1954,7 +2155,10 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 id: format!("sea-{c}"),
                 name,
                 kind: "sea".to_string(),
-                center: MapPoint { x: cx, y: cy },
+                center: MapPoint {
+                    x: label_cx,
+                    y: label_cy,
+                },
                 area_km2: polygon_area(&boundary_raw).abs() * KM2_PER_UNIT2,
                 depth_m: depth,
                 navigable: true,
@@ -1963,48 +2167,67 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 boundary: std::mem::take(&mut sea_boundary),
             });
         }
-        // Inter-continent ocean zones: an ellipse in the gap between
-        // consecutive continent centres (sorted by x).
-        let mut sorted_cs: Vec<usize> = centers.keys().cloned().collect();
-        sorted_cs.sort_by(|a, b| {
-            centers[a]
-                .0
-                .partial_cmp(&centers[b].0)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
-        for w in sorted_cs.windows(2) {
-            let (c0, c1) = (w[0], w[1]);
-            let (x0, y0) = centers[&c0];
-            let (x1, y1) = centers[&c1];
-            let (mx, my) = ((x0 + x1) * 0.5, (y0 + y1) * 0.5);
-            let gap = ((x1 - x0).powi(2) + (y1 - y0).powi(2)).sqrt()
-                - radii[&c0]
-                - radii[&c1];
-            if gap <= 0.0 {
-                continue;
+        // v4.31.0 (TASK-027): ONE full-canvas World Ocean replaces the
+        // inter-continent ellipse ribbons ("Illyria Ocean" ovals that
+        // left bare sea-colour gaps). It covers every drop of open water
+        // outside the continents and inland seas — the map background.
+        {
+            let pad = (bounds[2] - bounds[0])
+                .max(bounds[3] - bounds[1])
+                .max(1.0)
+                * 0.08
+                + 1.0;
+            let ocean_pts = vec![
+                MapPoint { x: bounds[0] - pad, y: bounds[1] - pad },
+                MapPoint { x: bounds[2] + pad, y: bounds[1] - pad },
+                MapPoint { x: bounds[2] + pad, y: bounds[3] + pad },
+                MapPoint { x: bounds[0] - pad, y: bounds[3] + pad },
+            ];
+            // Label anchor: midpoint of the widest inter-continent gap —
+            // the deepest open water on the canvas.
+            let mut sorted_cs: Vec<usize> = centers.keys().cloned().collect();
+            sorted_cs.sort_by(|a, b| {
+                centers[a]
+                    .0
+                    .partial_cmp(&centers[b].0)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+            let mut label = MapPoint {
+                x: (bounds[0] + bounds[2]) * 0.5,
+                y: (bounds[1] + bounds[3]) * 0.5,
+            };
+            let mut best_gap = f64::NEG_INFINITY;
+            for w in sorted_cs.windows(2) {
+                let (x0, y0) = centers[&w[0]];
+                let (x1, y1) = centers[&w[1]];
+                let gap = ((x1 - x0).powi(2) + (y1 - y0).powi(2)).sqrt()
+                    - radii[&w[0]]
+                    - radii[&w[1]];
+                if gap > best_gap {
+                    best_gap = gap;
+                    label = MapPoint { x: (x0 + x1) * 0.5, y: (y0 + y1) * 0.5 };
+                }
             }
-            let rx = gap * 0.42;
-            let ry = (gap * 0.30).max(radii[&c0].min(radii[&c1]) * 0.5);
-            let mut boundary = Vec::with_capacity(24);
-            for i in 0..24 {
-                let a = i as f64 / 24.0 * std::f64::consts::TAU;
-                boundary.push(MapPoint {
-                    x: mx + rx * a.cos(),
-                    y: my + ry * a.sin(),
-                });
-            }
-            let raw: Vec<(f64, f64)> = boundary.iter().map(|p| (p.x, p.y)).collect();
+            let mut all_coastal: Vec<String> = coastal_by_continent
+                .values()
+                .flatten()
+                .cloned()
+                .collect();
+            all_coastal.sort();
+            all_coastal.dedup();
+            let ocean_area: f64 = (bounds[2] - bounds[0] + 2.0 * pad)
+                * (bounds[3] - bounds[1] + 2.0 * pad);
             water_bodies.push(WaterBodyDto {
-                id: format!("ocean-{c0}-{c1}"),
-                name: format!("{} Ocean", hubs[&c0]),
+                id: "ocean-world".to_string(),
+                name: "World Ocean".to_string(),
                 kind: "ocean".to_string(),
-                center: MapPoint { x: mx, y: my },
-                area_km2: polygon_area(&raw).abs() * KM2_PER_UNIT2,
-                depth_m: 3200.0 + hash_unit(&format!("ocean-depth-{c0}-{c1}"), 43) * 2200.0,
+                center: label,
+                area_km2: ocean_area * KM2_PER_UNIT2,
+                depth_m: 3800.0 + hash_unit("ocean-depth-world", 43) * 2200.0,
                 navigable: true,
-                bordering_regions: Vec::new(),
+                bordering_regions: all_coastal,
                 continent: -1,
-                boundary,
+                boundary: ocean_pts,
             });
         }
         // Inland water: mirror every lake/inland_sea feature as a
@@ -2501,71 +2724,118 @@ pub fn build_region_parcel_map(
         })
         .collect();
 
-    // Grid sizing: the contour covers ~40–60% of the 100² box, so start
-    // at 2.2× the cell count and densify until every parcel fits inside.
-    let (mut cols, mut rows) = (1usize, 1usize);
-    let mut lattice: Vec<Vec<(f64, f64)>> = Vec::new();
-    let mut inside: Vec<bool> = Vec::new();
+    // v4.31.0 (TASK-028): true 2D cadastral parcels — jittered k×k seed
+    // lattice inside the region contour, Poisson-thinned to exactly n
+    // seeds, 2 Lloyd-relaxation passes, then Voronoi cells clipped to
+    // the contour. Compact ~square aspect ratios replace the old 2×N
+    // "barcode strips" (aspect ratio was ~16 when rows collapsed to 1).
+    let mut kk = ((n as f64).sqrt().ceil() as usize).max(2);
+    let mut seeds: Vec<(f64, f64)> = Vec::new();
     loop {
-        cols = (cols as f64 * 1.25).ceil() as usize + 2;
-        rows = n.div_ceil(cols).max(1);
-        if rows == 0 {
-            rows = 1;
-        }
-        let cell_w = GRID / cols as f64;
-        let cell_h = GRID / rows as f64;
-        lattice = vec![vec![(0.0_f64, 0.0_f64); cols + 1]; rows + 1];
-        for (r, row) in lattice.iter_mut().enumerate() {
-            for (c, cell) in row.iter_mut().enumerate() {
-                let on_rim = r == 0 || c == 0 || r == rows || c == cols;
-                let amp = if on_rim { 0.08 } else { 0.30 } * cell_w.min(cell_h);
-                let jx =
-                    (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 3) - 0.5) * 2.0 * amp;
-                let jy =
-                    (hash_unit(&format!("pl:{region_id}:{r}:{c}"), 4) - 0.5) * 2.0 * amp;
-                *cell = (c as f64 * cell_w + jx, r as f64 * cell_h + jy);
+        seeds.clear();
+        let step = GRID / kk as f64;
+        for r in 0..kk {
+            for c in 0..kk {
+                let jx = (hash_unit(&format!("sd:{region_id}:{r}:{c}"), 5) - 0.5)
+                    * step
+                    * 0.7;
+                let jy = (hash_unit(&format!("sd:{region_id}:{r}:{c}"), 7) - 0.5)
+                    * step
+                    * 0.7;
+                let p = (
+                    (c as f64 + 0.5) * step + jx,
+                    (r as f64 + 0.5) * step + jy,
+                );
+                if point_in_polygon(p, &contour) {
+                    seeds.push(p);
+                }
             }
         }
-        inside = (0..rows * cols)
-            .map(|i| {
-                let (r, c) = (i / cols, i % cols);
-                let cx = (lattice[r][c].0
-                    + lattice[r][c + 1].0
-                    + lattice[r + 1][c + 1].0
-                    + lattice[r + 1][c].0)
-                    / 4.0;
-                let cy = (lattice[r][c].1
-                    + lattice[r][c + 1].1
-                    + lattice[r + 1][c + 1].1
-                    + lattice[r + 1][c].1)
-                    / 4.0;
-                point_in_polygon((cx, cy), &contour)
-            })
-            .collect();
-        if inside.iter().filter(|b| **b).count() >= n || cols > 200 {
+        if seeds.len() >= n || kk > 40 {
             break;
         }
+        kk += 1;
     }
-    // Border zone: an inside cell that 4-neighbours an outside cell (or
-    // the grid rim) — only parcels truly touching the region boundary.
-    let border_mask: Vec<bool> = (0..rows * cols)
-        .map(|i| {
-            if !inside[i] {
-                return false;
+    // Poisson-thin to exactly n seeds: repeatedly drop the seed closest
+    // to its nearest neighbour (deterministic, spreads coverage).
+    while seeds.len() > n {
+        let mut drop_i = 0usize;
+        let mut drop_d = f64::MAX;
+        for i in 0..seeds.len() {
+            let mut nd = f64::MAX;
+            for (j, o) in seeds.iter().enumerate() {
+                if i == j {
+                    continue;
+                }
+                nd = nd.min((seeds[i].0 - o.0).powi(2) + (seeds[i].1 - o.1).powi(2));
             }
-            let (r, c) = (i / cols, i % cols);
-            [
-                r.checked_sub(1).map(|rr| rr * cols + c),
-                (r + 1 < rows).then(|| (r + 1) * cols + c),
-                c.checked_sub(1).map(|cc| r * cols + cc),
-                (c + 1 < cols).then(|| r * cols + c + 1),
-            ]
+            if nd < drop_d {
+                drop_d = nd;
+                drop_i = i;
+            }
+        }
+        seeds.remove(drop_i);
+    }
+    // Fewer seeds than parcels (degenerate/sliver contour): pad with a
+    // fine interior scan so every parcel still gets a cell.
+    if seeds.len() < n {
+        let step = GRID / 42.0;
+        'pad: for r in 0..42 {
+            for c in 0..42 {
+                let p = ((c as f64 + 0.5) * step, (r as f64 + 0.5) * step);
+                if point_in_polygon(p, &contour) {
+                    seeds.push(p);
+                    if seeds.len() >= n {
+                        break 'pad;
+                    }
+                }
+            }
+        }
+    }
+    // Lloyd relaxation ×2: each seed migrates to its cell centroid —
+    // cells settle into compact, low-aspect shapes.
+    let mut cells: Vec<Vec<(f64, f64)>> = Vec::with_capacity(seeds.len());
+    for pass in 0..3 {
+        cells = seeds
             .iter()
-            .any(|nb| nb.map(|j| !inside[j]).unwrap_or(true))
+            .enumerate()
+            .map(|(i, &s)| {
+                let others: Vec<(f64, f64)> = seeds
+                    .iter()
+                    .enumerate()
+                    .filter(|(j, _)| *j != i)
+                    .map(|(_, o)| *o)
+                    .collect();
+                voronoi_cell(s, &others, &contour)
+            })
+            .collect();
+        if pass < 2 {
+            for (i, cell) in cells.iter().enumerate() {
+                if cell.len() >= 3 {
+                    seeds[i] = polygon_centroid(cell);
+                }
+            }
+        }
+    }
+    let m_cells = cells.len();
+    // Border zone: a parcel whose Voronoi cell shares an edge with the
+    // region contour rim (~40% perimeter ring; the rest are interior).
+    let rim_eps2 = (GRID * 0.02).powi(2);
+    let border_mask: Vec<bool> = cells
+        .iter()
+        .map(|cell| cell_touches_boundary(cell, &contour, rim_eps2))
+        .collect();
+    // Voronoi adjacency for the zone-clustering BFS below: cells that
+    // share ≥2 vertices share an edge.
+    let cell_adj: Vec<Vec<usize>> = (0..m_cells)
+        .map(|i| {
+            (0..m_cells)
+                .filter(|&j| {
+                    j != i && shared_vertices(&cells[i], &cells[j], rim_eps2).len() >= 2
+                })
+                .collect()
         })
         .collect();
-    let cell_w = GRID / cols as f64;
-    let cell_h = GRID / rows as f64;
 
     // Industrial parcels in an extraction region render as resource mines.
     let has_extraction = region.extraction_limits.values().any(|v| *v > 0);
@@ -2625,15 +2895,10 @@ pub fn build_region_parcel_map(
             m
         };
         // BFS-grow each zone class from its seed over unassigned cells.
-        // v4.30.0 (TASK-022): cells outside the region contour are
-        // pre-claimed so zones only grow on real territory.
-        let m_cells = rows * cols;
+        // v4.31.0 (TASK-028): zones grow over the Voronoi adjacency
+        // graph — every parcel cell is inside the contour by
+        // construction, so no outside-claim pass is needed.
         let mut cell_zone: Vec<&'static str> = vec![""; m_cells];
-        for (i, z) in cell_zone.iter_mut().enumerate() {
-            if !inside[i] {
-                *z = "outside";
-            }
-        }
         let seed_pref = |cls: &str| -> (f64, f64) {
             // Preferred seed location in normalized grid coords.
             match cls {
@@ -2682,8 +2947,8 @@ pub fn build_region_parcel_map(
                     if !z.is_empty() {
                         continue;
                     }
-                    let gx = (c % cols) as f64 / cols as f64;
-                    let gy = (c / cols) as f64 / rows as f64;
+                    let gx = seeds[c].0 / GRID;
+                    let gy = seeds[c].1 / GRID;
                     let d = (gx - sx).powi(2) + (gy - sy).powi(2)
                         + hash_unit(&format!("zs:{region_id}:{cls}:{zi}:{c}"), 3) * 0.02;
                     if d < best {
@@ -2706,18 +2971,9 @@ pub fn build_region_parcel_map(
                     if grown >= target {
                         break;
                     }
-                    let (cr, cc) = (c / cols, c % cols);
-                    for (nr, nc) in [
-                        (cr.wrapping_sub(1), cc),
-                        (cr + 1, cc),
-                        (cr, cc.wrapping_sub(1)),
-                        (cr, cc + 1),
-                    ] {
-                        if nr < rows && nc < cols {
-                            let ni = nr * cols + nc;
-                            if ni < m_cells && cell_zone[ni].is_empty() {
-                                frontier.push_back(ni);
-                            }
+                    for &ni in &cell_adj[c] {
+                        if cell_zone[ni].is_empty() {
+                            frontier.push_back(ni);
                         }
                     }
                     if frontier.is_empty() {
@@ -2739,8 +2995,7 @@ pub fn build_region_parcel_map(
         cell_zone.iter().map(|s| s.to_string()).collect()
     };
     // Reorder pids so the parcel rendered in cell i belongs to cell_class[i].
-    let m_cells = rows * cols;
-    let inside_cells: Vec<usize> = (0..m_cells).filter(|&i| inside[i]).collect();
+    let inside_cells: Vec<usize> = (0..m_cells).collect();
     let mut ordered: Vec<crate::society::cadastre::ParcelId> = Vec::with_capacity(n);
     {
         let mut cursors: std::collections::BTreeMap<String, usize> =
@@ -2798,28 +3053,13 @@ pub fn build_region_parcel_map(
         let Some(p) = country.cadastre.get(*pid) else {
             continue;
         };
-        // v4.30.0 (TASK-022): parcel i occupies the i-th inside-contour
-        // cell (row order) — outside cells never receive a parcel.
+        // v4.31.0 (TASK-028): parcel i occupies the i-th Voronoi cell —
+        // an arbitrary compact polygon clipped to the region contour.
         let cell_idx = inside_cells.get(i).copied().unwrap_or(0);
-        let (r, c) = (cell_idx / cols, cell_idx % cols);
-        let polygon = vec![
-            MapPoint {
-                x: lattice[r][c].0,
-                y: lattice[r][c].1,
-            },
-            MapPoint {
-                x: lattice[r][c + 1].0,
-                y: lattice[r][c + 1].1,
-            },
-            MapPoint {
-                x: lattice[r + 1][c + 1].0,
-                y: lattice[r + 1][c + 1].1,
-            },
-            MapPoint {
-                x: lattice[r + 1][c].0,
-                y: lattice[r + 1][c].1,
-            },
-        ];
+        let polygon: Vec<MapPoint> = cells[cell_idx]
+            .iter()
+            .map(|v| MapPoint { x: v.0, y: v.1 })
+            .collect();
         let use_class = if p.devastation_index >= 0.3 {
             "devastated"
         } else if p.topography.water_access != crate::society::cadastre::WaterAccessType::None {

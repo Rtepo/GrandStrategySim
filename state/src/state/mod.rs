@@ -389,6 +389,13 @@ pub struct Country {
     pub war_economy: crate::military::war_economy::WarEconomyState,
     /// Phase 70: Countries this nation is currently at war with.
     pub at_war_with: Vec<String>,
+    /// v4.31.0 (TASK-027): genuinely landlocked — no rim region faces
+    /// open water at world generation (every land region carries a
+    /// foreign `LandBorder` edge). Maritime wiring still grants a
+    /// fallback bay for freight reachability, but the map layer must
+    /// never paint offshore islands for a landlocked country.
+    #[serde(default)]
+    pub is_landlocked: bool,
     /// v4.28.0 (TASK-011): the country that annexed this state's last
     /// region. `Some(..)` marks a capitulated "annexed" ledger shell —
     /// legislature, GDP and economy ticks halt, and the UI badges it
@@ -816,6 +823,7 @@ impl Country {
     pub fn mock_for_tests() -> Self {
         Self {
             name: String::new(),
+            is_landlocked: false,
             budget: Treasury::default(),
             macro_indicators: MacroData::default(),
             tax_rates: TaxRates::default(),
@@ -1025,6 +1033,10 @@ pub struct GameState {
     /// Phase 54: Rolling banking history for sparkline tooltips (per-country).
     #[serde(default)]
     pub banking_history: HashMap<String, BankingHistory>,
+    /// v4.31.0 (TASK-032): rolling Society KPI history (12 series per
+    /// country) for sparklines + click-to-pinned trend charts.
+    #[serde(default)]
+    pub society_history: HashMap<String, crate::society::SocietyKpiHistory>,
     /// All simulated nations, keyed by canonical country name.
     pub countries: HashMap<String, Country>,
     /// Shared currency zones, keyed by currency code.
@@ -1119,6 +1131,7 @@ impl GameState {
             climate_config: ClimateConfig::default(),
             market_history: MarketHistory::default(),
             banking_history: HashMap::new(),
+            society_history: HashMap::new(),
             countries: HashMap::new(),
             currencies: HashMap::new(),
             forex_market: ForexMarket::default(),
@@ -1258,6 +1271,7 @@ impl CountryBuilder {
     pub fn build(self) -> Country {
         Country {
             name: self.name,
+            is_landlocked: false,
             budget: self.budget.unwrap_or_default(),
             macro_indicators: self.macro_indicators.unwrap_or_default(),
             tax_rates: self.tax_rates.unwrap_or_default(),
