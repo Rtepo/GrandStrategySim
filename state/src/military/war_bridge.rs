@@ -1228,6 +1228,71 @@ fn conclude_war(
     let aggressor = ac.name.clone();
     let defender = dc.name.clone();
 
+    // v4.31.0 (TASK-027): CONTIGUOUS CESSIONS ONLY. A peace treaty may
+    // only transfer occupied regions that form a connected chain into
+    // the victor's existing territory via land borders or shared
+    // strait/sea nodes — deeper occupied pockets that would become
+    // discontiguous exclaves inside enemy land revert to the defender.
+    let occupied: Vec<String> = {
+        use std::collections::{HashMap, HashSet, VecDeque};
+        // Adjacency = direct LandBorder edges + co-membership of the
+        // same sea/ocean node (strait adjacency — an island cedes only
+        // to a victor sharing its strait zone).
+        let mut direct: HashMap<String, Vec<String>> = HashMap::new();
+        let mut sea_groups: HashMap<String, Vec<String>> = HashMap::new();
+        for r in ac.regions.iter().chain(dc.regions.iter()) {
+            for e in &r.edges {
+                match e.edge_type {
+                    crate::society::geography::EdgeType::LandBorder => {
+                        direct.entry(r.id.clone()).or_default().push(e.target_node.clone());
+                        direct.entry(e.target_node.clone()).or_default().push(r.id.clone());
+                    }
+                    crate::society::geography::EdgeType::Coastline
+                    | crate::society::geography::EdgeType::SeaLane => {
+                        sea_groups.entry(e.target_node.clone()).or_default().push(r.id.clone());
+                    }
+                    _ => {}
+                }
+            }
+        }
+        for members in sea_groups.values() {
+            for a in members {
+                for b in members {
+                    if a != b {
+                        direct.entry(a.clone()).or_default().push(b.clone());
+                    }
+                }
+            }
+        }
+        // BFS outward from the victor's current territory, expanding
+        // only through regions on the cession list.
+        let pending: HashSet<&str> = occupied.iter().map(|s| s.as_str()).collect();
+        let mut seen: HashSet<String> =
+            ac.regions.iter().map(|r| r.id.clone()).collect();
+        let mut frontier: VecDeque<String> =
+            ac.regions.iter().map(|r| r.id.clone()).collect();
+        let mut reachable: HashSet<String> = HashSet::new();
+        while let Some(cur) = frontier.pop_front() {
+            if let Some(ns) = direct.get(&cur) {
+                for nb in ns {
+                    if !seen.insert(nb.clone()) {
+                        continue;
+                    }
+                    if pending.contains(nb.as_str()) {
+                        reachable.insert(nb.clone());
+                        frontier.push_back(nb.clone());
+                    }
+                }
+            }
+        }
+        // Preserve corridor order while dropping unreachable pockets.
+        occupied
+            .iter()
+            .filter(|rid| reachable.contains(*rid))
+            .cloned()
+            .collect()
+    };
+
     // Victor by war score; a dead-even score is a negotiated white peace
     // unless the capital fell (then the defender must surrender).
     let victor: Option<String> = if capital_fell || score > 0.0 {

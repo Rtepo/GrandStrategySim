@@ -118,6 +118,7 @@ pub fn load_game_state(data_dir: &Path) -> Result<GameState, SaveError> {
             name.clone(),
             Country {
                 name,
+                is_landlocked: false,
                 budget,
                 macro_indicators,
                 tax_rates,

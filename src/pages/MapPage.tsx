@@ -63,7 +63,10 @@ export function MapPage() {
   const zoomOut = () => setZoomIdx((i) => Math.max(0, i - 1));
 
   const openRegionInRegionsPage = (region: MapRegionDto, country: CountryMapDto) => {
-    setSelectedCountry(country.country);
+    // v4.31.0 (TASK-027): bind to the region's LIVE owner
+    // (region.country == region.owner_country), not the turn-0
+    // genesis group the geometry happens to live under.
+    setSelectedCountry(region.country || country.country);
     navigate("/regions", { state: { regionId: region.id } });
   };
 
@@ -171,7 +174,7 @@ export function MapPage() {
       <div className="grid grid-cols-4 gap-4">
         <Card className="col-span-3">
           <CardContent className="p-0">
-            <div className="overflow-auto max-h-[78vh] rounded-md bg-[#0f2739]">
+            <div className="overflow-auto max-h-[85vh] rounded-md bg-[#0f2739]">
               <div style={{ width: `${zoom * 100}%`, minWidth: "100%" }}>
                 <WorldMapSvg
                   snapshot={snapshot}
@@ -285,7 +288,10 @@ function RegionCard({
           <div>
             <CardTitle className="text-base">{region.name}</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {country.country}
+              {/* v4.31.0 (TASK-027): LIVE owner — conquered regions show
+                  the occupier, not the turn-0 genesis country. */}
+              {region.country}
+              {region.country !== country.country ? ` (was ${country.country})` : ""}
               {region.is_capital_district ? " · Capital District" : ""}
               {region.is_city_region ? " · City Region" : ""}
             </p>
@@ -310,6 +316,9 @@ function RegionCard({
           )}
         </div>
         <div className="space-y-1.5">
+          {region.capital_city_name && (
+            <Field label="Regional Capital" value={region.capital_city_name} />
+          )}
           <Field label="Population" value={num(region.population)} />
           <Field label="Regional GDP" value={fmt(region.gdp)} />
           <Field label="GDP per Capita" value={fmt(region.gdp_per_capita)} />

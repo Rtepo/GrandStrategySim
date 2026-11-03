@@ -2888,7 +2888,17 @@ net_migration: bigint,
  * v4.27.0: Urban-class population — drives city-dot scaling in the
  * Political & Infrastructure mode.
  */
-urban_population: bigint, };
+urban_population: bigint, /**
+ * v4.31.0 (TASK-027): regional capital city name shown in the
+ * Region Overview inspector (cultural name of the region's capital
+ * district city, or the national capital for capital regions).
+ */
+capital_city_name: string, /**
+ * v4.31.0 (TASK-028): continent index this region sits on — the
+ * country-scoped map uses it to render same-continent foreign
+ * neighbours as muted grey land instead of open ocean.
+ */
+continent: bigint, };
 
 /**
  * v4.27.0: A primary transport artery between regional hubs. Points run
