@@ -972,6 +972,7 @@ fn generate_country(
         legal_certainty_config: crate::society::cadastre::LegalCertaintyConfig::default(),
         externality_config: crate::society::cadastre::ExternalityConfig::default(),
         national_zoning_quota: crate::society::cadastre::NationalZoningQuota::default(),
+        disaster_log: std::collections::VecDeque::new(),
         subsurface_rights_law: crate::society::cadastre::SubsurfaceRightsLaw::default(),
         global_reputation: crate::international::reputation::GlobalReputation::default(),
         geopolitical_doctrine: crate::international::ai_doctrines::GeopoliticalDoctrine::default(),

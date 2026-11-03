@@ -6,10 +6,9 @@ import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Table, TableHe
 import { Hemicycle } from "../components/Hemicycle";
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
-import { DynastyTree } from "../components/DynastyTree";
 import { partyColor, ideologyIcon, estateVisual, spectrumOf } from "../lib/partyVisuals";
 import { fmt } from "../lib/format";
-import type { AdvisoryCouncilSnapshot, RoyalDynastySnapshot, ParliamentSnapshot, ClubRow, ClubVoteHistoryRow, VoteRow, BillDetailRow, ConstitutionLawsResponse, ElectionsResponse } from "../types/api";
+import type { AdvisoryCouncilSnapshot, ParliamentSnapshot, ClubRow, ClubVoteHistoryRow, VoteRow, BillDetailRow, ConstitutionLawsResponse, ElectionsResponse } from "../types/api";
 
 /// v4.23.0 WS2: an advisory council exists ONLY for autocratic forms
 /// (Royal Council / Politburo / Junta / Supreme Religious Council) — its
@@ -134,7 +133,6 @@ export function ParliamentPage() {
   if (!data) return null;
 
   const hasAdvisoryCouncil = data.advisory_council !== null;
-  const hasRoyalDynasty = data.royal_dynasty !== null;
   // v4.20: regime-aware legislature label ("Royal Council", "People's
   // Assembly", ...). Falls back to "Parliament" when the field is absent.
   const legislatureName = legislatureLabel(data.parliament.legislature_name);
@@ -153,7 +151,6 @@ export function ParliamentPage() {
         <div className="space-y-4">
           <AdvisoryCouncilView
             council={data.advisory_council!}
-            dynasty={hasRoyalDynasty ? data.royal_dynasty! : null}
             parliament={data.parliament}
             regimeType={regimeType}
             legislatureName={legislatureName}
@@ -161,10 +158,7 @@ export function ParliamentPage() {
           <ConstitutionLawsView />
         </div>
       ) : (
-        <DemocraticParliamentView
-          parliament={data.parliament}
-          dynasty={hasRoyalDynasty ? data.royal_dynasty! : null}
-        />
+        <DemocraticParliamentView parliament={data.parliament} />
       )}
     </div>
   );
@@ -172,10 +166,8 @@ export function ParliamentPage() {
 
 function DemocraticParliamentView({
   parliament,
-  dynasty,
 }: {
   parliament: ParliamentSnapshot;
-  dynasty: RoyalDynastySnapshot | null;
 }) {
   const legislatureName = legislatureLabel(parliament.legislature_name);
 
@@ -190,16 +182,8 @@ function DemocraticParliamentView({
     { label: "Constitution & Laws", value: "laws", content: <ConstitutionLawsView /> },
     { label: "Elections", value: "elections", content: <ElectionsView regimeType={parliament.regime_type ?? ""} legislatureName={legislatureName} /> },
   ];
-  // v4.23.0 WS2: crowned parliaments (Constitutional/Dualist monarchies —
-  // the forms whose legislature is a real parliament, not the council)
-  // get the full royal-dynasty tab too.
-  if (dynasty) {
-    tabs.push({
-      label: "Royal Dynasty",
-      value: "dynasty",
-      content: <DynastyTree dynasty={dynasty} />,
-    });
-  }
+  // v4.30.0 (TASK-023): Royal Dynasty lives exclusively inside
+  // Government — the duplicate Parliament sub-tab was removed.
   return <Tabs tabs={tabs} />;
 }
 
@@ -940,13 +924,11 @@ function QueueView({ parliament }: { parliament: ParliamentSnapshot }) {
 /// real engine data.
 function AdvisoryCouncilView({
   council,
-  dynasty,
   parliament,
   regimeType,
   legislatureName,
 }: {
   council: AdvisoryCouncilSnapshot;
-  dynasty: RoyalDynastySnapshot | null;
   parliament: ParliamentSnapshot;
   regimeType: string;
   legislatureName: string;
@@ -992,13 +974,8 @@ function AdvisoryCouncilView({
       content: <ElectionsView regimeType={regimeType} legislatureName={legislatureName} />,
     });
   }
-  if (dynasty) {
-    tabs.push({
-      label: "Royal Dynasty",
-      value: "dynasty",
-      content: <DynastyTree dynasty={dynasty} />,
-    });
-  }
+  // v4.30.0 (TASK-023): Royal Dynasty lives exclusively inside
+  // Government — the duplicate Parliament sub-tab was removed.
   return <Tabs tabs={tabs} />;
 }
 

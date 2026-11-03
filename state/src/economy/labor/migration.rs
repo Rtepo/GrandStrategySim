@@ -149,7 +149,9 @@ impl Default for MigrationConfig {
 fn default_max_emigration_rate() -> f64 { 0.0002 }
 fn default_famine_emigration_rate() -> f64 { 0.001 }
 fn default_min_population() -> u64 { 100 }
-fn default_transport_units_per_migrant() -> f64 { 100.0 }
+// v4.30.0 (TASK-025): one PassengerTransport unit = one person-seat —
+// 100 units/migrant capped flows at ~1% of real transport supply.
+fn default_transport_units_per_migrant() -> f64 { 1.0 }
 fn default_unrest_weight() -> f64 { 0.25 }
 fn default_poverty_weight() -> f64 { 0.20 }
 fn default_wage_weight() -> f64 { 0.15 }
@@ -203,7 +205,22 @@ pub fn sum_passenger_transport_capacity(buildings: &[Building]) -> f64 {
     buildings
         .iter()
         .filter(|b| b.sector == crate::registries::enums::Sector::TransportLogistics)
-        .map(|b| b.inventory.get(&Commodity::PassengerTransport).copied().unwrap_or(0.0))
+        .map(|b| {
+            // v4.30.0 (TASK-025): capacity = residual stock + last turn's
+            // production throughput. Commuters drain the inventory first,
+            // so stock alone read ~0 and killed all cross-border flows.
+            let stock = b
+                .inventory
+                .get(&Commodity::PassengerTransport)
+                .copied()
+                .unwrap_or(0.0);
+            let throughput = b
+                .last_production
+                .get(&Commodity::PassengerTransport)
+                .copied()
+                .unwrap_or(0.0);
+            stock + throughput
+        })
         .sum()
 }
 

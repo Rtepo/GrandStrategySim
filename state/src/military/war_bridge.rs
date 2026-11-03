@@ -364,6 +364,15 @@ pub fn process_war_bridge(
         for msg in &result.messages {
             eprintln!("{}", msg);
         }
+        // v4.30.0 (TASK-024): persist the events — Peacetime Disasters
+        // must be actively populated with region, casualties and damage.
+        // Ring buffer of the last 96 events per country.
+        for ev in result.events {
+            if country.disaster_log.len() >= 96 {
+                country.disaster_log.pop_front();
+            }
+            country.disaster_log.push_back(ev);
+        }
 
         // ── v4.24.0: POW camp lifecycle (per-country, once per turn) ──
         // Fresh captures are processed into internment (labor-eligible),

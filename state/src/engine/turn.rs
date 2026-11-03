@@ -13755,24 +13755,90 @@ probe.checkpoint("turn_end", 4, turn, &market, &tasks); #[cfg(feature = "diagnos
     // Runs after all parallel per-country processing is complete and countries
     // are fully updated. Aggregates bank balance sheets per country and stores
     // a rolling window of (reserves, deposits, loans) for UI sparklines.
-    for country_name in state.countries.keys() {
-        let mut total_reserves = 0.0_f64;
-        let mut total_deposits = 0.0_f64;
-        let mut total_loans = 0.0_f64;
+    for (country_name, country) in state.countries.iter() {
+        // v4.30.0 (TASK-026): sample all ten KPI series so every banking card
+        // has real history — mirrors the snapshot finance aggregation math.
+        let rates = &country.central_bank.interest_rates;
+        let mut sample = crate::economy::banking_history::BankingKpiSample {
+            cb_rate: rates.reference_rate,
+            m0: country.macro_indicators.money_supply.m0,
+            m3: country.macro_indicators.money_supply.m3,
+            cb_fx_reserves: country.central_bank.fx_reserves.values().sum(),
+            cb_gold_reserves: country.central_bank.physical_gold_reserves,
+            ..Default::default()
+        };
+        let mut profit_points: Vec<(String, crate::economy::banking_history::BankProfitPoint)> =
+            Vec::new();
         if let Some(ents) = entities.get(country_name) {
             for c in &ents.companies {
-                if let Some(ref bs) = c.balance_sheet {
-                    total_reserves += bs.reserves_at_central_bank;
-                    total_deposits += bs.deposits;
-                    total_loans += bs.loans_issued.iter().map(|l| l.principal).sum::<f64>();
+                if c.bank_type.is_none() {
+                    continue;
                 }
+                let Some(ref bs) = c.balance_sheet else {
+                    continue;
+                };
+                sample.total_reserves += bs.reserves_at_central_bank;
+                sample.total_deposits += bs.deposits;
+                sample.total_loans += bs
+                    .loans_issued
+                    .iter()
+                    .map(|l| l.outstanding_balance)
+                    .sum::<f64>();
+                sample.total_consumer_debt += c
+                    .consumer_loans
+                    .iter()
+                    .map(|l| l.outstanding_principal)
+                    .sum::<f64>();
+                if c.is_dspw {
+                    sample.dspw_bank_count += 1.0;
+                }
+                // Per-bank results for the expanded-drawer multi-line chart:
+                // NII via the same run-rate math as `build_bank_detail`,
+                // provisioning proxied by newly impaired loan balance.
+                let interbank_given: f64 = bs.interbank_loans_given.values().sum();
+                let interbank_taken: f64 = bs.interbank_loans_taken.values().sum();
+                let interest_income: f64 = bs
+                    .loans_issued
+                    .iter()
+                    .map(|l| l.outstanding_balance * l.interest_rate)
+                    .sum::<f64>()
+                    + bs.consumer_loans_outstanding * (rates.reference_rate + 0.04)
+                    + interbank_given * rates.reference_rate;
+                let interest_expense: f64 = bs.deposits * rates.deposit_rate
+                    + bs.cb_lombard_loans * rates.lombard_rate
+                    + interbank_taken * rates.reference_rate
+                    + bs.issued_bonds * (rates.reference_rate + 0.01);
+                let provisioning_cost: f64 = bs
+                    .loans_issued
+                    .iter()
+                    .filter(|l| {
+                        matches!(
+                            l.status,
+                            crate::state::banking::LoanStatus::Overdue
+                                | crate::state::banking::LoanStatus::Default
+                        )
+                    })
+                    .map(|l| l.outstanding_balance)
+                    .sum();
+                profit_points.push((
+                    c.id.clone(),
+                    crate::economy::banking_history::BankProfitPoint {
+                        turn,
+                        net_interest_income: interest_income - interest_expense,
+                        provisioning_cost,
+                        net_profit: c.realized_profit_this_turn,
+                    },
+                ));
             }
         }
         let history = state
             .banking_history
             .entry(country_name.clone())
             .or_default();
-        history.record(turn, total_reserves, total_deposits, total_loans);
+        history.record(turn, &sample);
+        for (bank_id, point) in profit_points {
+            history.record_bank_profit(&bank_id, point);
+        }
     }
 
     #[cfg(feature = "diagnostic")]

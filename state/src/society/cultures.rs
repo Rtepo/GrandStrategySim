@@ -469,13 +469,38 @@ fn particular_churches(religion: &str) -> &'static [&'static str] {
 ///   (`40 + gdp_pc·10`, same expression that seeds `average_lifespan`),
 ///   used to fit the model life table behind the stable age distribution.
 pub fn generate_cultural_background(
-    _country_name: &str,
+    country_name: &str,
     life_expectancy: f64,
 ) -> CulturalBackground {
     let mut rng = crate::engine::seeded_rng::thread_rng();
 
-    let (group_name, group) = CULTURAL_GROUPS.choose(&mut rng).unwrap();
-    let nation = *group.nations.choose(&mut rng).unwrap();
+    // v4.30.0 (TASK-023): deterministic country → cultural name-bank
+    // binding. A country whose name is a listed nation is bound to ITS
+    // OWN group and itself as the dominant nation — Anglia can never
+    // roll the slavic pool (Wiesława Dudek ministers, Polish banks) and
+    // its demonym reads "Anglians" instead of a scrambled identity.
+    // Unlisted names resolve through a stable name-hash so a given
+    // country always lands on the same pool — never random per call.
+    let canonical = country_name.trim();
+    let bound = CULTURAL_GROUPS
+        .iter()
+        .flat_map(|(g, grp)| grp.nations.iter().map(move |n| (*g, *n)))
+        .find(|(_, n)| n.eq_ignore_ascii_case(canonical));
+    let (group_name, nation) = match bound {
+        Some((g, n)) => (g, n),
+        None => {
+            let h: usize = canonical
+                .bytes()
+                .fold(0usize, |a, b| a.wrapping_mul(31).wrapping_add(b as usize));
+            let (g, grp) = &CULTURAL_GROUPS[h % CULTURAL_GROUPS.len()];
+            (*g, grp.nations[h / 31 % grp.nations.len()])
+        }
+    };
+    let group = &CULTURAL_GROUPS
+        .iter()
+        .find(|(g, _)| *g == group_name)
+        .expect("bound group exists")
+        .1;
     let religion = pick_religion(group_name, &mut rng);
     let demonym = generate_demonym(nation);
 

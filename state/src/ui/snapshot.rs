@@ -4788,6 +4788,27 @@ pub struct BankingHistoryResponse {
     pub total_reserves: Vec<f64>,
     pub total_deposits: Vec<f64>,
     pub total_loans: Vec<f64>,
+    /// v4.30.0 (TASK-026): remaining seven KPI series for the ten banking
+    /// cards + per-bank profit/provisioning history for the expanded drawer.
+    pub total_consumer_debt: Vec<f64>,
+    pub dspw_bank_count: Vec<f64>,
+    pub cb_rate: Vec<f64>,
+    pub m0: Vec<f64>,
+    pub m3: Vec<f64>,
+    pub cb_fx_reserves: Vec<f64>,
+    pub cb_gold_reserves: Vec<f64>,
+    pub bank_profits: std::collections::HashMap<String, Vec<BankProfitPointDto>>,
+}
+
+/// v4.30.0 (TASK-026): one turn of per-bank financial results for the
+/// 24-turn multi-line chart inside an expanded bank row.
+#[derive(Debug, Clone, Default, serde::Serialize, ts_rs::TS)]
+#[ts(export, export_to = "../../src/types/api.ts")]
+pub struct BankProfitPointDto {
+    pub turn: u32,
+    pub net_interest_income: f64,
+    pub provisioning_cost: f64,
+    pub net_profit: f64,
 }
 
 /// Phase 54: A single ministry expenditure category entry for the Finance tab.
@@ -9988,6 +10009,9 @@ pub struct BattleUnitRow {
     pub manpower: i64,
     /// Attributed casualties (manpower share of the side's total).
     pub losses: i64,
+    /// v4.30.0 (TASK-024): per-unit tactical maneuver rolled for the
+    /// phase tables — deterministic, varied across units.
+    pub maneuver: String,
 }
 
 /// One deterministic tactical phase of a battle (v4.24.0).
@@ -10263,14 +10287,20 @@ pub struct DisasterRow {
     pub event_id: String,
     /// Disaster type.
     pub disaster_type: String,
+    /// v4.30.0 (TASK-024): country the event belongs to.
+    pub country: String,
     /// Region where it occurred.
     pub region_id: String,
+    /// v4.30.0 (TASK-024): resolved region display name.
+    pub region_name: String,
     /// Turn.
     pub turn: u32,
     /// Devastation impact.
     pub devastation_impact: f64,
     /// Casualties.
     pub casualties: i64,
+    /// v4.30.0 (TASK-024): relief-response note.
+    pub relief_response: String,
 }
 
 /// POW camp statistics for a single country.
@@ -10512,24 +10542,42 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                     let mut org_n = 0usize;
                     let mut branches = std::collections::BTreeSet::new();
                     for uid in uids {
+                        let unit_info = unit_lookup(country_nm, uid);
+                        // v4.30.0 (TASK-024): badge from unit_type AND
+                        // subtype — Combat Engineers → [ENG], Hussar-type
+                        // armor → [CAV]; the v4.29 map had no CAV/ENG arm.
                         let (badge, branch) =
-                            match unit_lookup(country_nm, uid).map(|(u, _)| u.unit_type) {
-                                Some(crate::military::units::UnitType::Infantry) => {
+                            match unit_info.as_ref().map(|(u, _)| (u.unit_type, u.subtype.as_str())) {
+                                Some((crate::military::units::UnitType::Infantry, s))
+                                    if s.contains("Engineer") =>
+                                {
+                                    ("ENG", "Combat Engineers")
+                                }
+                                Some((crate::military::units::UnitType::Tanks, s))
+                                    if s.contains("Hussar")
+                                        || s.contains("Caval")
+                                        || s.contains("Uhlan")
+                                        || s.contains("Dragoon")
+                                        || s.contains("Lancer") =>
+                                {
+                                    ("CAV", "Cavalry")
+                                }
+                                Some((crate::military::units::UnitType::Infantry, _)) => {
                                     ("INF", "Infantry")
                                 }
-                                Some(crate::military::units::UnitType::Artillery) => {
+                                Some((crate::military::units::UnitType::Artillery, _)) => {
                                     ("ART", "Artillery")
                                 }
-                                Some(crate::military::units::UnitType::Tanks) => {
+                                Some((crate::military::units::UnitType::Tanks, _)) => {
                                     ("ARM", "Armor")
                                 }
-                                Some(crate::military::units::UnitType::AirForce) => {
+                                Some((crate::military::units::UnitType::AirForce, _)) => {
                                     ("AIR", "Air Force")
                                 }
-                                Some(crate::military::units::UnitType::Naval) => {
+                                Some((crate::military::units::UnitType::Naval, _)) => {
                                     ("NAV", "Naval")
                                 }
-                                Some(crate::military::units::UnitType::PeasantBattalion) => {
+                                Some((crate::military::units::UnitType::PeasantBattalion, _)) => {
                                     ("MIL", "Militia")
                                 }
                                 _ => ("INF", "Infantry"),
@@ -10537,7 +10585,7 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                         if badge != "NAV" && badge != "MIL" {
                             branches.insert(badge);
                         }
-                        let (name, mp, org) = unit_lookup(country_nm, uid)
+                        let (name, mp, org) = unit_info
                             .map(|(u, n)| (n, u.manpower, u.stats.organization))
                             .unwrap_or_else(|| (uid.clone(), 0, 0.0));
                         // v4.29.0 (TASK-020): purge ghost detachments — a
@@ -10558,12 +10606,34 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                         total_mp += mp;
                         org_sum += org;
                         org_n += 1;
+                        // v4.30.0 (TASK-024): per-unit tactical maneuver
+                        // — deterministic from the unit name so each row
+                        // rolls its own order instead of repeating the
+                        // side doctrine ("Infiltration Assault" ×8 bug).
+                        let mh: usize = name.bytes().fold(0usize, |a, b| {
+                            a.wrapping_mul(31).wrapping_add(b as usize)
+                        });
+                        const MANEUVERS: [&str; 12] = [
+                            "Bayonet Charge",
+                            "Enfilade Fire",
+                            "Reconnaissance Sweep",
+                            "Holding Action",
+                            "Creeping Barrage",
+                            "Double Envelopment",
+                            "Feigned Retreat",
+                            "Sapper Breach",
+                            "Skirmish Line",
+                            "Counterattack",
+                            "Defensive Square",
+                            "Pursuit",
+                        ];
                         rows.push(BattleUnitRow {
                             name,
                             badge: badge.to_string(),
                             branch: branch.to_string(),
                             manpower: mp,
                             losses: 0,
+                            maneuver: MANEUVERS[mh % MANEUVERS.len()].to_string(),
                         });
                     }
                     // Attribute the side's recorded casualties across units
@@ -10582,7 +10652,14 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
                             0
                         };
                     }
-                    let morale = if org_n > 0 { org_sum / org_n as f64 } else { 0.0 };
+                    // v4.30.0 (TASK-024): `stats.organization` is a 0–100
+                    // score — normalize to 0–1 so the UI's `× 100` renders
+                    // 0–100%, never the 4125% double-scale bug.
+                    let morale = if org_n > 0 {
+                        (org_sum / org_n as f64 / 100.0).clamp(0.0, 1.0)
+                    } else {
+                        0.0
+                    };
                     let combined = (branches.len().min(3) as f64) / 3.0;
                     (rows, morale, combined)
                 };
@@ -11293,13 +11370,58 @@ pub fn build_military_dashboard(state: &GameState) -> MilitaryDashboardResponse 
         .iter()
         .any(|ac| ac.region_breakdown.iter().any(|r| r.unit_count > 0));
 
+    // v4.30.0 (TASK-024): peacetime disaster feed — the per-country
+    // `disaster_log` persists what `trigger_disasters` emits each turn.
+    // Flatten all country logs, newest last, and resolve region names.
+    let mut disaster_rows: Vec<DisasterRow> = Vec::new();
+    for (cname, country) in &state.countries {
+        for ev in &country.disaster_log {
+            let region_name = country
+                .regions
+                .iter()
+                .find(|r| r.id == ev.region_id)
+                .map(|r| {
+                    if r.display_name.is_empty() {
+                        r.id.clone()
+                    } else {
+                        r.display_name.clone()
+                    }
+                })
+                .unwrap_or_else(|| ev.region_id.clone());
+            disaster_rows.push(DisasterRow {
+                event_id: ev.id.clone(),
+                disaster_type: match ev.disaster_type {
+                    crate::society::disasters::DisasterType::FactoryFire => "Factory Fire",
+                    crate::society::disasters::DisasterType::ChemicalSpill => "Chemical Spill",
+                    crate::society::disasters::DisasterType::Explosion => "Explosion",
+                    crate::society::disasters::DisasterType::Flood => "Flood",
+                    crate::society::disasters::DisasterType::Wildfire => "Wildfire",
+                    crate::society::disasters::DisasterType::Earthquake => "Earthquake",
+                }
+                .to_string(),
+                country: cname.clone(),
+                region_id: ev.region_id.clone(),
+                region_name,
+                turn: ev.turn,
+                devastation_impact: ev.devastation_impact,
+                casualties: ev.casualties,
+                relief_response: if ev.casualties > 0 {
+                    format!("Emergency relief deployed — {} casualties", ev.casualties)
+                } else {
+                    "Damage assessment & repairs underway".to_string()
+                },
+            });
+        }
+    }
+    disaster_rows.sort_by_key(|d| d.turn);
+
     MilitaryDashboardResponse {
         wars: wars.into_values().collect(),
         recent_battles,
         devastation_map,
         army_compositions,
         war_morale,
-        disasters: Vec::new(), // Disasters are transient — would need a log
+        disasters: disaster_rows,
         pow_camps,
         ended_wars,
         internal_conflicts,

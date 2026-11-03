@@ -18,6 +18,7 @@ import {
 } from "../components/ui";
 import { useGameStore } from "../store/gameStore";
 import { getWorldMap } from "../hooks/useTauriCommand";
+import { WaterCard } from "../components/map/WaterCard";
 import { fmt, num } from "../lib/format";
 import {
   WorldMapSvg,
@@ -184,6 +185,11 @@ export function MapPage() {
                     setSelectedWater(water);
                     setSelected(null);
                   }}
+                  // v4.30.0 (TASK-024): active-battle markers deep-link to
+                  // the Military tab with the parent war + battle open.
+                  onBattleClick={(regionId) =>
+                    navigate("/military", { state: { battleRegion: regionId } })
+                  }
                   showLabels={zoom > 1.4}
                   className="w-full block"
                 />
@@ -245,58 +251,8 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** v4.28.0 (TASK-011): detail card for a clicked named water body. */
-function WaterCard({
-  water,
-  regionNameById,
-  onClose,
-}: {
-  water: WaterBodyDto;
-  regionNameById: Map<string, string>;
-  onClose: () => void;
-}) {
-  const KIND_LABEL: Record<string, string> = {
-    sea: "Open Sea",
-    ocean: "Ocean Zone",
-    inland_sea: "Inland Sea",
-    lake: "Lake",
-    strait: "Strait",
-  };
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <CardTitle className="text-base leading-tight">{water.name}</CardTitle>
-            <div className="flex gap-1.5 mt-1">
-              <Badge variant="secondary">{KIND_LABEL[water.kind] ?? water.kind}</Badge>
-              {water.navigable && <Badge variant="outline">Navigable</Badge>}
-            </div>
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>×</Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2 text-sm">
-        <Field label="Surface area" value={`${fmt(water.area_km2)} km²`} />
-        <Field label="Mean depth" value={`${fmt(water.depth_m)} m`} />
-        <div className="pt-2 border-t border-border">
-          <div className="text-xs text-muted-foreground mb-1">Bordering regions</div>
-          <div className="flex flex-wrap gap-1">
-            {water.bordering_regions.length === 0 ? (
-              <span className="text-xs text-muted-foreground italic">Open water</span>
-            ) : (
-              water.bordering_regions.map((id) => (
-                <Badge key={id} variant="outline" className="text-xs">
-                  {regionNameById.get(id) ?? id}
-                </Badge>
-              ))
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+/** v4.28.0 (TASK-011): detail card for a clicked named water body —
+    shared component lives in components/map/WaterCard.tsx (v4.30.0). */
 
 function RegionCard({
   region,

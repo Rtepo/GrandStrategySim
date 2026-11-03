@@ -174,24 +174,28 @@ mod tests {
             .or_else(|| country.regions.first())
             .expect("a region");
         let pm = build_region_parcel_map(country, &region.id).expect("parcel map");
-        // Modularity: fraction of same-class adjacencies on the lattice.
-        // >0.4 proves zones cluster rather than scatter as noise.
-        let n = pm.parcels.len();
-        let cols = (n as f64).sqrt().ceil() as usize;
-        let same = |a: usize, b: usize| pm.parcels[a].use_class == pm.parcels[b].use_class;
+        // Modularity: fraction of same-class adjacencies. v4.30.0 (TASK-022):
+        // parcels now clip to an organic region contour, so the old
+        // sqrt(n)-lattice index adjacency no longer matches real neighbors —
+        // measure adjacency geometrically: two quads are neighbors iff they
+        // share ≥2 vertices (a common edge). >0.4 still proves zones cluster
+        // rather than scatter as noise.
+        let vertex_set = |p: &sim_engine::ui::snapshot_map::MapParcelDto| {
+            p.polygon
+                .iter()
+                .map(|pt| (pt.x.to_bits(), pt.y.to_bits()))
+                .collect::<std::collections::BTreeSet<(u64, u64)>>()
+        };
+        let verts: Vec<_> = pm.parcels.iter().map(vertex_set).collect();
         let mut edges = 0usize;
         let mut matching = 0usize;
-        for i in 0..n {
-            if i % cols + 1 < cols && i + 1 < n {
-                edges += 1;
-                if same(i, i + 1) {
-                    matching += 1;
-                }
-            }
-            if i + cols < n {
-                edges += 1;
-                if same(i, i + cols) {
-                    matching += 1;
+        for i in 0..verts.len() {
+            for j in (i + 1)..verts.len() {
+                if verts[i].intersection(&verts[j]).count() >= 2 {
+                    edges += 1;
+                    if pm.parcels[i].use_class == pm.parcels[j].use_class {
+                        matching += 1;
+                    }
                 }
             }
         }

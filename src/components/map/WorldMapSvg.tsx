@@ -198,6 +198,10 @@ interface WorldMapSvgProps {
   /** v4.28.0: clicking a named water body (lake/sea/strait) opens its
    * detail card — name, area, depth, navigability, bordering regions. */
   onWaterClick?: (water: WaterBodyDto) => void;
+  /** v4.30.0 (TASK-024): clicking an active-battle marker deep-links to
+   * the Military tab with that battle expanded (battle location = the
+   * region id). */
+  onBattleClick?: (regionId: string) => void;
   /** Compact embed: no labels/markers beyond capitals, thinner strokes. */
   compact?: boolean;
   /** Show region name labels (full map only — still gated by density). */
@@ -221,6 +225,22 @@ function waterPath(w: WaterBodyDto): string {
   );
 }
 
+/** v4.30.0 (TASK-021): midpoint-quadratic closed path — smooths angular
+    low-vertex lake/sea polygons into natural water shapes. */
+function smoothClosedPath(pts: { x: number; y: number }[]): string {
+  const n = pts.length;
+  if (n < 3) return "";
+  const mid = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+    `${((a.x + b.x) / 2).toFixed(2)},${((a.y + b.y) / 2).toFixed(2)}`;
+  let d = `M${mid(pts[n - 1], pts[0])}`;
+  for (let i = 0; i < n; i++) {
+    const p = pts[i];
+    const q = pts[(i + 1) % n];
+    d += ` Q${p.x.toFixed(2)},${p.y.toFixed(2)} ${mid(p, q)}`;
+  }
+  return `${d} Z`;
+}
+
 /** Five-point star path centered on (cx, cy). */
 function starPath(cx: number, cy: number, rOuter: number): string {
   const rInner = rOuter * 0.42;
@@ -241,33 +261,45 @@ export function WorldMapSvg({
   highlightCountry,
   onRegionClick,
   onWaterClick,
+  onBattleClick,
   compact = false,
   showLabels = false,
   className,
 }: WorldMapSvgProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  const countries = useMemo(
-    () =>
-      onlyCountry
-        ? snapshot.countries.filter((c) => c.country === onlyCountry)
-        : snapshot.countries,
-    [snapshot, onlyCountry],
-  );
+  // v4.30.0 (TASK-021): dynamic ownership — `onlyCountry` shows the
+  // CURRENT owner's regions (conquered polygons included, lost ones
+  // gone) gathered across all genesis groups, never the turn-0 set.
+  const countries = useMemo(() => {
+    if (!onlyCountry) return snapshot.countries;
+    const base = snapshot.countries.find((c) => c.country === onlyCountry);
+    if (!base) return [];
+    const owned = snapshot.countries
+      .flatMap((g) => g.regions)
+      .filter((r) => r.country === onlyCountry);
+    const ownedIds = new Set(owned.map((r) => r.id));
+    const flows = snapshot.countries
+      .flatMap((g) => g.flows)
+      .filter((f) => ownedIds.has(f.from_region) || ownedIds.has(f.to_region));
+    return [{ ...base, regions: owned, flows }];
+  }, [snapshot, onlyCountry]);
 
   const bounds = useMemo(() => {
     if (!onlyCountry) return snapshot.bounds;
-    const c = snapshot.countries.find((x) => x.country === onlyCountry);
-    if (!c) return snapshot.bounds;
+    const c = countries[0];
+    if (!c || c.regions.length === 0) return snapshot.bounds;
     let [minX, minY, maxX, maxY] = [Infinity, Infinity, -Infinity, -Infinity];
-    for (const p of c.boundary) {
-      minX = Math.min(minX, p.x);
-      minY = Math.min(minY, p.y);
-      maxX = Math.max(maxX, p.x);
-      maxY = Math.max(maxY, p.y);
+    for (const r of c.regions) {
+      for (const p of r.polygon) {
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y);
+      }
     }
     return [minX, minY, maxX, maxY];
-  }, [snapshot, onlyCountry]);
+  }, [snapshot, onlyCountry, countries]);
 
   const [maxGdpPc, maxPop] = useMemo(() => {
     let g = 0;
@@ -456,39 +488,42 @@ export function WorldMapSvg({
       />
       {/* v4.27.0: maritime borders — dashed straits linking islands to the
           mainland. Drawn beneath landmasses. */}
-      {/* v4.28.0: named water bodies — unified deep-water fill with a
-          lighter shoreline rim. Drawn beneath land so continent edges
-          clip them; lakes/inland seas sit fully inside and read as real
-          water. Clickable when `onWaterClick` is wired. */}
-      {visibleWater.map((w) => (
-        <g key={w.id}>
-          <path
-            d={waterPath(w)}
-            fill={w.kind === "lake" ? "#15405e" : "#123a55"}
-            stroke="#2f6d95"
-            strokeWidth={strokeW * 1.1}
-            opacity={0.92}
-            style={{ cursor: onWaterClick ? "pointer" : "default" }}
-            onClick={onWaterClick ? () => onWaterClick(w) : undefined}
-          >
-            <title>{w.name}</title>
-          </path>
-          {!compact && labelsOn && (
-            <text
-              x={w.center.x}
-              y={w.center.y}
-              textAnchor="middle"
-              fontSize={Math.max(4, strokeW * 9)}
-              fill="#7fb4d4"
-              fontStyle="italic"
-              opacity={0.85}
-              pointerEvents="none"
+      {/* v4.28.0: named water bodies — oceans/seas drawn beneath land so
+          continent edges clip them into natural basins (smoothed).
+          v4.30.0 (TASK-021): inland lakes/seas moved to an on-top layer
+          after the countries group — region polygons used to cover them,
+          making every lake unreachable for clicks. */}
+      {visibleWater
+        .filter((w) => w.kind === "ocean" || w.kind === "sea")
+        .map((w) => (
+          <g key={w.id}>
+            <path
+              d={smoothClosedPath(w.boundary)}
+              fill="#123a55"
+              stroke="#2f6d95"
+              strokeWidth={strokeW * 1.1}
+              opacity={0.92}
+              style={{ cursor: onWaterClick ? "pointer" : "default" }}
+              onClick={onWaterClick ? () => onWaterClick(w) : undefined}
             >
-              {w.name}
-            </text>
-          )}
-        </g>
-      ))}
+              <title>{w.name}</title>
+            </path>
+            {!compact && labelsOn && (
+              <text
+                x={w.center.x}
+                y={w.center.y}
+                textAnchor="middle"
+                fontSize={Math.max(4, strokeW * 9)}
+                fill="#7fb4d4"
+                fontStyle="italic"
+                opacity={0.85}
+                pointerEvents="none"
+              >
+                {w.name}
+              </text>
+            )}
+          </g>
+        ))}
       {seaLaneEdges.map((e) => (
         <SeaLane key={`sl-${e.from_region}-${e.to_region}`} edge={e} centroids={centroidById} strokeW={strokeW} />
       ))}
@@ -563,7 +598,8 @@ export function WorldMapSvg({
                       pointerEvents="none"
                     />
                   )}
-                  {/* Active-battle flash marker. */}
+                  {/* Active-battle flash marker — clickable deep-link
+                      into the Military tab's battle card. */}
                   {mode === "military" && r.active_battle && (
                     <circle
                       cx={r.centroid.x}
@@ -572,6 +608,15 @@ export function WorldMapSvg({
                       fill="#ef4444"
                       stroke="#fecaca"
                       strokeWidth={strokeW * 0.8}
+                      style={{ cursor: onBattleClick ? "pointer" : "default" }}
+                      onClick={
+                        onBattleClick
+                          ? (e) => {
+                              e.stopPropagation();
+                              onBattleClick(r.id);
+                            }
+                          : undefined
+                      }
                     >
                       <animate
                         attributeName="opacity"
@@ -612,10 +657,10 @@ export function WorldMapSvg({
                 </g>
               );
             })}
-            {/* v4.27.0: cell-local water features — lakes, inland seas,
-                rivers clipped to this country's regions. */}
+            {/* v4.27.0: cell-local water features — rivers only; lakes
+                and inland seas are drawn by the clickable top layer. */}
             {visibleFeatures
-              .filter((f) => f.country_tag === c.country)
+              .filter((f) => f.country_tag === c.country && f.kind !== "lake" && f.kind !== "inland_sea")
               .map((f, fi) => (
                 <FeatureMark key={`feat-${c.country}-${fi}`} feature={f} strokeW={strokeW} />
               ))}
@@ -689,11 +734,19 @@ export function WorldMapSvg({
                     />
                   ));
               })()}
-            {/* Country name at the capital anchor (full map only). */}
-            {!compact && (
-              <text
-                x={c.anchor.x}
-                y={c.anchor.y - starR * 4}
+            {/* Country name — v4.30.0 (TASK-021): centroid of CURRENTLY
+                owned regions (conquests shift it, annexation hides it)
+                instead of the immutable genesis anchor. */}
+            {!compact &&
+              (() => {
+                const owned = c.regions.filter((r) => r.country === c.country);
+                if (owned.length === 0) return null;
+                const lx = owned.reduce((s, r) => s + r.centroid.x, 0) / owned.length;
+                const ly = owned.reduce((s, r) => s + r.centroid.y, 0) / owned.length;
+                return (
+                  <text
+                    x={lx}
+                    y={ly - starR * 4}
                 textAnchor="middle"
                 fontSize={labelSize * 1.5}
                 fontWeight={700}
@@ -707,10 +760,46 @@ export function WorldMapSvg({
               >
                 {c.country}
               </text>
-            )}
+                );
+              })()}
           </g>
         );
       })}
+      {/* v4.30.0 (TASK-021): inland lakes & seas — ON TOP of land so all
+          100% of water bodies receive clicks (they used to sit under
+          region polygons — only oceans were reachable). Smoothed
+          midpoint-quadratic shapes replace angular octagons. */}
+      {visibleWater
+        .filter((w) => w.kind === "lake" || w.kind === "inland_sea")
+        .map((w) => (
+          <g key={w.id}>
+            <path
+              d={smoothClosedPath(w.boundary)}
+              fill={w.kind === "inland_sea" ? "#0b3a5c" : "#1d6fa8"}
+              stroke="#0a1622"
+              strokeWidth={strokeW * 0.6}
+              opacity={0.95}
+              style={{ cursor: onWaterClick ? "pointer" : "default" }}
+              onClick={onWaterClick ? () => onWaterClick(w) : undefined}
+            >
+              <title>{w.name}</title>
+            </path>
+            {!compact && labelsOn && (
+              <text
+                x={w.center.x}
+                y={w.center.y}
+                textAnchor="middle"
+                fontSize={Math.max(4, strokeW * 8)}
+                fill="#bfdbfe"
+                fontStyle="italic"
+                opacity={0.85}
+                pointerEvents="none"
+              >
+                {w.name}
+              </text>
+            )}
+          </g>
+        ))}
       {/* v4.27.0: border-spanning mountain ridges — drawn once over both
           neighbouring countries. */}
       {visibleFeatures
@@ -826,15 +915,8 @@ function FeatureMark({ feature, strokeW }: { feature: MapFeatureDto; strokeW: nu
   const pts = feature.points;
   if (pts.length < 2) return null;
   if (feature.kind === "lake" || feature.kind === "inland_sea") {
-    return (
-      <polygon
-        points={pts.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")}
-        fill={feature.kind === "inland_sea" ? "#0b3a5c" : "#1d6fa8"}
-        stroke="#0a1622"
-        strokeWidth={strokeW * 0.6}
-        pointerEvents="none"
-      />
-    );
+    // Rendered by the clickable top water layer (v4.30.0) — never here.
+    return null;
   }
   if (feature.kind === "river") {
     return (

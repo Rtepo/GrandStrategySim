@@ -182,6 +182,21 @@ export function SocietyPage() {
       {/* v4.27.0 TASK-006: Immigration Origins & Emigration Destinations
           breakdown — exact partner countries and migrant counts from the
           migration engine's last-turn ledger, plus internal relocation. */}
+      {/* v4.30.0 (TASK-025): net cross-border flow summary — now that
+          transport-throughput capacity unblocks real migration, surface the
+          headline in/out balance above the breakdown tables. */}
+      {(() => {
+        const inflow = (s.immigration_origins ?? []).reduce((a, r) => a + Number(r.count), 0);
+        const outflow = (s.emigration_destinations ?? []).reduce((a, r) => a + Number(r.count), 0);
+        const net = inflow - outflow;
+        return (
+          <div className="flex gap-4 text-sm">
+            <span>Immigration: <b className="text-emerald-600">{num(inflow)}</b></span>
+            <span>Emigration: <b className="text-red-600">{num(outflow)}</b></span>
+            <span>Net: <b className={net >= 0 ? "text-emerald-600" : "text-red-600"}>{net >= 0 ? "+" : ""}{num(net)}</b></span>
+          </div>
+        );
+      })()}
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader>

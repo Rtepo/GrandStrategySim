@@ -60,6 +60,30 @@ pub async fn get_banking_history(
             total_reserves: history.total_reserves,
             total_deposits: history.total_deposits,
             total_loans: history.total_loans,
+            total_consumer_debt: history.total_consumer_debt,
+            dspw_bank_count: history.dspw_bank_count,
+            cb_rate: history.cb_rate,
+            m0: history.m0,
+            m3: history.m3,
+            cb_fx_reserves: history.cb_fx_reserves,
+            cb_gold_reserves: history.cb_gold_reserves,
+            bank_profits: history
+                .bank_profits
+                .into_iter()
+                .map(|(k, pts)| {
+                    (
+                        k,
+                        pts.into_iter()
+                            .map(|p| sim_engine::ui::snapshot::BankProfitPointDto {
+                                turn: p.turn,
+                                net_interest_income: p.net_interest_income,
+                                provisioning_cost: p.provisioning_cost,
+                                net_profit: p.net_profit,
+                            })
+                            .collect(),
+                    )
+                })
+                .collect(),
         })
     })
     .await

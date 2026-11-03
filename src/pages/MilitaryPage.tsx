@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { invoke } from "@tauri-apps/api/core";
 import {
@@ -16,6 +17,7 @@ import {
   Badge,
 } from "../components/ui";
 import { fmt, num } from "../lib/format";
+import { unitTypeColor } from "../lib/palette";
 import { MiniMap } from "../components/map/MiniMap";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { getWorldMap } from "../hooks/useTauriCommand";
@@ -52,12 +54,41 @@ function warExhaustionColor(exhaustion: number): string {
 // SUB-COMPONENTS
 // ============================================================================
 
-function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
+function WarsPanel({
+  wars,
+  deepLinkRegion,
+}: {
+  wars: MilitaryDashboardResponse["wars"];
+  /** v4.30.0 (TASK-024): region id from a map battle-marker click —
+      expand the parent war + that exact battle and scroll it into view. */
+  deepLinkRegion?: string | null;
+}) {
   // v4.26.0 TASK-003: rows expand → war goal/casus belli, war-score bar,
   // per-side force & casualty totals, nested expandable battles.
   const [expandedWar, setExpandedWar] = useState<string | null>(null);
   const [expandedBattle, setExpandedBattle] = useState<string | null>(null);
   const scorePct = (s: number) => Math.max(0, Math.min(100, (s + 100) / 2));
+
+  // v4.30.0 (TASK-024): map → battle deep-link. Battle `location` is the
+  // engine region id, so a battle marker on the world map resolves
+  // directly to the war+battle card here.
+  useEffect(() => {
+    if (!deepLinkRegion) return;
+    for (const w of wars) {
+      const hit = w.battles.find((b) => b.location === deepLinkRegion);
+      if (hit) {
+        setExpandedWar(w.front_id);
+        setExpandedBattle(hit.battle_id);
+        // Defer one frame so the expanded card exists before scrolling.
+        requestAnimationFrame(() =>
+          document
+            .getElementById(`battle-${hit.battle_id}`)
+            ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+        );
+        return;
+      }
+    }
+  }, [deepLinkRegion, wars]);
   return (
     <Card>
       <CardHeader>
@@ -121,7 +152,7 @@ function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
                             {w.battles.map((b) => {
                               const bOpen = expandedBattle === b.battle_id;
                               return (
-                                <div key={b.battle_id} className="border border-border/60 rounded">
+                                <div key={b.battle_id} id={`battle-${b.battle_id}`} className="border border-border/60 rounded">
                                   <button
                                     className="w-full flex justify-between px-2 py-1 text-xs hover:bg-accent/40"
                                     onClick={() => setExpandedBattle(bOpen ? null : b.battle_id)}
@@ -149,7 +180,7 @@ function WarsPanel({ wars }: { wars: MilitaryDashboardResponse["wars"] }) {
 }
 
 /** v4.26.0 TASK-003: concluded wars with peace terms. */
-function HistoricalWarsPanel({ endedWars, regionNameById }: { endedWars: MilitaryDashboardResponse["ended_wars"]; regionNameById: Map<string, string> }) {
+function HistoricalWarsPanel({ endedWars, regionNameById, regionShapes }: { endedWars: MilitaryDashboardResponse["ended_wars"]; regionNameById: Map<string, string>; regionShapes: Map<string, { points: { x: number; y: number }[]; owner: string }> }) {
   const [open, setOpen] = useState<string | null>(null);
   const regionName = (id: string) => regionNameById.get(id) ?? id;
   return (
@@ -213,6 +244,7 @@ function HistoricalWarsPanel({ endedWars, regionNameById }: { endedWars: Militar
                           from={w.defender}
                           to={w.victor ?? w.aggressor}
                           regionName={regionName}
+                          regionShapes={regionShapes}
                         />
                       )}
                       {w.pows_repatriated && (
@@ -232,7 +264,7 @@ function HistoricalWarsPanel({ endedWars, regionNameById }: { endedWars: Militar
 
 /** v4.26.0 TASK-003: expandable POW camps — prisoners, living quality,
  *  forced labour, captures/escapes/repatriations. */
-function PowCampsPanel({ camps }: { camps: MilitaryDashboardResponse["pow_camps"] }) {
+function PowCampsPanel({ camps, regionNameById }: { camps: MilitaryDashboardResponse["pow_camps"]; regionNameById: Map<string, string> }) {
   const [expandedPowCamp, setExpandedPowCamp] = useState<string | null>(null);
   return (
     <Card>
@@ -244,6 +276,10 @@ function PowCampsPanel({ camps }: { camps: MilitaryDashboardResponse["pow_camps"
           <div className="space-y-2">
             {camps.map((c) => {
               const isOpen = expandedPowCamp === c.country;
+              // v4.30.0 (TASK-024): camps are sited in real regions — the
+              // header names the camp after its largest internment region.
+              const topRegion = [...c.prisoners_by_region].sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0];
+              const campName = topRegion ? `${regionNameById.get(topRegion) ?? topRegion} Camp` : "Internment Camps";
               return (
                 <div key={c.country} className="border border-border rounded-md">
                   <button
@@ -251,7 +287,7 @@ function PowCampsPanel({ camps }: { camps: MilitaryDashboardResponse["pow_camps"
                     onClick={() => setExpandedPowCamp(isOpen ? null : c.country)}
                   >
                     <span className="font-medium text-sm">
-                      {isOpen ? "▾" : "▸"} {c.country} — {num(Number(c.total_prisoners))} prisoners
+                      {isOpen ? "▾" : "▸"} {c.country} — {campName} ({num(Number(c.total_prisoners))} prisoners)
                     </span>
                     <span className="text-xs text-muted-foreground">
                       QoL {(c.camp_qol * 100).toFixed(0)}% · health {(c.average_health * 100).toFixed(0)}%
@@ -524,7 +560,7 @@ function ArmyCompositionPanel({
                                         <span
                                           key={arm}
                                           className="px-1 rounded text-[9px] font-bold border border-border/60"
-                                          style={{ color: BRANCH_BADGE_COLORS[armBadge(arm)] ?? "#9ca3af" }}
+                                          style={{ color: unitTypeColor(armBadge(arm)) }}
                                         >
                                           [{armBadge(arm)}]
                                         </span>
@@ -532,7 +568,7 @@ function ArmyCompositionPanel({
                                     {army.naval_breakdown.length > 0 && (
                                       <span
                                         className="px-1 rounded text-[9px] font-bold border border-border/60"
-                                        style={{ color: BRANCH_BADGE_COLORS.NAV }}
+                                        style={{ color: unitTypeColor("NAV") }}
                                       >
                                         [NAV]
                                       </span>
@@ -721,22 +757,26 @@ function DisastersPanel({ disasters }: { disasters: MilitaryDashboardResponse["d
             <TableHeader>
               <TableRow>
                 <TableHead>Turn</TableHead>
+                <TableHead>Country</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Region</TableHead>
                 <TableHead>Devastation</TableHead>
                 <TableHead>Casualties</TableHead>
+                <TableHead>Relief Response</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {disasters.map((d) => (
+              {[...disasters].reverse().map((d) => (
                 <TableRow key={d.event_id}>
                   <TableCell>{d.turn}</TableCell>
+                  <TableCell>{d.country}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{d.disaster_type}</Badge>
                   </TableCell>
-                  <TableCell>{d.region_id}</TableCell>
+                  <TableCell>{d.region_name || d.region_id}</TableCell>
                   <TableCell>{(d.devastation_impact * 100).toFixed(1)}%</TableCell>
                   <TableCell className="text-red-600">{Number(d.casualties)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{d.relief_response}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -752,6 +792,12 @@ function DisastersPanel({ disasters }: { disasters: MilitaryDashboardResponse["d
 // ============================================================================
 
 export function MilitaryPage() {
+  // v4.30.0 (TASK-024): battle-marker deep-link from the world map —
+  // `navigate("/military", { state: { battleRegion } })`.
+  const location = useLocation();
+  const [battleRegion, setBattleRegion] = useState<string | null>(
+    (location.state as { battleRegion?: string } | null)?.battleRegion ?? null,
+  );
   const { data: dashboard, isLoading } = useQuery({
     queryKey: ["military-dashboard"],
     queryFn: () => invoke<MilitaryDashboardResponse>("get_military_dashboard"),
@@ -765,8 +811,12 @@ export function MilitaryPage() {
     queryFn: getWorldMap,
   });
   const regionNameById = new Map<string, string>();
+  const regionShapes = new Map<string, { points: { x: number; y: number }[]; owner: string }>();
   for (const c of worldMap?.countries ?? []) {
-    for (const r of c.regions) regionNameById.set(r.id, r.name);
+    for (const r of c.regions) {
+      regionNameById.set(r.id, r.name);
+      regionShapes.set(r.id, { points: r.polygon, owner: r.country });
+    }
   }
 
   if (isLoading) return <div className="p-6 text-muted-foreground">Loading military dashboard...</div>;
@@ -822,18 +872,26 @@ export function MilitaryPage() {
           occupied regions hatched; click opens the full Map tab. */}
       <Card>
         <CardContent className="p-3">
-          <MiniMap mode="military" heightClass="h-72" title="Theatre map — click to open" />
+          {/* v4.30.0 (TASK-024): interactive theatre map — clicking a
+              flashing battle marker expands that battle below. */}
+          <MiniMap
+            mode="military"
+            heightClass="h-72"
+            title="Theatre map — click a battle marker to inspect it"
+            interactive
+            onBattleClick={setBattleRegion}
+          />
         </CardContent>
       </Card>
 
       {/* Main panels */}
-      <WarsPanel wars={dashboard.wars} />
-      <HistoricalWarsPanel endedWars={dashboard.ended_wars} regionNameById={regionNameById} />
+      <WarsPanel wars={dashboard.wars} deepLinkRegion={battleRegion} />
+      <HistoricalWarsPanel endedWars={dashboard.ended_wars} regionNameById={regionNameById} regionShapes={regionShapes} />
       <RecentBattlesPanel battles={dashboard.recent_battles} />
       <DevastationHeatmapPanel devastation={dashboard.devastation_map} />
       <ArmyCompositionPanel armies={dashboard.army_compositions} regionNameById={regionNameById} />
       <WarMoralePanel morale={dashboard.war_morale} />
-      <PowCampsPanel camps={dashboard.pow_camps} />
+      <PowCampsPanel camps={dashboard.pow_camps} regionNameById={regionNameById} />
       <DisastersPanel disasters={dashboard.disasters} />
     </div>
   );
@@ -843,10 +901,14 @@ export function MilitaryPage() {
 // v4.28.0 TASK-013: Two-Column Battle Line (order of battle)
 // ============================================================================
 
+// v4.30.0 (TASK-022): unit badge colors come from the shared palette —
+// the same hex in battles, tactical phases and OOB.
 const BRANCH_BADGE_COLORS: Record<string, string> = {
   INF: "bg-blue-900/60 text-blue-200 border-blue-700",
   ART: "bg-amber-900/60 text-amber-200 border-amber-700",
-  ARM: "bg-red-900/60 text-red-200 border-red-700",
+  CAV: "bg-yellow-900/60 text-yellow-200 border-yellow-700",
+  ARM: "bg-yellow-900/60 text-yellow-200 border-yellow-700",
+  ENG: "bg-purple-900/60 text-purple-200 border-purple-700",
   AIR: "bg-sky-900/60 text-sky-200 border-sky-700",
   NAV: "bg-teal-900/60 text-teal-200 border-teal-700",
   MIL: "bg-zinc-800 text-zinc-300 border-zinc-600",
@@ -914,7 +976,7 @@ function BattleLineSide({
       )}
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-muted-foreground">
         <span>Power <span className="text-foreground">{num(Math.round(power))}</span></span>
-        <span>Morale <span className="text-foreground">{(morale * 100).toFixed(0)}%</span></span>
+        <span>Morale <span className="text-foreground">{Math.min(100, Math.max(0, morale * 100)).toFixed(0)}%</span></span>
         <span>Combined Arms <span className="text-foreground">{(combined * 100).toFixed(0)}%</span></span>
         <span>Strength <span className="text-foreground">{num(committed)}</span></span>
         <span>Losses <span className="text-foreground">{num(losses)}</span></span>
@@ -924,7 +986,8 @@ function BattleLineSide({
           ? rows.map((u, i) => (
               <div key={i} className="flex items-center gap-1.5">
                 <span
-                  className={`inline-block w-8 text-center rounded border text-[10px] font-mono ${BRANCH_BADGE_COLORS[u.badge] ?? BRANCH_BADGE_COLORS.MIL}`}
+                  className="inline-block w-8 text-center rounded border text-[10px] font-mono"
+                  style={{ color: unitTypeColor(u.badge), borderColor: unitTypeColor(u.badge) }}
                   title={u.branch}
                 >
                   {u.badge}
@@ -965,6 +1028,20 @@ function BattleExpansion({
     total > 0 ? phaseVal / total : 0;
   const totalAtkCas = phases.reduce((s, p) => s + Number(p.attacker_casualties), 0);
   const totalDefCas = phases.reduce((s, p) => s + Number(p.defender_casualties), 0);
+  // v4.30.0 (TASK-024): deterministic per-unit maneuver pool — replaces the
+  // single shared doctrine string assigned to every row.
+  const MANEUVERS = [
+    "Line Advance",
+    "Flanking Maneuver",
+    "Infiltration Assault",
+    "Defensive Hold",
+    "Counter-Battery Fire",
+    "Reconnaissance Screen",
+    "Deep Thrust",
+    "Tactical Withdrawal",
+    "Combined-Arms Push",
+    "Echelon Attack",
+  ];
   const unitPhaseRows = (
     rows: BattleUnitRow[],
     ownPhaseCas: number,
@@ -976,11 +1053,15 @@ function BattleExpansion({
   ) => {
     const k = share(ownPhaseCas, Math.max(1, ownTotalCas));
     const mpTotal = rows.reduce((s, r) => s + Math.max(1, Number(r.manpower)), 0);
-    return rows.map((r) => {
+    return rows.map((r, i) => {
       const w = Math.max(1, Number(r.manpower)) / Math.max(1, mpTotal);
       return {
         name: r.name,
         badge: r.badge,
+        maneuver: MANEUVERS[
+          (r.name.split("").reduce((a, ch) => a + ch.charCodeAt(0), 0) + i) %
+            MANEUVERS.length
+        ],
         damage: Math.round(oppPhaseCas * w),
         kia: Math.round(sideDead * k * w),
         wia: Math.round(sideWounded * k * w),
@@ -1060,54 +1141,63 @@ function BattleExpansion({
                   {num(phase.attacker_units)} vs {num(phase.defender_units)} units
                 </span>
               </div>
-              {(["Attacker", "Defender"] as const).map((side) => {
-                const isAtk = side === "Attacker";
-                const rows = unitPhaseRows(
-                  isAtk ? b.attacker_order : b.defender_order,
-                  isAtk ? Number(phase.attacker_casualties) : Number(phase.defender_casualties),
-                  isAtk ? totalAtkCas : totalDefCas,
-                  isAtk ? Number(phase.defender_casualties) : Number(phase.attacker_casualties),
-                  isAtk ? Number(b.attacker_dead) : Number(b.defender_dead),
-                  isAtk ? Number(b.attacker_wounded) : Number(b.defender_wounded),
-                  isAtk ? Number(b.attacker_deserted) : Number(b.defender_deserted),
-                );
-                if (rows.length === 0) return null;
-                return (
-                  <div key={side}>
-                    <div className="text-muted-foreground uppercase">
-                      {side} — {isAtk ? b.attacker_doctrine : b.defender_doctrine}
-                    </div>
-                    <table className="w-full text-[11px]">
-                      <thead>
-                        <tr className="text-muted-foreground">
-                          <th className="text-left font-normal">Unit</th>
-                          <th className="text-right font-normal">Maneuver</th>
-                          <th className="text-right font-normal">Damage</th>
-                          <th className="text-right font-normal">KIA/WIA</th>
-                          <th className="text-right font-normal">Deserted</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rows.map((r, i) => (
-                          <tr key={i}>
-                            <td>
-                              <span className="text-muted-foreground">[{r.badge}]</span> {r.name}
-                            </td>
-                            <td className="text-right">
-                              {isAtk ? b.attacker_doctrine : b.defender_doctrine}
-                            </td>
-                            <td className="text-right">{num(r.damage)}</td>
-                            <td className="text-right">
-                              {num(r.kia)}/{num(r.wia)}
-                            </td>
-                            <td className="text-right">{num(r.deserted)}</td>
+              {/* v4.30.0 (TASK-024): two-column side-by-side layout —
+                  Attacker left vs Defender right, colored badges, and
+                  per-unit maneuvers (not the shared doctrine string). */}
+              <div className="grid grid-cols-2 gap-2">
+                {(["Attacker", "Defender"] as const).map((side) => {
+                  const isAtk = side === "Attacker";
+                  const rows = unitPhaseRows(
+                    isAtk ? b.attacker_order : b.defender_order,
+                    isAtk ? Number(phase.attacker_casualties) : Number(phase.defender_casualties),
+                    isAtk ? totalAtkCas : totalDefCas,
+                    isAtk ? Number(phase.defender_casualties) : Number(phase.attacker_casualties),
+                    isAtk ? Number(b.attacker_dead) : Number(b.defender_dead),
+                    isAtk ? Number(b.attacker_wounded) : Number(b.defender_wounded),
+                    isAtk ? Number(b.attacker_deserted) : Number(b.defender_deserted),
+                  );
+                  if (rows.length === 0) return null;
+                  return (
+                    <div key={side} className="border border-border/40 rounded p-1">
+                      <div className="text-muted-foreground uppercase">
+                        {side} — {isAtk ? b.attacker_doctrine : b.defender_doctrine}
+                      </div>
+                      <table className="w-full text-[11px]">
+                        <thead>
+                          <tr className="text-muted-foreground">
+                            <th className="text-left font-normal">Unit</th>
+                            <th className="text-right font-normal">Maneuver</th>
+                            <th className="text-right font-normal">Damage</th>
+                            <th className="text-right font-normal">KIA/WIA</th>
+                            <th className="text-right font-normal">Deserted</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })}
+                        </thead>
+                        <tbody>
+                          {rows.map((r, i) => (
+                            <tr key={i}>
+                              <td className="max-w-[14rem] truncate" title={r.name}>
+                                <span
+                                  className="inline-block w-8 text-center rounded border text-[10px] font-mono mr-1"
+                                  style={{ color: unitTypeColor(r.badge), borderColor: unitTypeColor(r.badge) }}
+                                >
+                                  {r.badge}
+                                </span>
+                                {r.name}
+                              </td>
+                              <td className="text-right">{r.maneuver}</td>
+                              <td className="text-right">{num(r.damage)}</td>
+                              <td className="text-right">
+                                {num(r.kia)}/{num(r.wia)}
+                              </td>
+                              <td className="text-right">{num(r.deserted)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -1116,48 +1206,102 @@ function BattleExpansion({
   );
 }
 
-/** v4.29.0 (TASK-020): embedded Before/After border mini-map for concluded
-    wars — the ceded regions highlighted as TERRITORY TRANSFERRED. */
+/** v4.30.0 (TASK-021): embedded Before/After border mini-map for
+    concluded wars — REAL region polygons of both belligerents, ceded
+    polygons highlighted crimson (before) / gold (after). Replaces the
+    v4.29.0 placeholder rectangles. */
 function CessionMiniMap({
   ceded,
   from,
   to,
   regionName,
+  regionShapes,
 }: {
   ceded: string[];
   from: string;
   to: string;
   regionName: (id: string) => string;
+  /** region id → {points, current owner} from the world-map DTO. */
+  regionShapes: Map<string, { points: { x: number; y: number }[]; owner: string }>;
 }) {
-  const n = ceded.length;
-  const cols = Math.ceil(Math.sqrt(n));
-  const cell = 26;
-  const w = cols * cell + 8;
-  const h = Math.ceil(n / cols) * cell + 8;
-  const cells = ceded.map((rid, i) => ({
-    rid,
-    x: 4 + (i % cols) * cell,
-    y: 4 + Math.floor(i / cols) * cell,
-  }));
-  const Panel = ({ fill, label, name }: { fill: string; label: string; name: string }) => (
+  const cededSet = new Set(ceded);
+  // Territory drawn on each panel: the two belligerents' holdings plus
+  // the ceded set (which pre-treaty belonged to `from`).
+  const ids = [...regionShapes.keys()].filter(
+    (id) =>
+      cededSet.has(id) ||
+      regionShapes.get(id)!.owner === from ||
+      regionShapes.get(id)!.owner === to,
+  );
+  const shapes = ids
+    .map((id) => ({ id, ...regionShapes.get(id)! }))
+    .filter((s) => s.points.length >= 3);
+  if (shapes.length === 0) {
+    return (
+      <div className="text-xs text-muted-foreground">
+        Territory Transferred: {ceded.map(regionName).join(", ")}
+      </div>
+    );
+  }
+  let [minX, minY, maxX, maxY] = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const s of shapes)
+    for (const p of s.points) {
+      minX = Math.min(minX, p.x);
+      minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x);
+      maxY = Math.max(maxY, p.y);
+    }
+  const spanX = maxX - minX || 1;
+  const spanY = maxY - minY || 1;
+  const scale = Math.min(150 / spanX, 110 / spanY);
+
+  const Panel = ({
+    label,
+    cededOwner,
+    cededFill,
+  }: {
+    label: string;
+    cededOwner: string;
+    cededFill: string;
+  }) => (
     <div className="flex-1">
-      <div className="text-muted-foreground uppercase text-[10px] mb-0.5">{label} — {name}</div>
-      <svg width={w} height={h} className="rounded border border-border/60 bg-[#0f1d2b]">
-        {cells.map((c) => (
-          <g key={c.rid}>
-            <rect x={c.x} y={c.y} width={cell - 3} height={cell - 3} rx={3} fill={fill} stroke="#1c1917" />
-            <title>{regionName(c.rid)}</title>
-          </g>
-        ))}
+      <div className="text-muted-foreground uppercase text-[10px] mb-0.5">{label}</div>
+      <svg
+        viewBox={`${minX - 4} ${minY - 4} ${spanX + 8} ${spanY + 8}`}
+        className="rounded border border-border/60 bg-[#0f1d2b] w-full"
+        style={{ aspectRatio: `${spanX + 8} / ${spanY + 8}`, maxHeight: 130 }}
+      >
+        {shapes.map((s) => {
+          const isCeded = cededSet.has(s.id);
+          const owner = isCeded ? cededOwner : s.owner;
+          const fill = isCeded
+            ? cededFill
+            : owner === from
+              ? "#8f1d1d"
+              : owner === to
+                ? "#3f7fd4"
+                : "#334155";
+          return (
+            <polygon
+              key={`${label}-${s.id}`}
+              points={s.points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")}
+              fill={fill}
+              stroke={isCeded ? "#fde047" : "#0a1622"}
+              strokeWidth={isCeded ? 1.4 / scale * 6 : 0.7 / scale * 6}
+            >
+              <title>{`${regionName(s.id)} — ${owner}${isCeded ? " (ceded)" : ""}`}</title>
+            </polygon>
+          );
+        })}
       </svg>
     </div>
   );
   return (
     <div className="space-y-1">
       <div className="flex gap-3 items-start">
-        <Panel fill="#8f1d1d" label="BEFORE" name={from} />
+        <Panel label={`BEFORE — ${from}`} cededOwner={from} cededFill="#dc2626" />
         <div className="self-center text-muted-foreground">→</div>
-        <Panel fill="#3f7fd4" label="AFTER" name={to} />
+        <Panel label={`AFTER — ${to}`} cededOwner={to} cededFill="#facc15" />
       </div>
       <div>
         <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-wide">
