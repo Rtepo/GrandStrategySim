@@ -131,6 +131,14 @@ export async function getCompanyDetail(country: string, companyId: string): Prom
   return invoke<CompanyDetail | null>("get_company_detail", { country, companyId });
 }
 
+/** v4.31.0 (TASK-031): server-side standards-formatted XML balance sheet. */
+export async function exportCompanyBalanceSheetXml(
+  country: string,
+  companyId: string,
+): Promise<string> {
+  return invoke<string>("export_company_balance_sheet_xml", { country, companyId });
+}
+
 export async function getPaginatedBanks(
   country: string,
   offset: number,

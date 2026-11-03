@@ -2400,7 +2400,9 @@ pub fn process_company(
         .collect(),
     );
     company.financial_history.push(record);
-    if company.financial_history.len() > 5 {
+    // v4.31.0 (TASK-031): retain a full 24-turn window so the Companies
+    // drawer can chart the last game-year of revenue/EBITDA/net profit.
+    if company.financial_history.len() > 24 {
         company.financial_history.remove(0);
     }
     // Macro-Remediation: track the losing-turn streak for the lifecycle

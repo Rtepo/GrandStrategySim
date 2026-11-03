@@ -1090,6 +1090,40 @@ fn add_conscript_to_oob(
 // TESTS
 // ============================================================================
 
+// ============================================================================
+// COMMANDER FATE BADGES (v4.31.0, TASK-029)
+// ============================================================================
+
+/// Wikipedia-style battlefield fate for a commanding officer, derived
+/// deterministically from real recorded battle/VIP state (never random):
+///
+/// * `"KIA"`      — the VIP died in battle (`DeathCause::Battle`).
+/// * `"POW"`      — the commander's side lost the battle decisively and
+///   the enemy took prisoners; the most senior surviving echelon
+///   commander is recorded as captured.
+/// * `"Deserted"` — the commander's side saw mass desertion (>30% of its
+///   engaged strength) while the commander survived.
+/// * `""`         — no recorded battlefield fate.
+pub fn commander_fate(
+    vip_dead_in_battle: bool,
+    side_lost: bool,
+    side_captured: i64,
+    side_deserted: i64,
+    side_engaged: i64,
+    is_senior: bool,
+) -> &'static str {
+    if vip_dead_in_battle {
+        return "KIA";
+    }
+    if side_lost && is_senior && side_captured > 0 {
+        return "POW";
+    }
+    if side_engaged > 0 && side_deserted * 10 > side_engaged * 3 {
+        return "Deserted";
+    }
+    ""
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1490,3 +1524,5 @@ mod tests {
             .contains_key(&Commodity::Iron));
     }
 }
+
+

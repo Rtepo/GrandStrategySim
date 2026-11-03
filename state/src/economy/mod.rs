@@ -19,6 +19,7 @@ pub mod state_sector;
 pub mod trade;
 
 // Modules that remain at the top level (not moved in Phase 24B)
+pub mod banking;
 pub mod banking_history;
 pub mod begging;
 pub mod corporate_rd;

@@ -195,3 +195,108 @@ pub async fn get_banking_aggregates(
     .await
     .map_err(|e| format!("Task join error: {e}"))?
 }
+
+/// v4.31.0 (TASK-031): Export a company's accounting balance sheet as a
+/// standards-formatted XML statement (Assets vs Liabilities & Equity) for
+/// the "Export Balance Sheet to .xml" button in the expanded Companies row.
+#[tauri::command]
+pub async fn export_company_balance_sheet_xml(
+    state: tauri::State<'_, AppState>,
+    country: String,
+    company_id: String,
+) -> Result<String, String> {
+    let state_clone = state.inner().clone();
+    tokio::task::spawn_blocking(move || {
+        let engine_guard = state_clone.engine.blocking_read();
+        let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
+
+        let country_ref = engine_state
+            .game_state
+            .countries
+            .get(&country)
+            .ok_or(format!("Country '{}' not found", country))?;
+
+        let entities = engine_state
+            .turn_context
+            .entities
+            .get(&country)
+            .map(|e| (e.companies.as_slice(), e.buildings.as_slice()))
+            .unwrap_or((&[], &[]));
+
+        let view = ViewQuery {
+            company_detail_id: Some(company_id.clone()),
+            ..Default::default()
+        };
+
+        let snap = build_country_snapshot(
+            country_ref,
+            &engine_state.game_state.market_history,
+            &engine_state.turn_context.market,
+            entities.1,
+            entities.0,
+            &view,
+            engine_state.game_state.calendar.current_year,
+        );
+
+        let detail = snap
+            .company_detail
+            .ok_or_else(|| format!("Company '{}' not found", company_id))?;
+        let bs = &detail.balance_sheet;
+        let esc = |s: &str| {
+            s.replace('&', "&amp;")
+                .replace('<', "&lt;")
+                .replace('>', "&gt;")
+                .replace('"', "&quot;")
+        };
+        let m = |v: f64| format!("{:.2}", v);
+        let year = engine_state.game_state.calendar.current_year;
+        let turn = engine_state.game_state.calendar.global_turn;
+        let mut xml = String::with_capacity(2048);
+        xml.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xml.push_str(&format!(
+            "<balanceSheet company=\"{}\" id=\"{}\" sector=\"{}\" year=\"{}\" turn=\"{}\">\n",
+            esc(&detail.name),
+            esc(&detail.id),
+            esc(&detail.sector),
+            year,
+            turn
+        ));
+        xml.push_str("  <assets>\n");
+        for (k, v) in [
+            ("cash", bs.cash),
+            ("inventory", bs.inventory),
+            ("propertyPlantEquipment", bs.ppe),
+            ("accountsReceivable", bs.receivables),
+        ] {
+            xml.push_str(&format!("    <{}>{}</{}>\n", k, m(v), k));
+        }
+        xml.push_str(&format!("    <total>{}</total>\n", m(bs.total_assets)));
+        xml.push_str("  </assets>\n");
+        xml.push_str("  <liabilities>\n");
+        for (k, v) in [
+            ("bankLoans", bs.bank_loans),
+            ("corporateBondsIssued", bs.bonds_issued),
+            ("accountsPayable", bs.accounts_payable),
+            ("wagesPayable", bs.wage_payable),
+        ] {
+            xml.push_str(&format!("    <{}>{}</{}>\n", k, m(v), k));
+        }
+        xml.push_str("  </liabilities>\n");
+        xml.push_str("  <equity>\n");
+        for (k, v) in [
+            ("paidInCapital", bs.paid_in_capital),
+            ("retainedEarnings", bs.retained_earnings),
+        ] {
+            xml.push_str(&format!("    <{}>{}</{}>\n", k, m(v), k));
+        }
+        xml.push_str("  </equity>\n");
+        xml.push_str(&format!(
+            "  <totalLiabilitiesAndEquity>{}</totalLiabilitiesAndEquity>\n",
+            m(bs.total_liabilities_equity)
+        ));
+        xml.push_str("</balanceSheet>\n");
+        Ok(xml)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {e}"))?
+}

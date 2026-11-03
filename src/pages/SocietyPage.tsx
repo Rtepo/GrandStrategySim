@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getSocietySnapshot } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from "../components/ui";
 import { EChart } from "../components/charts/EChart";
+import { Sparkline } from "../components/charts/Sparkline";
 import { fmt, num, pct } from "../lib/format";
-import type { CompositionEntryDto, EducationLevelDto } from "../types/api";
+import type { CompositionEntryDto, EducationLevelDto, SocietyKpiSeriesDto } from "../types/api";
 
 // v4.23.0 WS6: humanize raw engine keys ("folk_beliefs" → "Folk Beliefs",
 // "FreePeasant" → "Free Peasant", "islam_sunni" handled by religionLabel).
@@ -85,11 +86,87 @@ const RELIGION_PALETTE = ["#a78bfa", "#34d399", "#fbbf24", "#fb7185", "#38bdf8",
 
 export function SocietyPage() {
   const { selectedCountry } = useGameStore();
+  // v4.31.0 (TASK-032): click-to-pin KPI card (like Banking).
+  const [pinnedKpi, setPinnedKpi] = useState<string | null>(null);
+  // Turn-keyed query — society data only changes on turn advance.
+  const turn = useGameStore((st) => st.turnNonce);
   const { data: s, isLoading } = useQuery({
-    queryKey: ["society", selectedCountry],
+    queryKey: ["society", selectedCountry, turn],
     queryFn: () => getSocietySnapshot(selectedCountry!),
     enabled: !!selectedCountry,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
+
+  // v4.31.0 (TASK-032): 12-series KPI history → card sparklines.
+  const seriesByKey = useMemo(() => {
+    const m = new Map<string, SocietyKpiSeriesDto>();
+    for (const e of s?.kpi_history?.series ?? []) m.set(e.key, e);
+    return m;
+  }, [s]);
+  const kpiTurns = s?.kpi_history?.turns ?? [];
+  const sparkOf = (key: string): number[] | undefined =>
+    seriesByKey.get(key)?.values;
+  const pinnedSeries = pinnedKpi ? seriesByKey.get(pinnedKpi) : undefined;
+  const pinnedOption = useMemo(() => {
+    if (!pinnedSeries) return {};
+    const lines: {
+      name: string;
+      type: "line";
+      data: number[];
+      itemStyle: { color: string };
+      lineStyle: { color: string; width: number; type?: "dashed" };
+      showSymbol: boolean;
+    }[] = [
+      {
+        name: pinnedSeries.label,
+        type: "line",
+        data: pinnedSeries.values,
+        itemStyle: { color: pinnedSeries.color },
+        lineStyle: { color: pinnedSeries.color, width: 2 },
+        showSymbol: false,
+      },
+    ];
+    if (pinnedSeries.secondary_values.length > 0) {
+      lines.push({
+        name: pinnedSeries.secondary_label,
+        type: "line",
+        data: pinnedSeries.secondary_values,
+        itemStyle: { color: "#64748b" },
+        lineStyle: { color: "#64748b", width: 2, type: "dashed" },
+        showSymbol: false,
+      });
+    }
+    return {
+      tooltip: { trigger: "axis" as const },
+      legend: { bottom: 0, textStyle: { color: "#cbd5e1", fontSize: 10 } },
+      grid: { left: 60, right: 12, top: 12, bottom: 34 },
+      xAxis: {
+        type: "category" as const,
+        data: kpiTurns.map((t) => `T${t}`),
+        axisLabel: { color: "#94a3b8", fontSize: 9 },
+      },
+      yAxis: {
+        type: "value" as const,
+        axisLabel: { color: "#94a3b8", fontSize: 9, formatter: (v: number) => fmt(v) },
+      },
+      series: lines,
+    };
+  }, [pinnedSeries, kpiTurns]);
+  const kpiCard = (
+    key: string,
+    label: string,
+    value: string,
+  ) => (
+    <Stat
+      label={label}
+      value={value}
+      spark={sparkOf(key)}
+      color={seriesByKey.get(key)?.color}
+      pinned={pinnedKpi === key}
+      onPin={() => setPinnedKpi((p) => (p === key ? null : key))}
+    />
+  );
 
   const pyramidOption = useMemo(() => {
     if (!s) return {};
@@ -144,20 +221,35 @@ export function SocietyPage() {
     <div className="p-6 space-y-4">
       <h2 className="text-xl font-bold text-foreground">Społeczeństwo — {s.country}</h2>
 
+      {/* v4.31.0 (TASK-032): all 12 KPI cards carry a live sparkline and
+          pin a full-width historical trend chart on click (like Banking). */}
       <div className="grid grid-cols-4 gap-3">
-        <Stat label="Population" value={num(s.population)} />
-        <Stat label="Avg / Median Age" value={`${s.average_age.toFixed(1)} / ${s.median_age.toFixed(1)}`} />
-        <Stat label="Birth Rate" value={pct(s.birth_rate)} />
-        <Stat label="Mortality Rate" value={pct(s.death_rate)} />
+        {kpiCard("population", "Population", num(s.population))}
+        {kpiCard("age", "Avg / Median Age", `${s.average_age.toFixed(1)} / ${s.median_age.toFixed(1)}`)}
+        {kpiCard("birth_rate", "Birth Rate", pct(s.birth_rate))}
+        {kpiCard("mortality_rate", "Mortality Rate", pct(s.death_rate))}
         {/* v4.23.0 WS6: birth_rate is now a real annual CBR percent
             (2.0–5.5). TFR estimate for a pre-transition population:
             TFR ≈ 1.3 × CBR% (the previous birth_rate×100/2.1 formula
             assumed a fraction and rendered 33.33). */}
-        <Stat label="Fertility (est.)" value={s.birth_rate > 0 ? (s.birth_rate * 1.3).toFixed(2) : "—"} />
-        <Stat label="Life Expectancy" value={`${s.life_expectancy.toFixed(1)} yrs`} />
-        <Stat label="Literacy" value={pct(s.literacy_rate * 100)} />
-        <Stat label="Net Migration" value={`${num(Math.round(s.last_migration))} (${pct(s.net_migration_rate * 100)})`} />
+        {kpiCard("fertility", "Fertility (est.)", s.birth_rate > 0 ? (s.birth_rate * 1.3).toFixed(2) : "—")}
+        {kpiCard("life_expectancy", "Life Expectancy", `${s.life_expectancy.toFixed(1)} yrs`)}
+        {kpiCard("literacy", "Literacy", pct(s.literacy_rate * 100))}
+        {kpiCard("net_migration", "Net Migration", `${num(Math.round(s.last_migration))} (${pct(s.net_migration_rate * 100)})`)}
       </div>
+
+      {pinnedSeries && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">
+              {pinnedSeries.label} — historical trend (click the card again to unpin)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EChart option={pinnedOption} style={{ height: 220 }} />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <Card>
@@ -173,10 +265,10 @@ export function SocietyPage() {
       </div>
 
       <div className="grid grid-cols-4 gap-3">
-        <Stat label="Urban" value={pct(s.urban_share * 100)} />
-        <Stat label="Rural" value={pct(s.rural_share * 100)} />
-        <Stat label="Nomadic" value={pct(s.nomad_share * 100)} />
-        <Stat label="Higher Education" value={pct(s.higher_education_rate * 100)} />
+        {kpiCard("urban", "Urban", pct(s.urban_share * 100))}
+        {kpiCard("rural", "Rural", pct(s.rural_share * 100))}
+        {kpiCard("nomadic", "Nomadic", pct(s.nomad_share * 100))}
+        {kpiCard("higher_education", "Higher Education", pct(s.higher_education_rate * 100))}
       </div>
 
       {/* v4.27.0 TASK-006: Immigration Origins & Emigration Destinations
@@ -302,11 +394,41 @@ export function SocietyPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  spark,
+  color,
+  pinned,
+  onPin,
+}: {
+  label: string;
+  value: string;
+  spark?: number[];
+  color?: string;
+  pinned?: boolean;
+  onPin?: () => void;
+}) {
   return (
-    <div className="rounded border border-border bg-card p-3">
+    <div
+      className={`rounded border bg-card p-3 ${
+        pinned ? "border-primary" : "border-border"
+      } ${onPin ? "cursor-pointer hover:border-primary/60" : ""}`}
+      onClick={onPin}
+      title={onPin ? "Click to pin the historical trend chart" : undefined}
+    >
       <div className="text-[11px] text-muted-foreground">{label}</div>
       <div className="text-sm font-semibold tabular-nums">{value}</div>
+      {/* v4.31.0 (TASK-032): per-turn history sparkline inside the card. */}
+      {spark && spark.length > 1 && (
+        <Sparkline
+          data={spark}
+          color={color ?? "#38bdf8"}
+          label={label}
+          height={34}
+          width={140}
+        />
+      )}
     </div>
   );
 }

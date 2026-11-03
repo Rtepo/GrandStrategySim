@@ -123,9 +123,12 @@ pub async fn get_society_snapshot(
             .get(&country)
             .ok_or(format!("Country '{country}' not found"))?;
 
-        Ok(sim_engine::ui::snapshot_society::build_society_snapshot(
-            country_ref,
-        ))
+        let mut dto = sim_engine::ui::snapshot_society::build_society_snapshot(country_ref);
+        // v4.31.0 (TASK-032): attach the rolling 12-series KPI history.
+        dto.kpi_history = sim_engine::ui::snapshot_society::build_society_history_dto(
+            engine_state.game_state.society_history.get(&country),
+        );
+        Ok(dto)
     })
     .await
     .map_err(|e| format!("Task join error: {e}"))?

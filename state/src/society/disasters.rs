@@ -336,8 +336,11 @@ fn apply_disaster(
         p.devastation_index = (p.devastation_index + impact).min(1.0);
     }
 
-    // Calculate casualties (fraction of local population — simplified)
-    let casualties = (impact * config.casualty_rate * 1000.0) as i64;
+    // v4.31.0 (TASK-029): casualties scale quadratically with severity —
+    // a minor fire (impact ~0.1) kills a few dozen, a major earthquake
+    // (impact ~0.6+) kills thousands, instead of the old flat 2–5.
+    let casualties =
+        (10.0 + impact * impact * 200_000.0 * config.casualty_rate) as i64;
 
     let event = DisasterEvent {
         id: format!(

@@ -1033,6 +1033,10 @@ pub struct GameState {
     /// Phase 54: Rolling banking history for sparkline tooltips (per-country).
     #[serde(default)]
     pub banking_history: HashMap<String, BankingHistory>,
+    /// v4.31.0 (TASK-032): rolling Society KPI history (12 series per
+    /// country) for sparklines + click-to-pinned trend charts.
+    #[serde(default)]
+    pub society_history: HashMap<String, crate::society::SocietyKpiHistory>,
     /// All simulated nations, keyed by canonical country name.
     pub countries: HashMap<String, Country>,
     /// Shared currency zones, keyed by currency code.
@@ -1127,6 +1131,7 @@ impl GameState {
             climate_config: ClimateConfig::default(),
             market_history: MarketHistory::default(),
             banking_history: HashMap::new(),
+            society_history: HashMap::new(),
             countries: HashMap::new(),
             currencies: HashMap::new(),
             forex_market: ForexMarket::default(),
