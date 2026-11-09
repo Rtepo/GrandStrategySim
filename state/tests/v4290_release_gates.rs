@@ -161,48 +161,48 @@ mod tests {
         // GATE 4 — industrial parcels form contiguous clusters (modularity
         // > 0.4) and parcel topography emits ≥6 distinct biomes.
         // ============================================================
-        let country = state
-            .countries
-            .values()
-            .find(|c| c.regions.iter().any(|r| r.parcel_ids.len() >= 30))
-            .or_else(|| state.countries.values().next())
-            .expect("a country");
-        let region = country
-            .regions
-            .iter()
-            .find(|r| r.parcel_ids.len() >= 30)
-            .or_else(|| country.regions.first())
-            .expect("a region");
-        let pm = build_region_parcel_map(country, &region.id).expect("parcel map");
         // Modularity: fraction of same-class adjacencies. v4.30.0 (TASK-022):
         // parcels now clip to an organic region contour, so the old
         // sqrt(n)-lattice index adjacency no longer matches real neighbors —
         // measure adjacency geometrically: two quads are neighbors iff they
         // share ≥2 vertices (a common edge). >0.4 still proves zones cluster
         // rather than scatter as noise.
+        // v4.32.0: pool edges across ALL regions with ≥30 parcels instead of
+        // one HashMap-order-random region (per-run flakiness: single-region
+        // values ranged 0.125–1.000 on the same seeded world).
         let vertex_set = |p: &sim_engine::ui::snapshot_map::MapParcelDto| {
             p.polygon
                 .iter()
                 .map(|pt| (pt.x.to_bits(), pt.y.to_bits()))
                 .collect::<std::collections::BTreeSet<(u64, u64)>>()
         };
-        let verts: Vec<_> = pm.parcels.iter().map(vertex_set).collect();
         let mut edges = 0usize;
         let mut matching = 0usize;
-        for i in 0..verts.len() {
-            for j in (i + 1)..verts.len() {
-                if verts[i].intersection(&verts[j]).count() >= 2 {
-                    edges += 1;
-                    if pm.parcels[i].use_class == pm.parcels[j].use_class {
-                        matching += 1;
+        let mut sampled = 0usize;
+        for c in state.countries.values() {
+            for r in c.regions.iter().filter(|r| r.parcel_ids.len() >= 30) {
+                let Some(pm) = build_region_parcel_map(c, &r.id) else {
+                    continue;
+                };
+                let verts: Vec<_> = pm.parcels.iter().map(vertex_set).collect();
+                for i in 0..verts.len() {
+                    for j in (i + 1)..verts.len() {
+                        if verts[i].intersection(&verts[j]).count() >= 2 {
+                            edges += 1;
+                            if pm.parcels[i].use_class == pm.parcels[j].use_class {
+                                matching += 1;
+                            }
+                        }
                     }
                 }
+                sampled += 1;
             }
         }
+        assert!(sampled > 0, "no regions with >= 30 parcels found");
         let modularity = matching as f64 / edges.max(1) as f64;
         assert!(
             modularity > 0.4,
-            "parcel_industrial_clusters_modularity = {modularity:.3} (<= 0.4)"
+            "parcel_industrial_clusters_modularity = {modularity:.3} (<= 0.4) over {sampled} regions"
         );
         let biomes: std::collections::BTreeSet<&str> = state
             .countries
