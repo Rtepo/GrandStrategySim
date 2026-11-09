@@ -4336,6 +4336,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
         { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_infra tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
+        // v4.32.0: population-pump bisection checkpoint (pre-military).
+        probe.checkpoint("pre_military", 89, turn, &market, &tasks);
         // RESURRECTION PHASE 3: MILITARY TURN
         // MIL-1: Upkeep (burn stockpiles, pay wages)
         // MIL-2: Supply delivery (B2B trades → depot → unit stockpiles)
@@ -4418,6 +4420,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        // v4.32.0: population-pump bisection checkpoint.
+        probe.checkpoint("military_turn_post", 90, turn, &market, &tasks);
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
         { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_military tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
@@ -4468,6 +4472,8 @@ probe.checkpoint("banking_turn_post", 7, turn, &market, &tasks); #[cfg(feature =
         });
         crate::engine::seeded_rng::restore_stream(_saved_rng_state);
 
+        // v4.32.0: population-pump bisection checkpoint.
+        probe.checkpoint("war_economy_post", 91, turn, &market, &tasks);
         // ═══════════════════════════════════════════════════════════
         #[cfg(feature = "diagnostic")]
         { let _w = crate::engine::diagnostic::walk_global_fiat(&market, &tasks); eprintln!("FM0A t={} post_war tot={:.0} cb={:.0} tre={:.0} cit={:.0} br={:.0} corp={:.0} min={:.0}", turn, _w.total, _w.cumulative_cb_injection, _w.treasury_cash, _w.citizen_cash, _w.bank_reserves, _w.corporate_cash, _w.ministry_cash); }
@@ -9663,6 +9669,7 @@ tasks.par_iter_mut().for_each(|task| {
                 task.ctx.year,
                 &task.market_signal,
                 task.ctx.turn,
+                state.calendar.current_month,
                 task.labor_allocation.as_ref(),
                 task.ctx.registries,
                 &state.market_history,

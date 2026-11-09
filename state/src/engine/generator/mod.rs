@@ -622,6 +622,10 @@ pub fn generate_world(
                 .take(2)
                 .cloned()
                 .collect();
+            // v4.32.0 (TASK-035): distinguish a real coast from the
+            // landlocked fallback bay — the bay stays for freight routing
+            // but claims no territorial waters and admits no navy/islands.
+            let mut landlocked_fallback = false;
             if coastal.is_empty() {
                 // v4.31.0 (TASK-027): genuinely landlocked — EVERY land
                 // region carries a foreign `LandBorder` edge, so no rim
@@ -629,6 +633,7 @@ pub fn generate_world(
                 // the map layer (and release gates) never paints
                 // offshore islands for this country. The fallback bay
                 // below stays — freight routing needs sea reachability.
+                landlocked_fallback = true;
                 if let Some(cty) = state.countries.get_mut(cname.as_str()) {
                     cty.is_landlocked = true;
                 }
@@ -653,10 +658,19 @@ pub fn generate_world(
                             edge_type: EdgeType::Coastline,
                             distance: 50.0,
                             is_navigable: true,
-                            territorial_owner: Some(cname.clone()),
+                            // A landlocked transit bay claims no
+                            // territorial waters.
+                            territorial_owner: if landlocked_fallback {
+                                None
+                            } else {
+                                Some(cname.clone())
+                            },
                         });
                     }
-                    r.geographic_traits.has_coastline = true;
+                    // The landlocked fallback bay is a transit corridor,
+                    // not a coast — `has_coastline` admits naval
+                    // branches, ports and offshore islands.
+                    r.geographic_traits.has_coastline = !landlocked_fallback;
                 }
             }
             maritime_to_add.extend(nodes);

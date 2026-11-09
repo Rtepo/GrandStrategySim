@@ -1248,7 +1248,10 @@ pub fn process_election_cycle(
             // `scheduled_election_turn` exactly.
             if form.is_democratic() && country.politics.scheduled_election_turn > 0 {
                 let turns_left = country.politics.turns_until_election;
-                let campaign_len = country.politics.campaign_duration_turns.max(1);
+                // v4.32.0 (TASK-036): scheduled elections get a full
+                // 6-turn ActiveCampaign window (a quarter). The legacy
+                // field defaulted to 0, collapsing campaigns to one turn.
+                let campaign_len = country.politics.campaign_duration_turns.max(6);
                 // Pre-campaign runway: up to 8 turns of registration/prep
                 // before the campaign proper.
                 const PRE_CAMPAIGN_WINDOW: u32 = 8;
@@ -1274,7 +1277,7 @@ pub fn process_election_cycle(
             let mut turns = *turns_until_start;
             if turns <= 1 {
                 country.politics.election_state = ElectionState::ActiveCampaign {
-                    turns_remaining: country.politics.campaign_duration_turns.max(1),
+                    turns_remaining: country.politics.campaign_duration_turns.max(6),
                     current_turn,
                 };
                 messages.push("[ELECTION] Campaign is now active".to_string());
@@ -1352,7 +1355,7 @@ pub fn process_campaign_spending(
     parties: &mut HashMap<String, Party>,
     companies: &mut Vec<Company>,
     regions: &mut [Region],
-    _current_turn: u32,
+    current_turn: u32,
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
@@ -1369,27 +1372,90 @@ pub fn process_campaign_spending(
     // order → ULP-variant balances across identical-seed processes.
     let mut party_ids: Vec<String> = parties.keys().cloned().collect();
     party_ids.sort();
-    for party_id in party_ids {
-        let Some(party) = parties.get_mut(&party_id) else {
-            continue;
-        };
-        let party_cash = party
-            .brokerage_account
-            .as_ref()
-            .map(|a| a.cash)
-            .unwrap_or(0.0);
-        if party_cash < 1000.0 {
+    // v4.32.0 (TASK-036): two-pass — first compute each party's spend so
+    // the support swing can be weighted by relative outspend, then apply
+    // the execution + record a `CampaignExecution` row so the Elections
+    // tab's Campaign Actions list is populated.
+    let spends: Vec<(String, f64)> = party_ids
+        .iter()
+        .map(|pid| {
+            let cash = parties
+                .get(pid)
+                .and_then(|p| p.brokerage_account.as_ref().map(|a| a.cash))
+                .unwrap_or(0.0);
+            (pid.clone(), if cash >= 1000.0 { cash * 0.1 } else { 0.0 })
+        })
+        .collect();
+    let total_spend: f64 = spends.iter().map(|(_, s)| s).sum();
+    let eligible = spends.iter().filter(|(_, s)| *s > 0.0).count().max(1) as f64;
+
+    let mut executed = 0usize;
+    for (party_id, spend_amount) in &spends {
+        if *spend_amount <= 0.0 {
             continue;
         }
-
-        let spend_amount = party_cash * 0.1; // Spend 10% of war chest per turn
-        if let Err(e) = execute_national_ad_campaign(party, companies, regions, spend_amount) {
-            messages.push(format!("[CAMPAIGN] {} campaign error: {:?}", party_id, e));
+        let Some(party) = parties.get_mut(party_id) else {
+            continue;
+        };
+        // Meaningful support swing (TASK-036: ±3–12%): relative outspend
+        // vs an equal split drives a bounded multiplicative shift.
+        let rel = *spend_amount / total_spend.max(1.0);
+        let fair = 1.0 / eligible;
+        let swing_pct = ((rel - fair) * 24.0).clamp(-12.0, 12.0);
+        let boost = if swing_pct.abs() < 3.0 {
+            3.0 * swing_pct.signum().max(if rel >= fair { 1.0 } else { -1.0 })
         } else {
-            messages.push(format!(
-                "[CAMPAIGN] {} spent {:.0} on ads",
-                party_id, spend_amount
-            ));
+            swing_pct
+        };
+        if let Err(e) = execute_national_ad_campaign(party, companies, regions, *spend_amount) {
+            messages.push(format!("[CAMPAIGN] {} campaign error: {:?}", party_id, e));
+            continue;
+        }
+        party.support = (party.support * (1.0 + boost / 100.0)).max(0.1);
+        country.politics.campaign_executions.push(CampaignExecution {
+            party_id: party_id.clone(),
+            action: CampaignAction::NationalAdCampaign {
+                cost: *spend_amount,
+                support_boost: boost,
+                mobilization_boost: 0.0,
+                duration_turns: 1,
+            },
+            execution_turn: current_turn,
+            is_black_money: false,
+            transaction_recorded: true,
+        });
+        executed += 1;
+        messages.push(format!(
+            "[CAMPAIGN] {} spent {:.0} on ads (support {:+.1}%)",
+            party_id, spend_amount, boost
+        ));
+    }
+
+    // Grassroots fallback — cash-poor parties still act (rallies/door
+    // knocking), so a campaign phase never produces an empty action log.
+    if executed == 0 {
+        let mut acted = false;
+        for (party_id, _) in &spends {
+            let Some(party) = parties.get_mut(party_id) else {
+                continue;
+            };
+            party.support = (party.support * 1.03).max(0.1);
+            country.politics.campaign_executions.push(CampaignExecution {
+                party_id: party_id.clone(),
+                action: CampaignAction::RegionalRally {
+                    target_region: String::new(),
+                    cost: 0.0,
+                    support_boost: 3.0,
+                    mobilization_boost: 0.0,
+                },
+                execution_turn: current_turn,
+                is_black_money: false,
+                transaction_recorded: false,
+            });
+            acted = true;
+        }
+        if acted {
+            messages.push("[CAMPAIGN] Parties ran grassroots rallies (no funds for ads)".to_string());
         }
     }
 

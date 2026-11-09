@@ -887,9 +887,57 @@ fn resolve_war_battle(
         },
     );
 
+    // POW capture — computed BEFORE demographic routing (v4.32.0 TASK-033):
+    // captured soldiers are interned in the captor's camp, so they must NOT
+    // be re-added to the losing side's class demographics by the
+    // deserter/treated-wounded return below. Records are capped inside
+    // `capture_pows_from_casualties` (mass captures stay counted via
+    // `total_ever_captured` without materializing per-person structs — the
+    // 28M-record Vec was the 27GB OOM crash at ~turn 104).
+    let pow_config = PowCaptureConfig::default();
+    let attacker_is_loser = attacker_casualties.total() > defender_casualties.total();
+    let loser_casualties = if attacker_is_loser {
+        &attacker_casualties
+    } else {
+        &defender_casualties
+    };
+    let captor_is_attacker = !attacker_is_loser;
+    let (captor_name, origin, internment) = if captor_is_attacker {
+        (aggressor.clone(), defender.as_str(), agg_region.as_str())
+    } else {
+        (defender.clone(), aggressor.as_str(), def_region.as_str())
+    };
+    let mut pow_counter = if captor_is_attacker {
+        ac.pow_camp.total_ever_captured
+    } else {
+        dc.pow_camp.total_ever_captured
+    } as u64;
+    let captured = capture_pows_from_casualties(
+        loser_casualties,
+        &captor_name,
+        origin,
+        current_turn,
+        internment,
+        &pow_config,
+        &mut pow_counter,
+    );
+    let pows_from_attacker = if attacker_is_loser {
+        captured.len() as i64
+    } else {
+        0
+    };
+    let pows_from_defender = if attacker_is_loser {
+        0
+    } else {
+        captured.len() as i64
+    };
+
     // Demographic routing — each side's casualties land on its own front
-    // region (dead removed, deserters return, wounded triaged by hospitals),
-    // then casualty morale impact on every class of that region.
+    // region (dead removed, deserters + treated wounded return, wounded
+    // triaged by hospitals), then casualty morale impact on every class of
+    // that region. Conserved model (v4.32.0 TASK-033):
+    //   classes -= dead + untreated_dead        (permanent losses)
+    //   classes += deserters + treated − POWs   (return to society)
     {
         let morale_cfg = ac.morale_config.clone();
         if let Some(region) =
@@ -900,7 +948,7 @@ fn resolve_war_battle(
                 .get(&CapacityType::HospitalBeds)
                 .copied()
                 .unwrap_or(0.0);
-            let (_treated, untreated_dead, msgs) = process_wounded(
+            let (treated, untreated_dead, msgs) = process_wounded(
                 attacker_casualties.wounded,
                 hospital_capacity,
                 &agg_region,
@@ -909,10 +957,20 @@ fn resolve_war_battle(
                 eprintln!("{}", m);
             }
             let demos = &mut region.class_demographics.rural_classes;
-            for m in process_dead(&attacker_casualties, demos, &agg_region) {
+            for m in process_dead(
+                &attacker_casualties,
+                attacker_casualties.dead + untreated_dead,
+                demos,
+                &agg_region,
+            ) {
                 eprintln!("{}", m);
             }
-            for m in process_deserters(&attacker_casualties, demos, &agg_region)
+            for m in process_deserters(
+                &attacker_casualties,
+                (attacker_casualties.deserters + treated - pows_from_attacker).max(0),
+                demos,
+                &agg_region,
+            )
             {
                 eprintln!("{}", m);
             }
@@ -942,7 +1000,7 @@ fn resolve_war_battle(
                 .get(&CapacityType::HospitalBeds)
                 .copied()
                 .unwrap_or(0.0);
-            let (_treated, untreated_dead, msgs) = process_wounded(
+            let (treated, untreated_dead, msgs) = process_wounded(
                 defender_casualties.wounded,
                 hospital_capacity,
                 &def_region,
@@ -951,10 +1009,20 @@ fn resolve_war_battle(
                 eprintln!("{}", m);
             }
             let demos = &mut region.class_demographics.rural_classes;
-            for m in process_dead(&defender_casualties, demos, &def_region) {
+            for m in process_dead(
+                &defender_casualties,
+                defender_casualties.dead + untreated_dead,
+                demos,
+                &def_region,
+            ) {
                 eprintln!("{}", m);
             }
-            for m in process_deserters(&defender_casualties, demos, &def_region)
+            for m in process_deserters(
+                &defender_casualties,
+                (defender_casualties.deserters + treated - pows_from_defender).max(0),
+                demos,
+                &def_region,
+            )
             {
                 eprintln!("{}", m);
             }
@@ -975,41 +1043,20 @@ fn resolve_war_battle(
         }
     }
 
-    // POW capture — the heavier-losing side yields prisoners to the victor
-    // (mirrors `resolve_front_battles`: loser = side with more casualties,
-    // captor = the other belligerent, internment in the captor's region).
-    let pow_config = PowCaptureConfig::default();
-    let (loser_casualties, captor, origin, internment) =
-        if attacker_casualties.total() > defender_casualties.total() {
-            (&attacker_casualties, &mut *dc, &aggressor, &def_region)
-        } else {
-            (&defender_casualties, &mut *ac, &defender, &agg_region)
-        };
-    let captor_is_attacker = captor.name == aggressor;
-    let mut pow_counter = captor.pow_camp.total_ever_captured as u64;
-    let captor_name = captor.name.clone();
-    let captured = capture_pows_from_casualties(
-        loser_casualties,
-        &captor_name,
-        origin,
-        current_turn,
-        internment,
-        &pow_config,
-        &mut pow_counter,
-    );
     if !captured.is_empty() {
         eprintln!(
             "[WAR] {} captures {} POWs from {}",
-            captor.name,
+            captor_name,
             captured.len(),
             origin
         );
         if captor_is_attacker {
             battle.captured_by_attacker = captured.len() as i64;
+            ac.pow_camp.add_prisoners(captured);
         } else {
             battle.captured_by_defender = captured.len() as i64;
+            dc.pow_camp.add_prisoners(captured);
         }
-        captor.pow_camp.add_prisoners(captured);
     }
 
     // Devastation — decisive results crater the BATTLE region's parcels

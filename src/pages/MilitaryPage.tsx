@@ -18,7 +18,7 @@ import {
 } from "../components/ui";
 import { fmt, num } from "../lib/format";
 import { unitTypeColor } from "../lib/palette";
-import { MiniMap } from "../components/map/MiniMap";
+import { CessionMiniMap, MiniMap } from "../components/map/MiniMap";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { getWorldMap } from "../hooks/useTauriCommand";
 import type { BattleUnitRow, CommanderRow, MilitaryDashboardResponse, WarBattleRow } from "../types/api";
@@ -1366,137 +1366,6 @@ function BattleExpansion({
   );
 }
 
-/** v4.30.0 (TASK-021): embedded Before/After border mini-map for
-    concluded wars — REAL region polygons of both belligerents, ceded
-    polygons highlighted crimson (before) / gold (after). Replaces the
-    v4.29.0 placeholder rectangles. */
-function CessionMiniMap({
-  ceded,
-  from,
-  to,
-  regionName,
-  regionShapes,
-}: {
-  ceded: string[];
-  from: string;
-  to: string;
-  regionName: (id: string) => string;
-  /** region id → {points, current owner} from the world-map DTO. */
-  regionShapes: Map<string, { points: { x: number; y: number }[]; owner: string }>;
-}) {
-  const cededSet = new Set(ceded);
-  // Territory drawn on each panel: the two belligerents' holdings plus
-  // the ceded set (which pre-treaty belonged to `from`).
-  const ids = [...regionShapes.keys()].filter(
-    (id) =>
-      cededSet.has(id) ||
-      regionShapes.get(id)!.owner === from ||
-      regionShapes.get(id)!.owner === to,
-  );
-  const shapes = ids
-    .map((id) => ({ id, ...regionShapes.get(id)! }))
-    .filter((s) => s.points.length >= 3);
-  if (shapes.length === 0) {
-    return (
-      <div className="text-xs text-muted-foreground">
-        Territory Transferred: {ceded.map(regionName).join(", ")}
-      </div>
-    );
-  }
-  let [minX, minY, maxX, maxY] = [Infinity, Infinity, -Infinity, -Infinity];
-  for (const s of shapes)
-    for (const p of s.points) {
-      minX = Math.min(minX, p.x);
-      minY = Math.min(minY, p.y);
-      maxX = Math.max(maxX, p.x);
-      maxY = Math.max(maxY, p.y);
-    }
-  const spanX = maxX - minX || 1;
-  const spanY = maxY - minY || 1;
-
-  const Panel = ({
-    label,
-    cededOwner,
-    cededFill,
-  }: {
-    label: string;
-    cededOwner: string;
-    cededFill: string;
-  }) => (
-    <div className="flex-1">
-      <div className="text-muted-foreground uppercase text-[10px] mb-0.5">{label}</div>
-      <svg
-        viewBox={`${minX - 4} ${minY - 4} ${spanX + 8} ${spanY + 8}`}
-        className="rounded border border-border/60 bg-[#0f1d2b] w-full"
-        style={{ aspectRatio: `${spanX + 8} / ${spanY + 8}`, maxHeight: 130 }}
-      >
-        {/* v4.31.0 (TASK-029): clean anti-aliased render — 1px non-scaling
-            strokes (kills the jagged MS-Paint look) + a subtle hatched
-            glow overlay on the transferred border regions. */}
-        <defs>
-          <pattern
-            id={`hatch-${label}`}
-            width="6"
-            height="6"
-            patternUnits="userSpaceOnUse"
-            patternTransform="rotate(45)"
-          >
-            <rect width="6" height="6" fill="transparent" />
-            <line x1="0" y1="0" x2="0" y2="6" stroke={cededFill} strokeWidth="1" opacity="0.55" />
-          </pattern>
-        </defs>
-        {shapes.map((s) => {
-          const isCeded = cededSet.has(s.id);
-          const owner = isCeded ? cededOwner : s.owner;
-          const fill = isCeded
-            ? `url(#hatch-${label})`
-            : owner === from
-              ? "#8f1d1d"
-              : owner === to
-                ? "#3f7fd4"
-                : "#334155";
-          return (
-            <g key={`${label}-${s.id}`}>
-              <polygon
-                points={s.points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")}
-                fill={isCeded ? `${cededFill}55` : fill}
-                stroke={isCeded ? "#fde047" : "#0a1622"}
-                strokeWidth={1}
-                vectorEffect="non-scaling-stroke"
-                shapeRendering="geometricPrecision"
-              >
-                <title>{`${regionName(s.id)} — ${owner}${isCeded ? " (ceded)" : ""}`}</title>
-              </polygon>
-              {isCeded && (
-                <polygon
-                  points={s.points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")}
-                  fill={`url(#hatch-${label})`}
-                  stroke="none"
-                  pointerEvents="none"
-                />
-              )}
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-  return (
-    <div className="space-y-1">
-      <div className="flex gap-3 items-start">
-        <Panel label={`BEFORE — ${from}`} cededOwner={from} cededFill="#dc2626" />
-        <div className="self-center text-muted-foreground">→</div>
-        <Panel label={`AFTER — ${to}`} cededOwner={to} cededFill="#facc15" />
-      </div>
-      <div>
-        <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-wide">
-          Territory Transferred:
-        </span>{" "}
-        {ceded.map((r) => regionName(r)).join(", ")}
-      </div>
-    </div>
-  );
-}
 
 /** v4.29.0 (TASK-020): map a land-branch label to its unit badge. */
 function armBadge(arm: string): string {

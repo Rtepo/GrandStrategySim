@@ -146,6 +146,7 @@ pub fn process_companies(
     year: u32,
     market_signal: &MarketSignal,
     current_turn: u32,
+    current_month: u32,
     labor_allocation: Option<&crate::economy::labor_market::LaborAllocationMatrix>,
     registries: &crate::registries::Registries,
     market_history: &crate::economy::market::market_history::MarketHistory,
@@ -359,6 +360,24 @@ pub fn process_companies(
             total_profit
         };
         companies[i].realized_profit_this_turn = realized_profit;
+        // v4.32.0 (TASK-034): stash accrual numbers on `extra` so the
+        // financial-history record books COGS matched to sales instead of
+        // the cash-basis input spend (the 4.57M → 137K → 4.39M oscillation).
+        companies[i].extra.insert(
+            "accrual_cogs_recognized".to_string(),
+            serde_json::Value::from(cogs_recognized),
+        );
+        companies[i].extra.insert(
+            "accrual_settled_revenue".to_string(),
+            serde_json::Value::from(settled_sales),
+        );
+        companies[i].extra.insert(
+            "accrual_deferred_cogs".to_string(),
+            serde_json::Value::from(deferred),
+        );
+        companies[i]
+            .extra
+            .insert("accrual_sold_frac".to_string(), serde_json::Value::from(sold_frac));
         let total_profit = realized_profit;
         let total_revenue = if realized_sector {
             settled_sales
@@ -395,6 +414,7 @@ pub fn process_companies(
                 market_signal,
                 avg_fulfillment_ratio,
                 current_turn,
+                current_month,
                 buildings,
                 labor_allocation,
             )
@@ -2104,6 +2124,7 @@ pub fn process_company(
     market_signal: &MarketSignal,
     avg_fulfillment_ratio: f64,
     current_turn: u32,
+    current_month: u32,
     buildings: &[Building],
     labor_allocation: Option<&crate::economy::labor_market::LaborAllocationMatrix>,
 ) -> (bool, f64) {
@@ -2376,13 +2397,35 @@ pub fn process_company(
     // (corporate staff, arrears deltas) — otherwise wages are counted twice
     // and the history overstates losses into a furlough cascade.
     let unbooked_wages = (wage_expense - booked_wages).max(0.0);
+    // v4.32.0 (TASK-034): accrual basis — COGS recognized this turn was
+    // computed by the caller (input cost matched to goods actually sold,
+    // unsold input cost deferred to inventory) and stashed on `extra`.
+    // `operating_costs` now carries the matched COGS + wages + overhead so
+    // the reported cost line stops oscillating with bulk purchase turns.
+    let accrual_cogs = company
+        .extra
+        .get("accrual_cogs_recognized")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
+    let deferred_cogs = company
+        .extra
+        .get("accrual_deferred_cogs")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
     let record = Value::Object(
         [
             ("year".to_string(), Value::from(year)),
+            ("month".to_string(), Value::from(current_month)),
+            ("turn".to_string(), Value::from(current_turn)),
             ("revenue".to_string(), Value::from(total_revenue)),
+            ("accrual_cogs".to_string(), Value::from(accrual_cogs)),
+            (
+                "deferred_cogs".to_string(),
+                Value::from(deferred_cogs),
+            ),
             (
                 "operating_costs".to_string(),
-                Value::from(overhead + wage_expense),
+                Value::from(accrual_cogs + overhead + wage_expense),
             ),
             ("wage_expense".to_string(), Value::from(wage_expense)),
             (

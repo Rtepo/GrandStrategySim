@@ -76,6 +76,73 @@ impl TurnProbe for NoopProbe {
     fn checkpoint(&mut self, _: &str, _: u32, _: u32, _: &GlobalMarket, _: &[CountryTask<'_>]) {}
 }
 
+/// v4.32.0 (TASK-033): phase-attribution probe — sums class-demographic
+/// population across every country at each checkpoint and records which
+/// phase injected or removed people. Used by the 240-turn population
+/// diagnostic to localize the exponential overflow.
+#[derive(Default)]
+pub struct ClassPopProbe {
+    last: Option<i64>,
+    last_by_region: HashMap<String, i64>,
+    /// (turn, phase_name, class_population_delta) for every nonzero jump.
+    pub deltas: Vec<(u32, String, i64)>,
+    /// (turn, phase_name, top-3 region contributors as "id:+delta").
+    pub region_deltas: Vec<(u32, String, Vec<String>)>,
+}
+
+impl TurnProbe for ClassPopProbe {
+    fn checkpoint(
+        &mut self,
+        phase_name: &str,
+        _phase_index: u32,
+        turn: u32,
+        _market: &GlobalMarket,
+        tasks: &[CountryTask<'_>],
+    ) {
+        let mut sum: i64 = 0;
+        let mut by_region: HashMap<String, i64> = HashMap::new();
+        for t in tasks {
+            for r in t.ctx.country.regions.iter() {
+                let p: i64 = r
+                    .class_demographics
+                    .rural_classes
+                    .values()
+                    .chain(r.class_demographics.urban_classes.values())
+                    .map(|d| d.population)
+                    .sum();
+                sum += p;
+                *by_region.entry(r.id.clone()).or_insert(0) += p;
+            }
+        }
+        if let Some(prev) = self.last {
+            if sum != prev {
+                self.deltas
+                    .push((turn, phase_name.to_string(), sum - prev));
+                // Attribute the jump to regions.
+                let mut contribs: Vec<(String, i64)> = by_region
+                    .iter()
+                    .map(|(id, &now)| {
+                        (id.clone(), now - self.last_by_region.get(id).copied().unwrap_or(now))
+                    })
+                    .filter(|(_, d)| *d != 0)
+                    .collect();
+                contribs.sort_by_key(|(_, d)| -d.abs());
+                self.region_deltas.push((
+                    turn,
+                    phase_name.to_string(),
+                    contribs
+                        .iter()
+                        .take(3)
+                        .map(|(id, d)| format!("{}:{:+}", id, d))
+                        .collect(),
+                ));
+            }
+        }
+        self.last = Some(sum);
+        self.last_by_region = by_region;
+    }
+}
+
 // ============================================================================
 // TARGETED ENTITY SELECTOR
 // ============================================================================

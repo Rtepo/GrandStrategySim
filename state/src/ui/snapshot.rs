@@ -2956,6 +2956,14 @@ pub struct VipDossierRow {
     pub gender: String,
     /// Phase 92: Portrait seed for deterministic avatar generation.
     pub portrait_seed: String,
+    /// v4.32.0 (TASK-037): military rank badge for commanders
+    /// (Stopień wojskowy) — empty for civilians.
+    #[serde(default)]
+    pub military_rank: String,
+    /// v4.32.0 (TASK-037): adjectival nationality ("Venedian", not
+    /// "Venedia").
+    #[serde(default)]
+    pub nationality: String,
 }
 
 /// A full VIP dossier for the detail view.
@@ -2982,6 +2990,9 @@ pub struct VipDossier {
     pub death_turn: Option<u32>,
     pub death_cause: Option<String>,
     pub acting_replacement_id: Option<String>,
+    /// v4.32.0 (TASK-037): military rank badge for commanders.
+    #[serde(default)]
+    pub military_rank: String,
 }
 
 // ============================================================================
@@ -3125,6 +3136,16 @@ pub struct CompanyDetail {
 pub struct CompanyYearFinancials {
     /// Turn index the record was booked on.
     pub year: u32,
+    /// v4.32.0 (TASK-034): absolute global turn index (T98, T97, ...).
+    /// Old records predate the `turn` key — falls back to `year`.
+    pub turn: u32,
+    /// v4.32.0 (TASK-034): calendar month (1–12) at booking; 0 for old
+    /// records that predate the `month` key.
+    pub month: u32,
+    /// COGS recognized under accrual matching this turn (0 if unknown).
+    pub accrual_cogs: f64,
+    /// Unsold input cost still capitalized in inventory.
+    pub deferred_cogs: f64,
     /// Turn revenue.
     pub revenue: f64,
     /// Operating costs including the wage bill (COGS + wages).
@@ -3198,6 +3219,33 @@ pub struct CompanyBalanceSheetDto {
     pub retained_earnings: f64,
     /// Total liabilities + equity (balances `total_assets`).
     pub total_liabilities_equity: f64,
+    // ── v4.32.0 (TASK-034): Polish UoR expandable balance-sheet detail ──
+    /// B.I.1 Inventory — Raw materials (Materiały i surowce): unsold input
+    /// cost capitalized under accrual accounting (`deferred_cogs`).
+    pub inv_raw_materials: f64,
+    /// B.I.2 Inventory — Semi-finished goods & work in progress
+    /// (Półfabrykaty i produkty w toku).
+    pub inv_wip: f64,
+    /// B.I.3 Inventory — Finished products (Produkty gotowe).
+    pub inv_finished_goods: f64,
+    /// B.I.4 Inventory — Trade goods (Towary): merchant/retail stock.
+    pub inv_trade_goods: f64,
+    /// A.I Intangible assets (Wartości niematerialne i prawne).
+    pub intangible_assets: f64,
+    /// A.II.4 Construction in progress (Środki trwałe w budowie).
+    pub construction_in_progress: f64,
+    /// B.IV Prepaid expenses (Rozliczenia międzyokresowe).
+    pub prepaid_expenses: f64,
+    /// A.IV Net profit/loss of the fiscal year (Zysk/strata netto roku
+    /// obrotowego) — annualized from the recent profit trend.
+    pub net_profit_ytd: f64,
+    /// A.II Supplementary/reserve capital (Kapitał zapasowy).
+    pub reserve_capital: f64,
+    /// B.III.1 Trade payables (Zobowiązania z tytułu dostaw).
+    pub trade_payables: f64,
+    /// B.III.2 Taxes & wages payable (Zobowiązania z tytułu podatków i
+    /// wynagrodzeń).
+    pub taxes_wages_payable: f64,
 }
 
 /// Phase 87+: A single financial record (income, expenses, net profit).
@@ -5633,9 +5681,9 @@ fn build_vip_page(
             VipDossierRow {
                 id: v.id.clone(),
                 full_name: if v.is_dead {
-                    format!("{} †", v.full_name)
+                    format!("{} †", vip_display_name(v))
                 } else {
-                    v.full_name.clone()
+                    vip_display_name(v)
                 },
                 roles: roles_str,
                 age: v.age,
@@ -5648,9 +5696,82 @@ fn build_vip_page(
                 company_name,
                 gender: v.gender.clone(),
                 portrait_seed: v.portrait_seed.clone(),
+                military_rank: vip_military_rank(v),
+                nationality: nationality_adjective(&v.nationality),
             }
         })
         .collect()
+}
+
+/// v4.32.0 (TASK-037): resolve a commander's rank badge. Honors the
+/// persisted `military_rank` when set; otherwise derives a deterministic
+/// rank from the VIP id so every military VIP shows a rank.
+pub fn vip_military_rank(v: &crate::politics::vip_registry::Vip) -> String {
+    use crate::politics::vip_registry::VipRoleExtended;
+    if !v.roles.contains(&VipRoleExtended::MilitaryCommander) {
+        return String::new();
+    }
+    if !v.military_rank.is_empty() {
+        return v.military_rank.clone();
+    }
+    // Deterministic derivation — stable per VIP across snapshots/saves.
+    const RANKS: [&str; 7] = [
+        "Field Marshal",
+        "General",
+        "Lieutenant General",
+        "Major General",
+        "Colonel",
+        "Admiral",
+        "Rear Admiral",
+    ];
+    let h: u32 = v.id.bytes().fold(0u32, |a, b| a.wrapping_mul(31).wrapping_add(b as u32));
+    RANKS[(h as usize) % RANKS.len()].to_string()
+}
+
+/// v4.32.0 (TASK-037): inflect female Slavic surnames — "Lewandowski" →
+/// "Lewandowska" (applied at display so stored data stays canonical).
+fn vip_display_name(v: &crate::politics::vip_registry::Vip) -> String {
+    let name = &v.full_name;
+    if v.gender != "F" {
+        return name.clone();
+    }
+    if let Some((first, surname)) = name.rsplit_once(' ').map(|(s, f)| (f, s)) {
+        for (masc, fem) in [("ski", "ska"), ("cki", "cka"), ("dzki", "dzka")] {
+            if let Some(stem) = surname.strip_suffix(masc) {
+                return format!("{} {}{}", first, stem, fem);
+            }
+        }
+    }
+    name.clone()
+}
+
+/// v4.32.0 (TASK-037): noun → adjectival nationality ("Venedia" →
+/// "Venedian", "Dacia" → "Dacian", "Anglia" → "Anglian"). Strings that
+/// already read as adjectives are returned unchanged.
+pub fn nationality_adjective(s: &str) -> String {
+    if s.is_empty() {
+        return s.to_string();
+    }
+    let known: [(&str, &str); 7] = [
+        ("Venedia", "Venedian"),
+        ("Dacia", "Dacian"),
+        ("Anglia", "Anglian"),
+        ("Anatolia", "Anatolian"),
+        ("Bactria", "Bactrian"),
+        ("Eldoria", "Eldorian"),
+        ("Illyria", "Illyrian"),
+    ];
+    for (noun, adj) in known {
+        if s.eq_ignore_ascii_case(noun) {
+            return adj.to_string();
+        }
+    }
+    // Generic "-ia" noun → "-ian" adjective; leave non-matching values
+    // untouched (already-adjectival nationalities pass through).
+    if s.ends_with("ia") && s.len() > 3 {
+        return format!("{}n", s);
+    }
+    s.to_string()
 }
 
 /// Count total VIPs matching the current filter (for scroll indicators).
@@ -5698,7 +5819,7 @@ fn build_vip_dossier(country: &Country, view: &ViewQuery) -> Option<VipDossier> 
         .or_else(|| registry.deceased.iter().find(|d| d.id == *vip_id))?;
     Some(VipDossier {
         id: v.id.clone(),
-        full_name: v.full_name.clone(),
+        full_name: vip_display_name(v),
         gender: v.gender.clone(),
         age: v.age,
         health: v.health.aggregate(),
@@ -5707,7 +5828,7 @@ fn build_vip_dossier(country: &Country, view: &ViewQuery) -> Option<VipDossier> 
         main_trait: v.main_trait.clone(),
         ideology: v.ideology.clone(),
         religion: v.religion.clone(),
-        nationality: v.nationality.clone(),
+        nationality: nationality_adjective(&v.nationality),
         dynasty: v.dynasty.clone(),
         roles: if v.roles.is_empty() {
             vec!["Private Citizen".to_string()]
@@ -5721,6 +5842,7 @@ fn build_vip_dossier(country: &Country, view: &ViewQuery) -> Option<VipDossier> 
         death_turn: v.death_turn,
         death_cause: v.death_cause.as_ref().map(|c| format!("{:?}", c)),
         acting_replacement_id: v.acting_replacement_id.clone(),
+        military_rank: vip_military_rank(v),
     })
 }
 
@@ -6591,8 +6713,26 @@ fn build_company_detail(
                 .get("wage_expense")
                 .and_then(|x| x.as_f64())
                 .unwrap_or(0.0);
+            let year_v = v.get("year").and_then(|x| x.as_u64()).unwrap_or(0) as u32;
             CompanyYearFinancials {
-                year: v.get("year").and_then(|x| x.as_u64()).unwrap_or(0) as u32,
+                year: year_v,
+                turn: v
+                    .get("turn")
+                    .and_then(|x| x.as_u64())
+                    .map(|t| t as u32)
+                    .unwrap_or(year_v),
+                month: v
+                    .get("month")
+                    .and_then(|x| x.as_u64())
+                    .unwrap_or(0) as u32,
+                accrual_cogs: v
+                    .get("accrual_cogs")
+                    .and_then(|x| x.as_f64())
+                    .unwrap_or(0.0),
+                deferred_cogs: v
+                    .get("deferred_cogs")
+                    .and_then(|x| x.as_f64())
+                    .unwrap_or(0.0),
                 revenue,
                 operating_costs,
                 wage_expense,
@@ -6629,6 +6769,52 @@ fn build_company_detail(
             })
             .collect();
         rows.sort_by_key(|r| std::cmp::Reverse(r.shares));
+        // v4.32.0 (TASK-034): a joint-stock company with an empty register
+        // renders "Sole proprietorship / no registered share float" — wrong.
+        // Synthesize the founding cap-table (CEO/founder + float) so the
+        // donut chart always renders for JSCs. Deterministic — no RNG.
+        if rows.is_empty() && matches!(c.legal_form, LegalForm::JointStockCompany(_)) {
+            // `shares_count` can be 0/1 for pre-float JSCs (e.g. banks) —
+            // synthesize the register over a 1000-share float so every
+            // holder lands a nonzero stake.
+            let total = c.shares_count.max(1000);
+            let total_f = total as f64;
+            let mut push = |holder: &str, name: String, pct_times_10: u64| {
+                let shares = total * pct_times_10 / 1000;
+                if shares > 0 {
+                    rows.push(CompanyShareholderDto {
+                        holder: holder.to_string(),
+                        name,
+                        shares,
+                        pct: shares as f64 / total_f * 100.0,
+                    });
+                }
+            };
+            if let Some(ref ceo_id) = c.ceo_vip_id {
+                let ceo = country
+                    .politics
+                    .vip_registry
+                    .as_ref()
+                    .and_then(|r| r.get(ceo_id).map(|v| v.full_name.clone()))
+                    .unwrap_or_else(|| ceo_id.clone());
+                push(ceo_id, format!("{ceo} (Founder/CEO)"), 350);
+            } else {
+                push("founder_consortium", "Founder Consortium".to_string(), 350);
+            }
+            push("institutional_funds", "Institutional Investment Funds".to_string(), 150);
+            push("house_bank", "House Bank".to_string(), 100);
+            push("state_treasury", "State Treasury".to_string(), 100);
+            push("public_float", "Retail Float".to_string(), 300);
+            // Any rounding residual folds into the float so pct sums to 100.
+            let allocated: u64 = rows.iter().map(|r| r.shares).sum();
+            if allocated < total {
+                if let Some(f) = rows.iter_mut().find(|r| r.holder == "public_float") {
+                    f.shares += total - allocated;
+                    f.pct = f.shares as f64 / total_f * 100.0;
+                }
+            }
+            rows.sort_by_key(|r| std::cmp::Reverse(r.shares));
+        }
         rows
     };
 
@@ -6668,6 +6854,33 @@ fn build_company_detail(
     let paid_in_capital = c.company_capital;
     let total_liabilities = bank_loans + bonds_issued + accounts_payable + c.wage_arrears;
     let retained_earnings = total_assets - total_liabilities - paid_in_capital;
+    // v4.32.0 (TASK-034): UoR inventory split. `accrual_deferred_cogs` is
+    // the input cost still capitalized (raw materials + WIP); the rest of
+    // `liquid_capital` is sellable stock (finished goods / trade goods for
+    // merchant sectors).
+    let deferred = c
+        .extra
+        .get("accrual_deferred_cogs")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0)
+        .min(inventory)
+        .max(0.0);
+    let sellable = (inventory - deferred).max(0.0);
+    let is_trade = matches!(sector_display_name(c.sector).as_str(), n if n.contains("Trade") || n.contains("Retail") || n.contains("Commerce") || n.contains("Logistics"));
+    let inv_raw_materials = deferred * 0.7;
+    let inv_wip = deferred * 0.3;
+    let (inv_finished_goods, inv_trade_goods) = if is_trade {
+        (0.0, sellable)
+    } else {
+        (sellable, 0.0)
+    };
+    let net_profit_ytd: f64 = c
+        .financial_history
+        .iter()
+        .rev()
+        .take(24)
+        .map(|v| v.get("net_profit").and_then(|x| x.as_f64()).unwrap_or(0.0))
+        .sum();
     let balance_sheet = CompanyBalanceSheetDto {
         cash,
         inventory,
@@ -6681,6 +6894,21 @@ fn build_company_detail(
         paid_in_capital,
         retained_earnings,
         total_liabilities_equity: total_liabilities + paid_in_capital + retained_earnings,
+        inv_raw_materials,
+        inv_wip,
+        inv_finished_goods,
+        inv_trade_goods,
+        intangible_assets: c
+            .extra
+            .get("goodwill")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0),
+        construction_in_progress: c.construction_escrow,
+        prepaid_expenses: 0.0,
+        net_profit_ytd,
+        reserve_capital: (paid_in_capital * 0.08).min(retained_earnings.max(0.0)),
+        trade_payables: accounts_payable,
+        taxes_wages_payable: c.wage_arrears,
     };
 
     Some(CompanyDetail {
@@ -12524,25 +12752,23 @@ fn funding_model_str(f: &crate::politics::laws::EducationTierFunding) -> (String
 /// v4.31.0 (TASK-029): standing OOB command roster for a country — army,
 /// division, then regiment echelons, deduplicated, KIA-badged. Used by
 /// historical-war headers which keep no per-battle commander ledger.
-fn oob_commanders_for(
+pub fn oob_commanders_for(
     state: &crate::state::GameState,
     country_name: &str,
 ) -> Vec<CommanderRow> {
     let Some(country) = state.countries.get(country_name) else {
         return Vec::new();
     };
+    let vip_of = |vid: &str| -> Option<&crate::politics::vip_registry::Vip> {
+        state.countries.values().find_map(|c| {
+            c.politics
+                .vip_registry
+                .as_ref()
+                .and_then(|reg| reg.vips.get(vid))
+        })
+    };
     let name_of = |vid: &str| -> String {
-        state
-            .countries
-            .values()
-            .find_map(|c| {
-                c.politics
-                    .vip_registry
-                    .as_ref()
-                    .and_then(|reg| reg.vips.get(vid))
-            })
-            .map(|v| v.full_name.clone())
-            .unwrap_or_else(|| vid.to_string())
+        vip_of(vid).map(vip_display_name).unwrap_or_else(|| vid.to_string())
     };
     let dead_in_battle = |vid: &str| -> bool {
         state
@@ -12567,15 +12793,20 @@ fn oob_commanders_for(
     let mut push = |vid: &Option<String>, echelon: &str| {
         if let Some(id) = vid {
             if seen.insert(id.clone()) {
+                // v4.32.0 (TASK-037): prefer the VIP's persisted rank when
+                // set; fall back to the echelon-derived rank otherwise.
+                let persisted = vip_of(id)
+                    .map(|v| v.military_rank.clone())
+                    .filter(|r| !r.is_empty());
                 out.push(CommanderRow {
                     vip_id: id.clone(),
                     name: name_of(id),
-                    rank: match echelon {
+                    rank: persisted.unwrap_or_else(|| match echelon {
                         "Army" => "General",
                         "Division" => "Lieutenant General",
                         _ => "Colonel",
                     }
-                    .to_string(),
+                    .to_string()),
                     echelon: echelon.to_string(),
                     fate: if dead_in_battle(id) {
                         "KIA".to_string()

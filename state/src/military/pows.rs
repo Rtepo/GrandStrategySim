@@ -327,7 +327,15 @@ pub fn capture_pows_from_casualties(
     // Only wounded and deserters can be captured (dead can't be captured).
     // The capture_rate fraction of these become POWs.
     let capturable = loser_casualties.wounded + loser_casualties.deserters;
-    let num_pows = (capturable as f64 * config.capture_rate) as i64;
+    // v4.32.0 (TASK-033): bound the per-battle intake Vec. A 70M-casualty
+    // mega-battle (produced by the old exponential population bug) tried to
+    // materialize ~28M PrisonerOfWar records → a 27GB allocation → OOM
+    // abort (STATUS_STACK_BUFFER_OVERRUN). Mass captures beyond the cap are
+    // treated as dispersed escapees — the ledger still records the actual
+    // interned count via `captured.len()`.
+    const MAX_POW_RECORDS_PER_BATTLE: i64 = 25_000;
+    let num_pows =
+        ((capturable as f64 * config.capture_rate) as i64).min(MAX_POW_RECORDS_PER_BATTLE);
 
     let mut prisoners = Vec::new();
     for _ in 0..num_pows {

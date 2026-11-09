@@ -11,11 +11,18 @@ fn main() {
         .unwrap_or_default()
         .join("../state/data");
 
+    // v4.32.0 (TASK-033): restore persisted autosave settings if present.
+    let autosave = std::fs::read(data_dir.join("autosave_settings.json"))
+        .ok()
+        .and_then(|b| serde_json::from_slice::<state::AutosaveSettings>(&b).ok())
+        .unwrap_or_default();
+
     let app_state = AppState {
         engine: Arc::new(tokio::sync::RwLock::new(None)),
         registries,
         data_dir,
         processing: Arc::new(tokio::sync::RwLock::new(false)),
+        autosave: Arc::new(tokio::sync::RwLock::new(autosave)),
     };
 
     tauri::Builder::default()
@@ -29,6 +36,8 @@ fn main() {
             commands::actions::save_game,
             commands::actions::load_game,
             commands::actions::list_saves,
+            commands::actions::get_autosave_settings,
+            commands::actions::set_autosave_settings,
             commands::actions::get_game_status,
             commands::macro_queries::get_macro_indicators,
             commands::macro_queries::get_macro_history,

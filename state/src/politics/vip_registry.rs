@@ -392,6 +392,11 @@ pub struct Vip {
     /// appropriate visuals. Empty string for old saves (frontend fallback).
     #[serde(default)]
     pub portrait_seed: String,
+    /// v4.32.0 (TASK-037): military rank for `MilitaryCommander` VIPs —
+    /// e.g. "Field Marshal", "General", "Admiral". Empty for civilians and
+    /// pre-v4.32 saves (the UI falls back to a deterministic derivation).
+    #[serde(default)]
+    pub military_rank: String,
 }
 
 fn default_health() -> f64 {
@@ -909,6 +914,7 @@ mod tests {
             acting_replacement_id: None,
             diplomatic_post: None,
             portrait_seed: String::new(),
+            military_rank: String::new(),
         }
     }
 

@@ -1007,7 +1007,55 @@ retained_earnings: number,
 /**
  * Total liabilities + equity (balances `total_assets`).
  */
-total_liabilities_equity: number, };
+total_liabilities_equity: number, 
+/**
+ * B.I.1 Inventory — Raw materials (Materiały i surowce): unsold input
+ * cost capitalized under accrual accounting (`deferred_cogs`).
+ */
+inv_raw_materials: number, 
+/**
+ * B.I.2 Inventory — Semi-finished goods & work in progress
+ * (Półfabrykaty i produkty w toku).
+ */
+inv_wip: number, 
+/**
+ * B.I.3 Inventory — Finished products (Produkty gotowe).
+ */
+inv_finished_goods: number, 
+/**
+ * B.I.4 Inventory — Trade goods (Towary): merchant/retail stock.
+ */
+inv_trade_goods: number, 
+/**
+ * A.I Intangible assets (Wartości niematerialne i prawne).
+ */
+intangible_assets: number, 
+/**
+ * A.II.4 Construction in progress (Środki trwałe w budowie).
+ */
+construction_in_progress: number, 
+/**
+ * B.IV Prepaid expenses (Rozliczenia międzyokresowe).
+ */
+prepaid_expenses: number, 
+/**
+ * A.IV Net profit/loss of the fiscal year (Zysk/strata netto roku
+ * obrotowego) — annualized from the recent profit trend.
+ */
+net_profit_ytd: number, 
+/**
+ * A.II Supplementary/reserve capital (Kapitał zapasowy).
+ */
+reserve_capital: number, 
+/**
+ * B.III.1 Trade payables (Zobowiązania z tytułu dostaw).
+ */
+trade_payables: number, 
+/**
+ * B.III.2 Taxes & wages payable (Zobowiązania z tytułu podatków i
+ * wynagrodzeń).
+ */
+taxes_wages_payable: number, };
 
 /**
  * v4.31.0 (TASK-031): one CapEx/investment log row.
@@ -1143,6 +1191,24 @@ export type CompanyYearFinancials = {
  * Turn index the record was booked on.
  */
 year: number, 
+/**
+ * v4.32.0 (TASK-034): absolute global turn index (T98, T97, ...).
+ * Old records predate the `turn` key — falls back to `year`.
+ */
+turn: number, 
+/**
+ * v4.32.0 (TASK-034): calendar month (1–12) at booking; 0 for old
+ * records that predate the `month` key.
+ */
+month: number, 
+/**
+ * COGS recognized under accrual matching this turn (0 if unknown).
+ */
+accrual_cogs: number, 
+/**
+ * Unsold input cost still capitalized in inventory.
+ */
+deferred_cogs: number, 
 /**
  * Turn revenue.
  */
@@ -4307,6 +4373,49 @@ intrigues: Array<CourtIntrigueRow>,
 pretenders: Array<PretenderRow>, };
 
 /**
+ * Metadata shown in the save-slot picker.
+ */
+export type SaveMeta = { 
+/**
+ * Save format version (for future migrations).
+ */
+version: number, 
+/**
+ * User-facing slot name (file stem).
+ */
+slot: string, 
+/**
+ * Global turn counter at save time.
+ */
+turn: number, 
+/**
+ * In-game calendar label, e.g. "Sep 1904".
+ */
+date_label: string, 
+/**
+ * In-game year (redundant with label but convenient for sorting/UI).
+ */
+year: number, 
+/**
+ * In-game month (1-12).
+ */
+month: number, 
+/**
+ * Player/primary country shown on the slot card — the largest country
+ * by population at save time (single-player sessions have no explicit
+ * "player" marker in the engine).
+ */
+country: string, 
+/**
+ * Unix timestamp (seconds) when the save was written.
+ */
+saved_at_unix: bigint, 
+/**
+ * Whether this slot was written by the autosave system.
+ */
+autosave: boolean, };
+
+/**
  * Phase 56: Sector index snapshot.
  */
 export type SectorIndexSnapshot = { sector: string, value: number, history: Array<number>, };
@@ -4898,7 +5007,11 @@ megaregion_drilldown_id: string | null, };
 /**
  * A full VIP dossier for the detail view.
  */
-export type VipDossier = { id: string, full_name: string, gender: string, age: number, health: number, incapacity: string, traits: Array<string>, main_trait: string, ideology: string, religion: string, nationality: string, dynasty: string | null, roles: Array<string>, base_influence: number, faction: string, born_turn: number, is_dead: boolean, death_turn: number | null, death_cause: string | null, acting_replacement_id: string | null, };
+export type VipDossier = { id: string, full_name: string, gender: string, age: number, health: number, incapacity: string, traits: Array<string>, main_trait: string, ideology: string, religion: string, nationality: string, dynasty: string | null, roles: Array<string>, base_influence: number, faction: string, born_turn: number, is_dead: boolean, death_turn: number | null, death_cause: string | null, acting_replacement_id: string | null, 
+/**
+ * v4.32.0 (TASK-037): military rank badge for commanders.
+ */
+military_rank: string, };
 
 /**
  * A row in the VIP explorer list (compact form for table display).
@@ -4915,7 +5028,17 @@ gender: string,
 /**
  * Phase 92: Portrait seed for deterministic avatar generation.
  */
-portrait_seed: string, };
+portrait_seed: string, 
+/**
+ * v4.32.0 (TASK-037): military rank badge for commanders
+ * (Stopień wojskowy) — empty for civilians.
+ */
+military_rank: string, 
+/**
+ * v4.32.0 (TASK-037): adjectival nationality ("Venedian", not
+ * "Venedia").
+ */
+nationality: string, };
 
 /**
  * Filter for the VIP explorer list.
@@ -5345,6 +5468,12 @@ navigable: boolean,
  * Region ids whose polygons border this water body.
  */
 bordering_regions: Array<string>, 
+/**
+ * v4.32.0 (TASK-035): countries whose CURRENT-owned regions border
+ * this body — the littoral set the UI uses for territorial-waters /
+ * EEZ tinting and island-assignment checks.
+ */
+littoral_countries: Array<string>, 
 /**
  * Owning continent index (-1 for shared ocean).
  */

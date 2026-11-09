@@ -30,7 +30,7 @@ use std::path::Path;
 /// In-memory context for `run_turn_in_memory`, replacing ALL per-turn disk I/O.
 /// Persisted in Tauri's managed state alongside `GameState`.
 /// Also used by integration tests (loaded from disk at test setup).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct InMemoryTurnContext {
     /// Global market (was loaded from `market.json` each turn).
     pub market: GlobalMarket,
@@ -41,7 +41,7 @@ pub struct InMemoryTurnContext {
 }
 
 /// All entity collections for a single country.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct CountryEntities {
     /// Companies belonging to this country.
     pub companies: Vec<Company>,
@@ -57,18 +57,21 @@ pub struct CountryEntities {
     /// works, state employer) removed during payroll clearing. Their
     /// payroll is real regional household income that bottom-up regional
     /// GDP must still see (income-side GVA).
+    #[serde(skip)]
     pub state_sector_wages_by_region: HashMap<String, f64>,
     /// v4.17.0: Per-region expenditure legs accumulated by
     /// `GdpAccumulator::regional` during the turn — the expenditure-side
     /// regional GDP basis consumed by `reconcile_regional_gdp`
     /// (consumption, imputed consumption, government spending,
     /// investment, net exports per region).
+    #[serde(skip)]
     pub gdp_flows_by_region:
         HashMap<String, crate::economy::telemetry::RegionalGdpAccumulator>,
     /// v4.17.0: Gross cross-border trade engagement per region (settled
     /// export + import leg value of trades with exactly one domestic
     /// endpoint). `reconcile_regional_gdp` distributes the country-level
     /// modeled trade residual over this measured-participation map.
+    #[serde(skip)]
     pub cross_border_gross_by_region: HashMap<String, f64>,
 }
 

@@ -13,6 +13,7 @@
 
 pub mod snapshot;
 pub mod snapshot_map;
+pub mod spreadsheet;
 pub mod snapshot_press;
 pub mod snapshot_regions;
 pub mod snapshot_society;

@@ -547,6 +547,7 @@ fn test_dynasty_process_marriage_creates_spouse_vip() {
         acting_replacement_id: None,
         diplomatic_post: None,
         portrait_seed: String::new(),
+        military_rank: String::new(),
     });
 
     let mut dynasty = Some(RoyalDynasty {
@@ -629,6 +630,7 @@ fn test_dynasty_succession_order_after_birth() {
         acting_replacement_id: None,
         diplomatic_post: None,
         portrait_seed: String::new(),
+        military_rank: String::new(),
     });
 
     let mut dynasty = Some(RoyalDynasty {
@@ -746,6 +748,7 @@ fn test_dynasty_death_updates_member_record() {
         acting_replacement_id: None,
         diplomatic_post: None,
         portrait_seed: String::new(),
+        military_rank: String::new(),
     });
 
     // Simulate death.

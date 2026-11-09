@@ -101,6 +101,17 @@ export function VipsPage() {
                           {vip.full_name} {vip.is_dead && <span className="text-red-400">†</span>}
                           {vip.gender === "F" && <span className="ml-1 text-pink-500" title="Female">♀</span>}
                           {vip.gender === "M" && <span className="ml-1 text-blue-500" title="Male">♂</span>}
+                          {/* v4.32.0 (TASK-037): military rank badge
+                              (Stopień wojskowy) for commanders. */}
+                          {vip.military_rank && (
+                            <Badge
+                              variant="secondary"
+                              className="ml-1 text-[10px]"
+                              title={`Rank / Stopień wojskowy: ${vip.military_rank}`}
+                            >
+                              {vip.military_rank}
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground" title={vip.company_name ?? undefined}>
                           {vip.roles}
@@ -188,6 +199,10 @@ function VipDossierPanel({ dossier }: { dossier: VipDossier }) {
           <Field label="Ideology" value={dossier.ideology} />
           <Field label="Religion" value={dossier.religion} />
           <Field label="Nationality" value={dossier.nationality} />
+          {/* v4.32.0 (TASK-037): Rank / Stopień wojskowy for commanders. */}
+          {dossier.military_rank && (
+            <Field label="Rank / Stopień wojskowy" value={dossier.military_rank} />
+          )}
           <Field label="Faction" value={dossier.faction} />
           <Field label="Influence" value={dossier.base_influence.toFixed(1)} />
           <Field label="Birth Year" value={String(birthYear)} />
