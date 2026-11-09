@@ -22,6 +22,7 @@ import {
   Zap,
   Newspaper,
   MapPinned,
+  Settings,
 } from "lucide-react";
 import { useGameStore } from "./store/gameStore";
 import { advanceTurn, newGame } from "./hooks/useTauriCommand";
@@ -51,6 +52,7 @@ import { MapPage } from "./pages/MapPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useUpdater } from "./hooks/useUpdater";
+import { SettingsModal } from "./components/SettingsModal";
 
 const NAV_ITEMS = [
   { to: "/macro", label: "Macro", icon: TrendingUp },
@@ -96,6 +98,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
   const queryClient = useQueryClient();
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [autoSpeed, setAutoSpeed] = useState<AutoSpeed>(1);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const speedRef = useRef<AutoSpeed>(autoSpeed);
   speedRef.current = autoSpeed;
 
@@ -204,6 +207,15 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
       </nav>
 
       <div className="p-3 border-t border-border space-y-2">
+        {/* v4.32.0 (TASK-033): Game Settings & Save/Load above Advance Turn */}
+        <button
+          onClick={() => setSettingsOpen(true)}
+          disabled={!gameStatus?.has_game}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded bg-muted text-muted-foreground text-xs font-medium disabled:opacity-50 hover:bg-accent hover:text-accent-foreground"
+        >
+          <Settings size={14} />
+          Game Settings &amp; Save/Load
+        </button>
         <div className="flex gap-2">
           <button
             onClick={handleAdvance}
@@ -256,6 +268,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
           {updateChecking ? "Checking..." : "Check for Updates"}
         </button>
       </div>
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </aside>
   );
 }

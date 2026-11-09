@@ -2,7 +2,6 @@ use crate::state::{AppState, EngineState};
 use sim_engine::engine::{
     generate_world, run_turn_in_memory, GenerateOptions, InMemoryTurnContext, StartYear,
 };
-use sim_engine::io::save_manager::load_game_state;
 use sim_engine::ui::snapshot::{GameStatus, TurnResult};
 use std::panic::AssertUnwindSafe;
 
@@ -109,6 +108,42 @@ pub async fn advance_turn(state: tauri::State<'_, AppState>) -> Result<TurnResul
     .await
     .map_err(|e| format!("Task join error: {e}"))?;
 
+    // v4.32.0 (TASK-033): Autosave — after a successful turn, if autosave is
+    // enabled and the interval boundary was crossed, write a rotating
+    // `autosave-1`/`autosave-2` slot so a crash mid-write can never destroy
+    // the only backup.
+    if let Ok(ref tr) = result {
+        let cfg = state.autosave.read().await.clone();
+        if cfg.enabled && tr.turn > 0 && tr.turn % cfg.interval_turns == 0 {
+            let engine_arc = state.engine.clone();
+            let saves_dir = state.data_dir.join("saves");
+            let slot = if (tr.turn / cfg.interval_turns) % 2 == 0 {
+                "autosave-1"
+            } else {
+                "autosave-2"
+            }
+            .to_string();
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0);
+            let _ = tokio::task::spawn_blocking(move || {
+                let engine_guard = engine_arc.blocking_read();
+                if let Some(engine_state) = engine_guard.as_ref() {
+                    let _ = sim_engine::io::runtime_save::write_runtime_save(
+                        &saves_dir,
+                        &slot,
+                        &engine_state.game_state,
+                        &engine_state.turn_context,
+                        now,
+                        true,
+                    );
+                }
+            })
+            .await;
+        }
+    }
+
     {
         let mut processing = state.processing.write().await;
         *processing = false;
@@ -117,34 +152,31 @@ pub async fn advance_turn(state: tauri::State<'_, AppState>) -> Result<TurnResul
     result
 }
 
+/// v4.32.0 (TASK-033): Write a full runtime save — the ENTIRE GameState plus
+/// the complete InMemoryTurnContext (market, diplomacy, all entities) as a
+/// gzip-compressed `.gss` file plus a `.meta.json` sidecar for the slot list.
 #[tauri::command]
 pub async fn save_game(state: tauri::State<'_, AppState>, save_name: String) -> Result<(), String> {
     let engine_arc = state.engine.clone();
-    let data_dir = state.data_dir.clone();
-
-    let save_dir = data_dir.join("saves").join(&save_name);
+    let saves_dir = state.data_dir.join("saves");
 
     tokio::task::spawn_blocking(move || {
         let engine_guard = engine_arc.blocking_read();
         let engine_state = engine_guard.as_ref().ok_or("No game loaded")?;
 
-        std::fs::create_dir_all(&save_dir)
-            .map_err(|e| format!("Failed to create save dir: {e}"))?;
-
-        sim_engine::io::save_manager::save_game_state(&save_dir, &engine_state.game_state)
-            .map_err(|e| format!("Failed to save state: {e}"))?;
-
-        let global_orders = sim_engine::economy::market::MarketOrders::default();
-        let trade_result = sim_engine::international::TradeBalanceResult::default();
-        engine_state
-            .turn_context
-            .save_to_disk(
-                &save_dir,
-                &engine_state.game_state,
-                &global_orders,
-                &trade_result,
-            )
-            .map_err(|e| format!("Failed to save context: {e}"))?;
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        sim_engine::io::runtime_save::write_runtime_save(
+            &saves_dir,
+            &save_name,
+            &engine_state.game_state,
+            &engine_state.turn_context,
+            now,
+            false,
+        )
+        .map_err(|e| format!("Failed to save: {e}"))?;
 
         Ok::<(), String>(())
     })
@@ -152,49 +184,66 @@ pub async fn save_game(state: tauri::State<'_, AppState>, save_name: String) -> 
     .map_err(|e| format!("Task join error: {e}"))?
 }
 
+/// v4.32.0 (TASK-033): Restore a `.gss` runtime save — GameState AND the full
+/// turn context come back exactly as saved (no bootstrap re-load, so
+/// companies/buildings/market state are preserved).
 #[tauri::command]
 pub async fn load_game(state: tauri::State<'_, AppState>, save_name: String) -> Result<(), String> {
-    let data_dir = state.data_dir.clone();
-    let save_dir = data_dir.join("saves").join(&save_name);
+    let saves_dir = state.data_dir.join("saves");
 
-    let mut game_state = tokio::task::spawn_blocking(move || load_game_state(&save_dir))
-        .await
-        .map_err(|e| format!("Task join error: {e}"))?
-        .map_err(|e| format!("Failed to load state: {e}"))?;
-
-    let turn_context = InMemoryTurnContext::load_from_disk(&state.data_dir, &mut game_state)
-        .map_err(|e| format!("Context load failed: {e}"))?;
+    let save = tokio::task::spawn_blocking(move || {
+        sim_engine::io::runtime_save::load_runtime_save(&saves_dir, &save_name)
+    })
+    .await
+    .map_err(|e| format!("Task join error: {e}"))?
+    .map_err(|e| format!("Failed to load save: {e}"))?;
 
     let mut engine = state.engine.write().await;
     *engine = Some(EngineState {
-        game_state,
-        turn_context,
+        game_state: save.game_state,
+        turn_context: save.turn_context,
     });
 
     Ok(())
 }
 
+/// v4.32.0 (TASK-033): List save slots with turn/date/country metadata.
 #[tauri::command]
-pub async fn list_saves(state: tauri::State<'_, AppState>) -> Result<Vec<String>, String> {
+pub async fn list_saves(
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<sim_engine::io::runtime_save::SaveMeta>, String> {
     let saves_dir = state.data_dir.join("saves");
-    if !saves_dir.exists() {
-        return Ok(Vec::new());
+    Ok(sim_engine::io::runtime_save::list_save_slots(&saves_dir))
+}
+
+/// v4.32.0 (TASK-033): Read the autosave configuration.
+#[tauri::command]
+pub async fn get_autosave_settings(
+    state: tauri::State<'_, AppState>,
+) -> Result<crate::state::AutosaveSettings, String> {
+    Ok(state.autosave.read().await.clone())
+}
+
+/// v4.32.0 (TASK-033): Update the autosave configuration (persisted to disk).
+#[tauri::command]
+pub async fn set_autosave_settings(
+    state: tauri::State<'_, AppState>,
+    enabled: bool,
+    interval_turns: u32,
+) -> Result<(), String> {
+    let interval = match interval_turns {
+        4 | 12 | 24 => interval_turns,
+        _ => 24,
+    };
+    {
+        let mut cfg = state.autosave.write().await;
+        cfg.enabled = enabled;
+        cfg.interval_turns = interval;
     }
-
-    let mut saves = Vec::new();
-    let entries =
-        std::fs::read_dir(&saves_dir).map_err(|e| format!("Failed to read saves dir: {e}"))?;
-
-    for entry in entries.flatten() {
-        if entry.path().is_dir() {
-            if let Some(name) = entry.file_name().to_str() {
-                saves.push(name.to_string());
-            }
-        }
-    }
-
-    saves.sort();
-    Ok(saves)
+    let cfg = state.autosave.read().await.clone();
+    let json = serde_json::to_vec_pretty(&cfg).map_err(|e| e.to_string())?;
+    std::fs::write(state.data_dir.join("autosave_settings.json"), json)
+        .map_err(|e| format!("Failed to persist settings: {e}"))
 }
 
 #[tauri::command]

@@ -199,7 +199,7 @@ function CompanyDrawer({ detail, country }: { detail: CompanyDetail; country: st
       grid: { left: 60, right: 12, top: 12, bottom: 40 },
       xAxis: {
         type: "category" as const,
-        data: h.map((r) => `T${r.year}`),
+        data: h.map((r) => `T${r.turn}`),
         axisLabel: { color: "#94a3b8", fontSize: 9 },
       },
       yAxis: {
@@ -315,8 +315,11 @@ function CompanyDrawer({ detail, country }: { detail: CompanyDetail; country: st
                     </thead>
                     <tbody>
                       {[...detail.financial_history_24].reverse().map((r) => (
-                        <tr key={r.year} className="border-t">
-                          <td className="py-1">T{r.year}</td>
+                        <tr key={`${r.turn}-${r.year}`} className="border-t">
+                          <td className="py-1">
+                            T{r.turn}
+                            {r.month > 0 ? ` · ${r.month}/${r.year}` : ""}
+                          </td>
                           <td className="text-right">{fmt(r.revenue)}</td>
                           <td className="text-right">{fmt(r.operating_costs)}</td>
                           <td className="text-right">{fmt(r.ebitda)}</td>
@@ -389,29 +392,82 @@ function CompanyDrawer({ detail, country }: { detail: CompanyDetail; country: st
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-sm">Balance Sheet</CardTitle>
-            <Button variant="outline" size="sm" onClick={exportXml} disabled={exporting}>
-              {exporting ? "Exporting…" : "Export Balance Sheet to .xml"}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportXml}
+              disabled={exporting}
+              title="Exports the UoR balance sheet as Microsoft Excel 2003 XML (SpreadsheetML, urn:schemas-microsoft-com:office:spreadsheet Workbook)"
+            >
+              {exporting ? "Exporting…" : "Export Balance Sheet to Excel .xml (SpreadsheetML)"}
             </Button>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div>
-                <div className="text-muted-foreground font-semibold mb-1">Assets</div>
-                <Field label="Cash" value={fmt(bs.cash)} />
-                <Field label="Inventory (raw + finished)" value={fmt(bs.inventory)} />
-                <Field label="Property / Plant / Equipment" value={fmt(bs.ppe)} />
-                <Field label="Accounts Receivable" value={fmt(bs.receivables)} />
-                <Field label="Total Assets" value={fmt(bs.total_assets)} />
+                <div className="text-muted-foreground font-semibold mb-1">AKTYWA (Assets)</div>
+                <details open>
+                  <summary className="cursor-pointer font-semibold">
+                    A. Fixed Assets (Aktywa trwałe) — {fmt(bs.ppe + bs.intangible_assets + bs.construction_in_progress)}
+                  </summary>
+                  <div className="pl-3">
+                    <Field label="I. Intangible Assets" value={fmt(bs.intangible_assets)} />
+                    <Field label="II. Tangible Fixed Assets (PP&E)" value={fmt(bs.ppe)} />
+                    <Field label="   4. Construction in Progress" value={fmt(bs.construction_in_progress)} />
+                  </div>
+                </details>
+                <details open>
+                  <summary className="cursor-pointer font-semibold">
+                    B. Current Assets (Aktywa obrotowe) — {fmt(bs.inventory + bs.receivables + bs.cash + bs.prepaid_expenses)}
+                  </summary>
+                  <div className="pl-3">
+                    <details open>
+                      <summary className="cursor-pointer text-muted-foreground">
+                        I. Inventory (Zapasy) — {fmt(bs.inventory)}
+                      </summary>
+                      <div className="pl-3">
+                        <Field label="1. Raw Materials" value={fmt(bs.inv_raw_materials)} />
+                        <Field label="2. Semi-Finished & WIP" value={fmt(bs.inv_wip)} />
+                        <Field label="3. Finished Products" value={fmt(bs.inv_finished_goods)} />
+                        <Field label="4. Trade Goods" value={fmt(bs.inv_trade_goods)} />
+                      </div>
+                    </details>
+                    <Field label="II. Short-Term Receivables" value={fmt(bs.receivables)} />
+                    <Field label="III. Cash & Equivalents" value={fmt(bs.cash)} />
+                    <Field label="IV. Prepaid Expenses" value={fmt(bs.prepaid_expenses)} />
+                  </div>
+                </details>
+                <div className="border-t mt-1 pt-1">
+                  <Field label="TOTAL ASSETS" value={fmt(bs.total_assets)} />
+                </div>
               </div>
               <div>
-                <div className="text-muted-foreground font-semibold mb-1">Liabilities &amp; Equity</div>
-                <Field label="Bank Loans" value={fmt(bs.bank_loans)} />
-                <Field label="Corporate Bonds Issued" value={fmt(bs.bonds_issued)} />
-                <Field label="Accounts Payable" value={fmt(bs.accounts_payable)} />
-                <Field label="Wages Payable" value={fmt(bs.wage_payable)} />
-                <Field label="Paid-in Capital" value={fmt(bs.paid_in_capital)} />
-                <Field label="Retained Earnings" value={fmt(bs.retained_earnings)} />
-                <Field label="Total L+E" value={fmt(bs.total_liabilities_equity)} />
+                <div className="text-muted-foreground font-semibold mb-1">PASYWA (Liabilities &amp; Equity)</div>
+                <details open>
+                  <summary className="cursor-pointer font-semibold">
+                    A. Equity (Kapitał własny) — {fmt(bs.paid_in_capital + bs.reserve_capital + bs.retained_earnings + bs.net_profit_ytd)}
+                  </summary>
+                  <div className="pl-3">
+                    <Field label="I. Share Capital" value={fmt(bs.paid_in_capital)} />
+                    <Field label="II. Reserve Capital" value={fmt(bs.reserve_capital)} />
+                    <Field label="III. Retained Earnings" value={fmt(bs.retained_earnings)} />
+                    <Field label="IV. Net Profit/Loss of Fiscal Year" value={fmt(bs.net_profit_ytd)} />
+                  </div>
+                </details>
+                <details open>
+                  <summary className="cursor-pointer font-semibold">
+                    B. Liabilities & Provisions — {fmt(bs.bank_loans + bs.bonds_issued + bs.trade_payables + bs.taxes_wages_payable)}
+                  </summary>
+                  <div className="pl-3">
+                    <Field label="II. Long-Term: Bank Loans" value={fmt(bs.bank_loans)} />
+                    <Field label="II. Long-Term: Corporate Bonds" value={fmt(bs.bonds_issued)} />
+                    <Field label="III.1 Trade Payables" value={fmt(bs.trade_payables)} />
+                    <Field label="III.2 Taxes & Wages Payable" value={fmt(bs.taxes_wages_payable)} />
+                  </div>
+                </details>
+                <div className="border-t mt-1 pt-1">
+                  <Field label="TOTAL L+E" value={fmt(bs.total_liabilities_equity)} />
+                </div>
               </div>
             </div>
             {exportMsg && <div className="text-xs text-muted-foreground">{exportMsg}</div>}

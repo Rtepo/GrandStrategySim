@@ -10,6 +10,24 @@ pub struct EngineState {
     pub turn_context: InMemoryTurnContext,
 }
 
+/// v4.32.0 (TASK-033): Autosave configuration, persisted to
+/// `<data_dir>/autosave_settings.json` and applied after each advance_turn.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AutosaveSettings {
+    pub enabled: bool,
+    /// Autosave cadence: every 4, 12 or 24 turns (24 = yearly).
+    pub interval_turns: u32,
+}
+
+impl Default for AutosaveSettings {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            interval_turns: 24,
+        }
+    }
+}
+
 /// Tauri-managed application state.
 #[derive(Clone)]
 pub struct AppState {
@@ -17,4 +35,5 @@ pub struct AppState {
     pub registries: Arc<Registries>,
     pub data_dir: std::path::PathBuf,
     pub processing: Arc<RwLock<bool>>,
+    pub autosave: Arc<RwLock<AutosaveSettings>>,
 }

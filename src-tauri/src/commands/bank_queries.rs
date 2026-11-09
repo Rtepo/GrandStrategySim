@@ -241,61 +241,13 @@ pub async fn export_company_balance_sheet_xml(
         let detail = snap
             .company_detail
             .ok_or_else(|| format!("Company '{}' not found", company_id))?;
-        let bs = &detail.balance_sheet;
-        let esc = |s: &str| {
-            s.replace('&', "&amp;")
-                .replace('<', "&lt;")
-                .replace('>', "&gt;")
-                .replace('"', "&quot;")
-        };
-        let m = |v: f64| format!("{:.2}", v);
+        // v4.32.0 (TASK-034): SpreadsheetML builder lives engine-side so
+        // the release gate can assert the office:spreadsheet namespace.
         let year = engine_state.game_state.calendar.current_year;
         let turn = engine_state.game_state.calendar.global_turn;
-        let mut xml = String::with_capacity(2048);
-        xml.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.push_str(&format!(
-            "<balanceSheet company=\"{}\" id=\"{}\" sector=\"{}\" year=\"{}\" turn=\"{}\">\n",
-            esc(&detail.name),
-            esc(&detail.id),
-            esc(&detail.sector),
-            year,
-            turn
-        ));
-        xml.push_str("  <assets>\n");
-        for (k, v) in [
-            ("cash", bs.cash),
-            ("inventory", bs.inventory),
-            ("propertyPlantEquipment", bs.ppe),
-            ("accountsReceivable", bs.receivables),
-        ] {
-            xml.push_str(&format!("    <{}>{}</{}>\n", k, m(v), k));
-        }
-        xml.push_str(&format!("    <total>{}</total>\n", m(bs.total_assets)));
-        xml.push_str("  </assets>\n");
-        xml.push_str("  <liabilities>\n");
-        for (k, v) in [
-            ("bankLoans", bs.bank_loans),
-            ("corporateBondsIssued", bs.bonds_issued),
-            ("accountsPayable", bs.accounts_payable),
-            ("wagesPayable", bs.wage_payable),
-        ] {
-            xml.push_str(&format!("    <{}>{}</{}>\n", k, m(v), k));
-        }
-        xml.push_str("  </liabilities>\n");
-        xml.push_str("  <equity>\n");
-        for (k, v) in [
-            ("paidInCapital", bs.paid_in_capital),
-            ("retainedEarnings", bs.retained_earnings),
-        ] {
-            xml.push_str(&format!("    <{}>{}</{}>\n", k, m(v), k));
-        }
-        xml.push_str("  </equity>\n");
-        xml.push_str(&format!(
-            "  <totalLiabilitiesAndEquity>{}</totalLiabilitiesAndEquity>\n",
-            m(bs.total_liabilities_equity)
-        ));
-        xml.push_str("</balanceSheet>\n");
-        Ok(xml)
+        Ok(sim_engine::ui::spreadsheet::company_balance_sheet_spreadsheetml(
+            &detail, year, turn,
+        ))
     })
     .await
     .map_err(|e| format!("Task join error: {e}"))?

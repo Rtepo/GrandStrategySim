@@ -67,8 +67,37 @@ export async function loadGame(saveName: string): Promise<void> {
   return invoke<void>("load_game", { saveName });
 }
 
-export async function listSaves(): Promise<string[]> {
-  return invoke<string[]>("list_saves");
+/** v4.32.0 (TASK-033): save-slot metadata returned by `list_saves`. */
+export interface SaveSlotInfo {
+  version: number;
+  slot: string;
+  turn: number;
+  date_label: string;
+  year: number;
+  month: number;
+  country: string;
+  saved_at_unix: number;
+  autosave: boolean;
+}
+
+export interface AutosaveSettings {
+  enabled: boolean;
+  interval_turns: number;
+}
+
+export async function listSaves(): Promise<SaveSlotInfo[]> {
+  return invoke<SaveSlotInfo[]>("list_saves");
+}
+
+export async function getAutosaveSettings(): Promise<AutosaveSettings> {
+  return invoke<AutosaveSettings>("get_autosave_settings");
+}
+
+export async function setAutosaveSettings(
+  enabled: boolean,
+  intervalTurns: number,
+): Promise<void> {
+  return invoke<void>("set_autosave_settings", { enabled, intervalTurns });
 }
 
 export async function getMacroIndicators(country: string): Promise<MacroIndicatorsResponse> {

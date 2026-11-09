@@ -25,7 +25,7 @@ import {
   countryColor,
   type MapMode,
 } from "../components/map/WorldMapSvg";
-import type { CountryMapDto, MapRegionDto, WaterBodyDto } from "../types/api";
+import type { CountryMapDto, FrontlineDto, MapRegionDto, WaterBodyDto } from "../types/api";
 import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 
 const MODES: { value: MapMode; label: string }[] = [
@@ -51,6 +51,8 @@ export function MapPage() {
   } | null>(null);
   // v4.28.0 (TASK-011): clicked named water body — lake/sea/strait detail.
   const [selectedWater, setSelectedWater] = useState<WaterBodyDto | null>(null);
+  // v4.32.0 (TASK-035): clicked frontline arc → inspector card.
+  const [selectedFrontline, setSelectedFrontline] = useState<FrontlineDto | null>(null);
 
   const { data: snapshot, isLoading } = useQuery({
     queryKey: ["world-map"],
@@ -174,7 +176,9 @@ export function MapPage() {
       <div className="grid grid-cols-4 gap-4">
         <Card className="col-span-3">
           <CardContent className="p-0">
-            <div className="overflow-auto max-h-[85vh] rounded-md bg-[#0f2739]">
+            {/* v4.32.0 (TASK-035): near full-bleed viewport — the map fills
+                the available window height (Victoria-3 style). */}
+            <div className="overflow-auto h-[calc(100vh-220px)] min-h-[420px] rounded-md bg-[#0f2739]">
               <div style={{ width: `${zoom * 100}%`, minWidth: "100%" }}>
                 <WorldMapSvg
                   snapshot={snapshot}
@@ -183,16 +187,23 @@ export function MapPage() {
                   onRegionClick={(region, country) => {
                     setSelected({ region, country });
                     setSelectedWater(null);
+                    setSelectedFrontline(null);
                   }}
                   onWaterClick={(water) => {
                     setSelectedWater(water);
                     setSelected(null);
+                    setSelectedFrontline(null);
                   }}
                   // v4.30.0 (TASK-024): active-battle markers deep-link to
                   // the Military tab with the parent war + battle open.
                   onBattleClick={(regionId) =>
                     navigate("/military", { state: { battleRegion: regionId } })
                   }
+                  onFrontlineClick={(frontline) => {
+                    setSelectedFrontline(frontline);
+                    setSelected(null);
+                    setSelectedWater(null);
+                  }}
                   showLabels={zoom > 1.4}
                   className="w-full block"
                 />
@@ -213,7 +224,13 @@ export function MapPage() {
         </Card>
 
         <div className="col-span-1">
-          {selectedWater ? (
+          {selectedFrontline ? (
+            <FrontlineCard
+              frontline={selectedFrontline}
+              onOpenMilitary={() => navigate("/military")}
+              onClose={() => setSelectedFrontline(null)}
+            />
+          ) : selectedWater ? (
             <WaterCard
               water={selectedWater}
               regionNameById={regionNameById}
@@ -256,6 +273,58 @@ function Field({ label, value }: { label: string; value: string }) {
 
 /** v4.28.0 (TASK-011): detail card for a clicked named water body —
     shared component lives in components/map/WaterCard.tsx (v4.30.0). */
+
+/** v4.32.0 (TASK-035): Frontline Inspector Card — opened by clicking a
+    frontline arc on the map. Lists the belligerents, contested regions,
+    and recent battle sites, with a deep-link into the Military tab for
+    the stationed armies / commanders / supply detail. */
+function FrontlineCard({
+  frontline,
+  onOpenMilitary,
+  onClose,
+}: {
+  frontline: FrontlineDto;
+  onOpenMilitary: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm">Frontline Inspector</CardTitle>
+        <Button variant="outline" size="sm" onClick={onClose}>
+          ✕
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        <div className="font-semibold text-foreground">{frontline.name}</div>
+        <Field label="Attacker" value={frontline.attacker} />
+        <Field label="Defender" value={frontline.defender} />
+        <Field label="Border segments" value={String(frontline.segments.length)} />
+        <Field
+          label="Recent battle sites"
+          value={String(frontline.battle_points.length)}
+        />
+        <div>
+          <div className="text-muted-foreground mb-1">Contested regions</div>
+          <div className="flex flex-wrap gap-1">
+            {frontline.regions.length === 0 ? (
+              <span className="text-muted-foreground">—</span>
+            ) : (
+              frontline.regions.map((r) => (
+                <Badge key={r} variant="outline">
+                  {r}
+                </Badge>
+              ))
+            )}
+          </div>
+        </div>
+        <Button variant="outline" size="sm" className="w-full" onClick={onOpenMilitary}>
+          Armies, Commanders &amp; Supply → Military
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
 function RegionCard({
   region,

@@ -9,6 +9,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type {
   CountryMapDto,
+  FrontlineDto,
   MapEdgeDto,
   MapFeatureDto,
   MapRegionDto,
@@ -202,6 +203,9 @@ interface WorldMapSvgProps {
    * the Military tab with that battle expanded (battle location = the
    * region id). */
   onBattleClick?: (regionId: string) => void;
+  /** v4.32.0 (TASK-035): clicking a frontline arc opens the Frontline
+   * Inspector card (stationed armies, commanders, supply). */
+  onFrontlineClick?: (frontline: FrontlineDto) => void;
   /** Compact embed: no labels/markers beyond capitals, thinner strokes. */
   compact?: boolean;
   /** Show region name labels (full map only — still gated by density). */
@@ -272,6 +276,7 @@ export function WorldMapSvg({
   onRegionClick,
   onWaterClick,
   onBattleClick,
+  onFrontlineClick,
   compact = false,
   showLabels = false,
   className,
@@ -577,7 +582,7 @@ export function WorldMapSvg({
               style={{ cursor: onWaterClick ? "pointer" : "default" }}
               onClick={onWaterClick ? () => onWaterClick(w) : undefined}
             >
-              <title>{w.name}</title>
+              <title>{w.name}{w.littoral_countries.length > 0 ? ` — Territorial waters: ${w.littoral_countries.join(", ")}` : ""}</title>
             </path>
             {!compact && labelsOn && (
               <text
@@ -625,6 +630,21 @@ export function WorldMapSvg({
               stroke={atWar && mode === "military" ? "#ef4444" : "#0a1622"}
               strokeWidth={atWar && mode === "military" ? strokeW * 2.2 : strokeW}
             />
+            {/* v4.32.0 (TASK-035): Territorial Waters & EEZ — a tinted
+                coastal buffer band around each coastal nation's shoreline,
+                keyed to the owner's palette. */}
+            {c.regions.some((r) => r.is_coastal) && (
+              <path
+                d={boundaryPath(c)}
+                fill="none"
+                stroke={countryColor(c.color_index)}
+                strokeWidth={strokeW * 7}
+                opacity={mode === "political" ? 0.16 : 0.1}
+                pointerEvents="none"
+              >
+                <title>{`${c.country} — Territorial Waters & EEZ`}</title>
+              </path>
+            )}
             {c.regions.map((r) => {
               const selected = r.id === selectedRegionId;
               const hovered = r.id === hoveredId;
@@ -657,7 +677,10 @@ export function WorldMapSvg({
                     onMouseEnter={() => setHoveredId(r.id)}
                     onMouseLeave={() => setHoveredId((h) => (h === r.id ? null : h))}
                   >
-                    <title>{`${r.name} — ${c.country}`}</title>
+                    {/* v4.32.0 (TASK-035): tooltip shows the CURRENT
+                        owner (`r.country` = live owner_country), matching
+                        the click inspector — never the turn-0 owner. */}
+                    <title>{`${r.name} — ${r.country}`}</title>
                   </polygon>
                   {/* Occupied / contested overlays (military mode). */}
                   {mode === "military" && r.control === "occupied" && (
@@ -898,7 +921,7 @@ export function WorldMapSvg({
               style={{ cursor: onWaterClick ? "pointer" : "default" }}
               onClick={onWaterClick ? () => onWaterClick(w) : undefined}
             >
-              <title>{w.name}</title>
+              <title>{w.name}{w.littoral_countries.length > 0 ? ` — Territorial waters: ${w.littoral_countries.join(", ")}` : ""}</title>
             </path>
             {!compact && labelsOn && (
               <text
@@ -927,7 +950,11 @@ export function WorldMapSvg({
           markers along the shared belligerent border, with crossed-swords
           at recent battle sites. Drawn above all fills. */}
       {visibleFrontlines.map((f) => (
-        <g key={f.id} pointerEvents="none">
+        <g
+          key={f.id}
+          style={{ cursor: onFrontlineClick ? "pointer" : "default" }}
+          onClick={onFrontlineClick ? () => onFrontlineClick(f) : undefined}
+        >
           {f.segments.map((seg, si) => {
             const pts = seg.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
             return (
@@ -960,6 +987,18 @@ export function WorldMapSvg({
                   strokeDasharray={`${strokeW * 4} ${strokeW * 8}`}
                   opacity={0.95}
                 />
+                {/* v4.32.0 (TASK-035): fat invisible hit-target so the thin
+                    dashed arc is easy to click — opens the Frontline
+                    Inspector card. */}
+                <polyline
+                  points={pts}
+                  fill="none"
+                  stroke="rgba(0,0,0,0)"
+                  strokeWidth={strokeW * 12}
+                  strokeLinecap="round"
+                >
+                  <title>{`Frontline: ${f.attacker} ⚔ ${f.defender} — click for inspector`}</title>
+                </polyline>
               </g>
             );
           })}

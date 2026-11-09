@@ -240,14 +240,22 @@ fn disband_broken_units(units: &mut Vec<MilitaryUnit>, regions: &mut Vec<Region>
 
     let mut survivors_to_return: Vec<(String, HashMap<RuralClass, i64>)> = Vec::new();
 
-    let mut to_disband: Vec<usize> = Vec::new();
-    for (idx, unit) in units.iter_mut().enumerate() {
+    // v4.32.0 (TASK-033): do NOT remove disbanded units from this Vec.
+    // `units` is a flat CLONE of the OOB (see `OrderOfBattle::flatten`) and
+    // `writeback_units_to_oob` only propagates state for units still present.
+    // Removing a unit here left its OOB original untouched with `manpower > 0`
+    // and `organization <= 0`, so `cleanup_dead` kept it — next turn it
+    // flattened out again, "disbanded" again, and paid its full manpower back
+    // to the home region EVERY TURN. Each broken unit became an immortal
+    // population generator (~8%/turn compounding → 9.24B region overflow).
+    // Keeping the zeroed unit in the Vec lets writeback mark the OOB original
+    // dead so `cleanup_dead` removes it permanently.
+    for unit in units.iter_mut() {
         if unit.manpower <= 0 || unit.stats.organization <= 0.0 {
             let survivors = unit.disband();
             if !survivors.is_empty() {
                 survivors_to_return.push((unit.home_region.clone(), survivors));
             }
-            to_disband.push(idx);
         }
     }
 
@@ -263,15 +271,16 @@ fn disband_broken_units(units: &mut Vec<MilitaryUnit>, regions: &mut Vec<Region>
             }
         }
         let total_survivors: i64 = survivors.values().sum();
+        if total_survivors > 100_000 {
+            eprintln!(
+                "POPTRACE disband_credit region={} total={} breakdown={:?}",
+                home_region, total_survivors, survivors
+            );
+        }
         messages.push(format!(
             "[DISBAND] Unit from region {} disbanded. {} soldiers return to population.",
             home_region, total_survivors
         ));
-    }
-
-    // Remove disbanded units (in reverse order to preserve indices)
-    for &idx in to_disband.iter().rev() {
-        units.remove(idx);
     }
 
     messages
@@ -560,8 +569,34 @@ fn resolve_front_battles(
         let _ = units[idx].apply_casualties(defender_per_unit);
     }
 
-    // Process casualties with healthcare and demographic routing
+    // Process casualties with healthcare and demographic routing.
+    // Conserved model (v4.32.0 TASK-033):
+    //   classes -= dead + untreated_dead        (permanent losses)
+    //   classes += deserters + treated − POWs   (return to society)
     let region = regions.iter_mut().find(|r| r.id == battle_region_id);
+
+    // POW capture must be decided BEFORE demographic routing so captured
+    // soldiers are interned, not returned to civilian classes.
+    let pow_config = PowCaptureConfig::default();
+    let mut pow_counter = pow_camp.total_ever_captured as u64;
+    let attacker_is_loser = attacker_casualties.total() > defender_casualties.total();
+    let (loser_casualties, captor_country, origin_country) = if attacker_is_loser {
+        (&attacker_casualties, &defender_country, &attacker_country)
+    } else {
+        (&defender_casualties, &attacker_country, &defender_country)
+    };
+    let captured_pows = capture_pows_from_casualties(
+        loser_casualties,
+        captor_country,
+        origin_country,
+        turn,
+        &battle_region_id,
+        &pow_config,
+        &mut pow_counter,
+    );
+    let captured_count = captured_pows.len() as i64;
+    let pows_from_attacker = if attacker_is_loser { captured_count } else { 0 };
+    let pows_from_defender = captured_count - pows_from_attacker;
 
     if let Some(region) = region {
         let hospital_capacity = region
@@ -570,26 +605,55 @@ fn resolve_front_battles(
             .copied()
             .unwrap_or(0.0);
 
-        let (_treated, untreated_dead, wounded_messages) = process_wounded(
+        let (treated, untreated_dead, wounded_messages) = process_wounded(
             attacker_casualties.wounded + defender_casualties.wounded,
             hospital_capacity,
             &battle_region_id,
         );
         messages.extend(wounded_messages);
 
+        // Split the pooled treated/untreated totals back to each side in
+        // proportion to its wounded share.
+        let wounded_total = attacker_casualties.wounded + defender_casualties.wounded;
+        let att_w_share = if wounded_total > 0 {
+            attacker_casualties.wounded as f64 / wounded_total as f64
+        } else {
+            0.5
+        };
+        let att_treated = (treated as f64 * att_w_share) as i64;
+        let def_treated = treated - att_treated;
+        let att_untreated = (untreated_dead as f64 * att_w_share) as i64;
+        let def_untreated = untreated_dead - att_untreated;
+
         let region_demographics = &mut region.class_demographics.rural_classes;
-        let dead_messages =
-            process_dead(&attacker_casualties, region_demographics, &battle_region_id);
+        let dead_messages = process_dead(
+            &attacker_casualties,
+            attacker_casualties.dead + att_untreated,
+            region_demographics,
+            &battle_region_id,
+        );
         messages.extend(dead_messages);
-        let dead_messages =
-            process_dead(&defender_casualties, region_demographics, &battle_region_id);
+        let dead_messages = process_dead(
+            &defender_casualties,
+            defender_casualties.dead + def_untreated,
+            region_demographics,
+            &battle_region_id,
+        );
         messages.extend(dead_messages);
 
-        let deserter_messages =
-            process_deserters(&attacker_casualties, region_demographics, &battle_region_id);
+        let deserter_messages = process_deserters(
+            &attacker_casualties,
+            (attacker_casualties.deserters + att_treated - pows_from_attacker).max(0),
+            region_demographics,
+            &battle_region_id,
+        );
         messages.extend(deserter_messages);
-        let deserter_messages =
-            process_deserters(&defender_casualties, region_demographics, &battle_region_id);
+        let deserter_messages = process_deserters(
+            &defender_casualties,
+            (defender_casualties.deserters + def_treated - pows_from_defender).max(0),
+            region_demographics,
+            &battle_region_id,
+        );
         messages.extend(deserter_messages);
 
         // ── MIL-3c: Apply casualty morale impact (AFTER casualties, BEFORE disband) ──
@@ -617,28 +681,9 @@ fn resolve_front_battles(
         }
     }
 
-    // ── MIL-3d: Capture POWs from the losing side's casualties (AFTER casualties) ──
-    // The loser is the side with more casualties. The captor is the other side.
-    let pow_config = PowCaptureConfig::default();
-    let mut pow_counter = pow_camp.total_ever_captured as u64;
-    let (loser_casualties, captor_country, origin_country) =
-        if attacker_casualties.total() > defender_casualties.total() {
-            (&attacker_casualties, &defender_country, &attacker_country)
-        } else {
-            (&defender_casualties, &attacker_country, &defender_country)
-        };
-
-    let captured_pows = capture_pows_from_casualties(
-        loser_casualties,
-        captor_country,
-        origin_country,
-        turn,
-        &battle_region_id,
-        &pow_config,
-        &mut pow_counter,
-    );
+    // v4.32.0 (TASK-033): POW capture was hoisted BEFORE demographic
+    // routing (see above) — captured soldiers are interned, not returned.
     // v4.24.0: record who took the prisoners for the battle ledger.
-    let captured_count = captured_pows.len() as i64;
     let (cap_by_attacker, cap_by_defender) = if *captor_country == attacker_country {
         (captured_count, 0)
     } else {

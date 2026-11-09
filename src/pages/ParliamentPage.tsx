@@ -1449,6 +1449,16 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-xs">
             <DetailField label="State" value={data.election_state} />
+            {/* v4.32.0 (TASK-036): campaign phase badge — Snap campaigns
+                run 3 turns, scheduled campaigns 6 turns. */}
+            {data.election_state === "ActiveCampaign" && (
+              <div>
+                <span className="text-muted-foreground">Campaign Phase: </span>
+                <Badge variant={turnsRemaining <= 3 ? "destructive" : "default"}>
+                  {turnsRemaining <= 3 ? "Snap Campaign" : "Scheduled Campaign"}
+                </Badge>
+              </div>
+            )}
             <DetailField
               label="Time Remaining"
               value={`${remYears}y ${remMonths}m ${remDays}d (${turnsRemaining} turns)`}

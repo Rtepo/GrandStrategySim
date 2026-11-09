@@ -327,6 +327,7 @@ pub fn process_dynasty_turn(
                 acting_replacement_id: None,
                 diplomatic_post: None,
                 portrait_seed: String::new(),
+                military_rank: String::new(),
             };
 
             let spouse_vip_id = registry.register_new(spouse_vip);
@@ -482,6 +483,7 @@ reign_end_turn: None,
                 acting_replacement_id: None,
                 diplomatic_post: None,
                 portrait_seed: String::new(),
+                military_rank: String::new(),
             };
 
             let child_vip_id = registry.register_new(child_vip);

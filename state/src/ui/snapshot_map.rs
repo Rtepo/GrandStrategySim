@@ -280,6 +280,10 @@ pub struct WaterBodyDto {
     pub navigable: bool,
     /// Region ids whose polygons border this water body.
     pub bordering_regions: Vec<String>,
+    /// v4.32.0 (TASK-035): countries whose CURRENT-owned regions border
+    /// this body — the littoral set the UI uses for territorial-waters /
+    /// EEZ tinting and island-assignment checks.
+    pub littoral_countries: Vec<String>,
     /// Owning continent index (-1 for shared ocean).
     pub continent: i64,
 }
@@ -664,6 +668,37 @@ fn point_in_polygon(p: (f64, f64), poly: &[(f64, f64)]) -> bool {
         j = i;
     }
     inside
+}
+
+/// v4.32.0 (TASK-035): minimum distance from a point to a polygon's
+/// EDGES (0 when inside/on the boundary). Used to guarantee island
+/// blobs clear the continent shoreline by their full radius.
+fn dist_to_polygon(p: (f64, f64), poly: &[(f64, f64)]) -> f64 {
+    if poly.is_empty() {
+        return f64::MAX;
+    }
+    if point_in_polygon(p, poly) {
+        return 0.0;
+    }
+    let mut best = f64::MAX;
+    let mut prev = poly[poly.len() - 1];
+    for &q in poly {
+        // Point-to-segment distance.
+        let (ax, ay) = prev;
+        let (bx, by) = q;
+        let (abx, aby) = (bx - ax, by - ay);
+        let len2 = abx * abx + aby * aby;
+        let t = if len2 > 1e-12 {
+            (((p.0 - ax) * abx + (p.1 - ay) * aby) / len2).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        let dx = p.0 - (ax + abx * t);
+        let dy = p.1 - (ay + aby * t);
+        best = best.min(dx * dx + dy * dy);
+        prev = q;
+    }
+    best.sqrt()
 }
 
 /// Shoelace signed area (absolute value).
@@ -1152,6 +1187,9 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     // region carries real coords (Phase 30 migration has run), use them
     // as relative offsets around the anchor instead of the ring slot.
     // ------------------------------------------------------------------
+    // v4.32.0 (TASK-035): cross-layout island registry — islands from
+    // DIFFERENT countries sharing a sea may never overlap each other.
+    let mut placed_islands: Vec<(f64, f64)> = Vec::new();
     for layout in &mut layouts {
         let n = layout.regions.len();
         let ring_plan = ring_layout(n.saturating_sub(1));
@@ -1327,6 +1365,35 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                         }
                     }
                 }
+                // v4.32.0 (TASK-035): an island must also clear the
+                // shoreline by its FULL blob radius (≤ REGION_SPACING
+                // jittered ×1.25) so it never touches the mainland, and
+                // sit ≥ 2.6 spacings from every other island (any
+                // country) so blobs never overlap. Push out / skip on
+                // violation — a skipped candidate stays a land region.
+                let min_shore = REGION_SPACING * 1.35;
+                if dist_to_polygon(site_out, &layout.continent_boundary) < min_shore {
+                    let cc = polygon_centroid(&layout.continent_boundary);
+                    let dx = site_out.0 - cc.0;
+                    let dy = site_out.1 - cc.1;
+                    let len = (dx * dx + dy * dy).sqrt().max(1e-9);
+                    let (ux, uy) = (dx / len, dy / len);
+                    let step = (REGION_SPACING * 0.2).max(0.05);
+                    let mut guard = 0;
+                    while dist_to_polygon(site_out, &layout.continent_boundary) < min_shore
+                        && guard < 64
+                    {
+                        site_out = (site_out.0 + ux * step, site_out.1 + uy * step);
+                        guard += 1;
+                    }
+                }
+                let min_isle2 = (REGION_SPACING * 2.6).powi(2);
+                if placed_islands.iter().any(|&(ix, iy)| {
+                    (ix - site_out.0).powi(2) + (iy - site_out.1).powi(2) < min_isle2
+                }) {
+                    continue;
+                }
+                placed_islands.push(site_out);
                 layout.sites[i] = site_out;
                 layout.islands.insert(i);
                 taken += 1;
@@ -2064,6 +2131,22 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
     // ------------------------------------------------------------------
     let mut water_bodies: Vec<WaterBodyDto> = Vec::new();
     {
+        // v4.32.0 (TASK-035): live region→owner lookup for littoral sets.
+        let region_owner: std::collections::HashMap<String, String> = layouts
+            .iter()
+            .flat_map(|l| l.regions.iter())
+            .map(|r| (r.id.clone(), r.owner_country.clone()))
+            .collect();
+        let littoral = |ids: &[String]| -> Vec<String> {
+            let mut v: Vec<String> = ids
+                .iter()
+                .filter_map(|id| region_owner.get(id).cloned())
+                .collect();
+            v.sort();
+            v.dedup();
+            v
+        };
+
         // 1 world-map unit ≈ 20 km — a ~10-unit region cell reads as a
         // ~200 km province; seas land in the 100–400k km² band.
         const KM2_PER_UNIT2: f64 = 400.0;
@@ -2149,6 +2232,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 .unwrap_or_default();
             bordering.sort();
             bordering.dedup();
+            let littoral_set = littoral(&bordering);
             let boundary_raw: Vec<(f64, f64)> =
                 sea_boundary.iter().map(|p| (p.x, p.y)).collect();
             water_bodies.push(WaterBodyDto {
@@ -2163,6 +2247,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 depth_m: depth,
                 navigable: true,
                 bordering_regions: bordering,
+                littoral_countries: littoral_set,
                 continent: c as i64,
                 boundary: std::mem::take(&mut sea_boundary),
             });
@@ -2225,6 +2310,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                 area_km2: ocean_area * KM2_PER_UNIT2,
                 depth_m: 3800.0 + hash_unit("ocean-depth-world", 43) * 2200.0,
                 navigable: true,
+                littoral_countries: littoral(&all_coastal),
                 bordering_regions: all_coastal,
                 continent: -1,
                 boundary: ocean_pts,
@@ -2266,6 +2352,7 @@ pub fn build_world_map(state: &GameState) -> WorldMapSnapshot {
                     8.0 + hash_unit(&format!("d-{}", f.region_id), 47) * 110.0
                 },
                 navigable: is_sea,
+                littoral_countries: littoral(std::slice::from_ref(&f.region_id)),
                 bordering_regions: vec![f.region_id.clone()],
                 continent: -1,
             });

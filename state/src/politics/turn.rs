@@ -1535,12 +1535,35 @@ pub fn check_snap_election(country: &mut Country, current_turn: u32) -> Vec<Stri
         .filter(|p| p.support > 0.0 && p.leader.name != "Provisional Technocratic Government")
         .count();
 
-    if (has_provisional || real_parties < 2) && country.politics.years_to_elections > 0 {
+    // v4.32.0 (TASK-036): a snap trigger no longer fires the election
+    // instantaneously — it arms a 3-turn Snap Campaign Phase
+    // (`ActiveCampaign`) during which parties spend war-chest cash on
+    // rallies/ads/smears (populating `campaign_executions` and swinging
+    // support). `run_election_if_due` defers while a campaign is live and
+    // executes once the campaign resolves to ElectionDay.
+    const SNAP_CAMPAIGN_TURNS: u32 = 3;
+    let already_campaigning = matches!(
+        country.politics.election_state,
+        super::campaign::ElectionState::PreCampaign { .. }
+            | super::campaign::ElectionState::ActiveCampaign { .. }
+    );
+
+    if (has_provisional || real_parties < 2)
+        && country.politics.years_to_elections > 0
+        && !already_campaigning
+    {
         country.politics.years_to_elections = 0;
         country.politics.last_snap_election_turn = current_turn;
-        messages.push(
-            "[SNAP ELECTION] Forced election to break provisional government deadlock.".to_string(),
-        );
+        country.politics.scheduled_election_turn = current_turn + SNAP_CAMPAIGN_TURNS;
+        country.politics.turns_until_election = SNAP_CAMPAIGN_TURNS;
+        country.politics.election_state = super::campaign::ElectionState::ActiveCampaign {
+            turns_remaining: SNAP_CAMPAIGN_TURNS,
+            current_turn,
+        };
+        messages.push(format!(
+            "[SNAP ELECTION] Forced election to break provisional government deadlock — {}-turn snap campaign begins.",
+            SNAP_CAMPAIGN_TURNS
+        ));
     }
 
     messages
@@ -1566,6 +1589,18 @@ pub fn run_election_if_due(
         || (country.politics.minority_government && unrest > 40.0);
 
     if !election_due {
+        return messages;
+    }
+
+    // v4.32.0 (TASK-036): while a campaign phase is live the election is
+    // pending but NOT yet executed — parties still get their remaining
+    // campaign turns. Execution fires once the state machine reaches
+    // ElectionDay/PostElectionResolution or goes Idle.
+    if matches!(
+        country.politics.election_state,
+        super::campaign::ElectionState::PreCampaign { .. }
+            | super::campaign::ElectionState::ActiveCampaign { .. }
+    ) {
         return messages;
     }
 

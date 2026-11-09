@@ -1315,6 +1315,232 @@
       "completed_at": "2026-11-03T23:15:34.917Z",
       "completed_by": "agent-5",
       "verify_report": ".devin/tasks/results/TASK-032.verify.json"
+    },
+    {
+      "id": "TASK-033",
+      "title": "Fix 9.24B population overflow + turn-120 crash + Save/Load (.gss) + autosave settings",
+      "status": "DONE",
+      "priority": 30,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-033.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/io/runtime_save.rs",
+        "state/src/io/mod.rs",
+        "state/src/engine/turn_context.rs",
+        "state/src/military/combat.rs",
+        "state/src/military/pows.rs",
+        "state/src/military/war_bridge.rs",
+        "state/src/military/turn.rs",
+        "state/tests/v4320_release_gates.rs",
+        "state/tests/epics/v4320_pop_diagnostic.rs",
+        "src-tauri/src/commands/actions.rs",
+        "src-tauri/src/state.rs",
+        "src-tauri/src/main.rs"
+      ],
+      "required_ui_files": [
+        "src/App.tsx",
+        "src/components/SettingsModal.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/App.tsx",
+          "pattern": "SettingsModal|Settings|SaveGame|save_game|Save / Load|SaveLoad",
+          "desc": "Save/Load & settings entry in sidebar footer"
+        },
+        {
+          "file": "src/components/SettingsModal.tsx",
+          "pattern": "[Aa]utosave|auto_?save",
+          "desc": "Autosave toggle + interval selector"
+        },
+        {
+          "file": "src/components/SettingsModal.tsx",
+          "pattern": "listSaves|loadGame|saveGame|save_name|slot",
+          "desc": "Save slots list + load/save actions"
+        }
+      ],
+      "created_at": "2026-11-09T00:00:00Z",
+      "updated_at": "2026-11-09T19:43:08.797Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-034",
+      "title": "Accrual accounting (zasada memoriałowa) + Polish UoR expandable balance sheet + shareholder donut + SpreadsheetML export",
+      "status": "DONE",
+      "priority": 31,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-034.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/corporate/manager.rs",
+        "state/src/ui/snapshot.rs",
+        "state/src/engine/turn.rs",
+        "src-tauri/src/commands/bank_queries.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/CompaniesPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/CompaniesPage.tsx",
+          "pattern": "AKTYWA|PASYWA|Aktywa|Zapasy|Kapita",
+          "desc": "UoR bilingual balance sheet sections"
+        },
+        {
+          "file": "src/pages/CompaniesPage.tsx",
+          "pattern": "Raw Materials|Materia|Semi-Finished|Finished|Inventory",
+          "desc": "Inventory subcategories"
+        },
+        {
+          "file": "src/pages/CompaniesPage.tsx",
+          "pattern": "SpreadsheetML|schemas-microsoft|mso-application|Workbook",
+          "desc": "Excel 2003 XML export"
+        },
+        {
+          "file": "src/pages/CompaniesPage.tsx",
+          "pattern": "shareholder|Shareholder|stake|donut|Pie",
+          "desc": "Shareholder structure donut chart"
+        },
+        {
+          "file": "src/pages/CompaniesPage.tsx",
+          "pattern": "T9|T1|turn|expand",
+          "desc": "Real turn labels + expandable rows"
+        }
+      ],
+      "created_at": "2026-11-09T00:00:00Z",
+      "updated_at": "2026-11-09T19:43:08.797Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-035",
+      "title": "Victoria-3 full-bleed map, named sea zones, territorial waters/EEZ, island fixes, clickable frontlines, cession mini-map",
+      "status": "DONE",
+      "priority": 32,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-035.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/ui/snapshot_map.rs",
+        "state/src/engine/generator/mod.rs"
+      ],
+      "required_ui_files": [
+        "src/components/map/WorldMapSvg.tsx",
+        "src/pages/MapPage.tsx",
+        "src/components/map/MiniMap.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/MapPage.tsx",
+          "pattern": "100vh|full|inset-0|flex-1",
+          "desc": "Full-bleed map layout"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "sea_?zone|SeaZone|territorial|eez|EEZ|waters",
+          "desc": "Named sea zones + territorial waters bands"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "frontline|Frontline|front_",
+          "desc": "Clickable frontline arcs"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "owner_country|ownerCountry|owner",
+          "desc": "Tooltip uses live owner"
+        },
+        {
+          "file": "src/components/map/MiniMap.tsx",
+          "pattern": "before|after|transferred|victor|defender",
+          "desc": "Before/after cession coloring"
+        }
+      ],
+      "created_at": "2026-11-09T00:00:00Z",
+      "updated_at": "2026-11-09T19:43:08.797Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-036",
+      "title": "Snap-election 3-turn campaign phase + dynamic party polling swings",
+      "status": "DONE",
+      "priority": 33,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-036.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/politics/turn.rs",
+        "state/src/politics/campaign.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/ParliamentPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/ParliamentPage.tsx",
+          "pattern": "campaign|Campaign",
+          "desc": "Campaign actions table populated"
+        },
+        {
+          "file": "src/pages/ParliamentPage.tsx",
+          "pattern": "snap|Snap|phase|Phase",
+          "desc": "Snap campaign phase indicator"
+        }
+      ],
+      "created_at": "2026-11-09T00:00:00Z",
+      "updated_at": "2026-11-09T19:43:08.797Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-037",
+      "title": "Military commander ranks in VIPs + commander attribution in wars/battles",
+      "status": "DONE",
+      "priority": 34,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-037.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/src/ui/snapshot.rs",
+        "state/src/politics/vip_registry.rs",
+        "state/src/politics/succession.rs"
+      ],
+      "required_ui_files": [
+        "src/pages/VipsPage.tsx",
+        "src/pages/MilitaryPage.tsx"
+      ],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/pages/VipsPage.tsx",
+          "pattern": "[Rr]ank|Marshal|Genera|Admiral|Pu",
+          "desc": "Rank field + badge in VIP explorer"
+        },
+        {
+          "file": "src/pages/MilitaryPage.tsx",
+          "pattern": "commander|Commander|rank|Rank",
+          "desc": "Commanders in war + battle headers"
+        }
+      ],
+      "created_at": "2026-11-09T00:00:00Z",
+      "updated_at": "2026-11-09T19:43:08.797Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-038",
+      "title": "v4.32.0 release gates + version bump + merge/tag/push",
+      "status": "PENDING",
+      "priority": 35,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-038.md",
+      "base_ref": "origin/main",
+      "required_rust_files": [
+        "state/tests/v4320_release_gates.rs",
+        "state/Cargo.toml",
+        "package.json"
+      ],
+      "required_ui_files": [],
+      "ui_ast_grep_checks": [],
+      "created_at": "2026-11-09T00:00:00Z",
+      "updated_at": "2026-11-09T00:00:00Z",
+      "verify_history": []
     }
   ]
 }

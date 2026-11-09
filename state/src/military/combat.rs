@@ -339,7 +339,15 @@ pub fn process_wounded(
 /// Process dead soldiers with demographic routing.
 ///
 /// # Arguments
-/// * `casualties` - Casualties with demographic breakdown
+/// * `casualties` - Casualties with demographic breakdown (used for the
+///   proportional class split only)
+/// * `dead_total` - Total headcount to remove from the region's classes:
+///   battle dead plus wounded who died untreated. v4.32.0 (TASK-033):
+///   previously this wrote the WHOLE `demographic_breakdown` (dead +
+///   wounded + deserters) as losses, and `process_deserters` re-added the
+///   same full breakdown — whenever a class was drained below its share
+///   the `.max(0)` clamp ate the debit but the credit landed in full,
+///   minting population out of thin air every battle (~8%/turn → 9.24B).
 /// * `region_demographics` - Mutable reference to region demographics
 /// * `region_name` - Region name for messaging
 ///
@@ -351,34 +359,55 @@ pub fn process_wounded(
 /// * Dead are permanently removed from demographics
 pub fn process_dead(
     casualties: &Casualties,
+    dead_total: i64,
     region_demographics: &mut BTreeMap<RuralClass, ClassDemographics>,
     region_name: &str,
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
-    if casualties.dead <= 0 {
+    if dead_total <= 0 {
         return messages;
     }
 
-    // Deduct dead from demographic classes
-    for (rural_class, &dead_count) in &casualties.demographic_breakdown {
-        if let Some(class_demographics) = region_demographics.get_mut(rural_class) {
-            class_demographics.population = (class_demographics.population - dead_count).max(0);
+    // Deduct dead from demographic classes, split by the origin-class
+    // proportions carried in the breakdown.
+    let breakdown_total: i64 = casualties.demographic_breakdown.values().sum();
+    if breakdown_total > 0 {
+        let scale = dead_total as f64 / breakdown_total as f64;
+        for (rural_class, &count) in &casualties.demographic_breakdown {
+            let share = (count as f64 * scale) as i64;
+            if share > 0 {
+                if let Some(class_demographics) = region_demographics.get_mut(rural_class) {
+                    class_demographics.population =
+                        (class_demographics.population - share).max(0);
+                }
+            }
+        }
+    } else {
+        // No class attribution — deduct from the largest class.
+        if let Some(demo) = region_demographics.values_mut().max_by_key(|d| d.population) {
+            demo.population = (demo.population - dead_total).max(0);
         }
     }
 
     messages.push(format!(
         "[CASUALTIES] In region {} {} soldiers killed",
-        region_name, casualties.dead
+        region_name, dead_total
     ));
 
     messages
 }
 
-/// Process deserters with demographic routing.
+/// Process returning soldiers (deserters + healed wounded) with
+/// demographic routing.
 ///
 /// # Arguments
-/// * `casualties` - Casualties with demographic breakdown
+/// * `casualties` - Casualties with demographic breakdown (proportions only)
+/// * `return_total` - Total headcount rejoining civilian classes:
+///   deserters + treated wounded, minus anyone captured as POW.
+///   v4.32.0 (TASK-033): the old code credited the FULL casualty
+///   breakdown — effectively resurrecting the dead — which compounded
+///   with the asymmetric dead-pass clamp into exponential growth.
 /// * `region_demographics` - Mutable reference to region demographics
 /// * `region_name` - Region name for messaging
 ///
@@ -386,29 +415,50 @@ pub fn process_dead(
 /// messages
 ///
 /// # Rules
-/// * Deserters return to their original demographic classes (population added back)
+/// * Returnees go back to their original demographic classes
 /// * Desertion spikes social_unrest
 pub fn process_deserters(
     casualties: &Casualties,
+    return_total: i64,
     region_demographics: &mut BTreeMap<RuralClass, ClassDemographics>,
     region_name: &str,
 ) -> Vec<String> {
     let mut messages = Vec::new();
 
-    if casualties.deserters <= 0 {
+    if return_total <= 0 {
         return messages;
     }
 
-    // Deserters return to their original classes — add them back to population
-    for (rural_class, &deserter_count) in &casualties.demographic_breakdown {
-        if let Some(class_demographics) = region_demographics.get_mut(rural_class) {
-            class_demographics.population += deserter_count;
+    // Returnees rejoin their origin classes in proportion to the
+    // casualty demographic breakdown.
+    let breakdown_total: i64 = casualties.demographic_breakdown.values().sum();
+    if breakdown_total > 0 {
+        let scale = return_total as f64 / breakdown_total as f64;
+        for (rural_class, &count) in &casualties.demographic_breakdown {
+            let share = (count as f64 * scale) as i64;
+            if share > 0 {
+                if let Some(class_demographics) = region_demographics.get_mut(rural_class) {
+                    class_demographics.population += share;
+                }
+            }
         }
+    } else if let Some(demo) =
+        region_demographics.values_mut().max_by_key(|d| d.population)
+    {
+        demo.population += return_total;
     }
 
+    if return_total > 100_000 {
+        eprintln!(
+            "POPTRACE deserter_credit region={} total={} breakdown_total={}",
+            region_name,
+            return_total,
+            casualties.demographic_breakdown.values().sum::<i64>()
+        );
+    }
     messages.push(format!(
         "[DESERTION] In region {} {} soldiers deserted (return to society)",
-        region_name, casualties.deserters
+        region_name, return_total
     ));
     messages.push(format!(
         "[UNREST] Desertion in {} increases social unrest",
