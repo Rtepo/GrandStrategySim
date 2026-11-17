@@ -74,7 +74,7 @@ export function VipHoverCard({ vipId, children, className }: VipHoverCardProps) 
       {children}
       {visible && (
         <div
-          className="absolute z-50 left-0 top-full mt-1 w-64 bg-card border border-border rounded shadow-xl p-3 text-xs space-y-1"
+          className="absolute z-50 left-0 top-full mt-1 w-64 win95-window p-2 text-xs space-y-1"
           onMouseEnter={show}
           onMouseLeave={hide}
           onClick={(e) => e.stopPropagation()}

@@ -130,15 +130,16 @@ export function MapPage() {
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-xl font-bold text-foreground">
-          World Map <span className="text-sm font-normal text-muted-foreground">— turn {snapshot.turn}</span>
-        </h2>
+        <div className="win95-titlebar">
+          <span>WORLD MAP — TURN {snapshot.turn}</span>
+          <span className="win95-close-btn">X</span>
+        </div>
         <div className="flex items-center gap-1">
           {MODES.map((m) => (
             <button
               key={m.value}
               onClick={() => setMode(m.value)}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5   text-xs font-medium transition-colors ${
                 mode === m.value
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -178,7 +179,7 @@ export function MapPage() {
           <CardContent className="p-0">
             {/* v4.32.0 (TASK-035): near full-bleed viewport — the map fills
                 the available window height (Victoria-3 style). */}
-            <div className="overflow-auto h-[calc(100vh-220px)] min-h-[420px] rounded-md bg-[#0f2739]">
+            <div className="overflow-auto h-[calc(100vh-220px)] min-h-[420px]   bg-[#0f2739]">
               <div style={{ width: `${zoom * 100}%`, minWidth: "100%" }}>
                 <WorldMapSvg
                   snapshot={snapshot}
@@ -213,7 +214,7 @@ export function MapPage() {
               {legend.map((l) => (
                 <span key={l.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <span
-                    className="inline-block w-3 h-3 rounded-sm border border-border"
+                    className="inline-block w-3 h-3   border border-border"
                     style={{ backgroundColor: l.color }}
                   />
                   {l.label}

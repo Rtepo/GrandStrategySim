@@ -30,7 +30,7 @@ const FactionalDomainsPage: React.FC = () => {
 
   return (
     <div className="factional-domains-page">
-      <h1>Factional Domains</h1>
+      <div className="win95-titlebar mb-2"><span>FACTIONAL DOMAINS</span><span className="win95-close-btn">X</span></div>
       <p className="page-description">
         Dynamic faction-controlled legal/economic overlays on parcels within regions.
       </p>

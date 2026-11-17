@@ -218,7 +218,7 @@ export function RegionParcelGrid({
       )}
       <svg
         viewBox={`0 0 1000 560`}
-        className="w-full h-64 rounded bg-[#0f1d2b] border border-border"
+        className="w-full h-64   bg-[#0f1d2b] border border-border"
       >
         {/* v4.30.0 (TASK-022): the organic region contour the parcels are
             clipped inside — the map no longer renders as a rectangle. */}
@@ -253,7 +253,7 @@ export function RegionParcelGrid({
         {[...present.entries()].map(([cls, label]) => (
           <span key={cls} className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span
-              className="inline-block w-3 h-3 rounded-sm border border-border"
+              className="inline-block w-3 h-3   border border-border"
               style={{ backgroundColor: legendColor(cls) }}
             />
             {label}
@@ -261,7 +261,7 @@ export function RegionParcelGrid({
         ))}
       </div>
       {selectedParcel && (
-        <div className="grid grid-cols-4 gap-2 text-xs border border-border rounded p-2">
+        <div className="grid grid-cols-4 gap-2 text-xs border border-border   p-2">
           <div><span className="text-muted-foreground">Parcel:</span> {selectedParcel.display_name ?? selectedParcel.id}</div>
           <div><span className="text-muted-foreground">Zoning:</span> {PARCEL_USE_LABELS[selectedParcel.use_class] ?? selectedParcel.zoning}</div>
           <div><span className="text-muted-foreground">Terrain:</span> {PARCEL_TERRAIN_LABELS[selectedParcel.terrain] ?? selectedParcel.terrain}</div>

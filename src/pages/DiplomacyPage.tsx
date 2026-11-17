@@ -196,7 +196,7 @@ export function DiplomacyPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Diplomacy — {selectedCountry}</h2>
+      <div className="win95-titlebar mb-2"><span>Diplomacy — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
 
       {/* Bilateral Relations */}
       <Card>
@@ -266,7 +266,7 @@ export function DiplomacyPage() {
                       {d.mission_type ?? "Assigned"}
                     </TableCell>
                     <TableCell>
-                      <div className="h-1.5 w-16 rounded bg-muted overflow-hidden">
+                      <div className="h-3 w-16 win95-inset overflow-hidden p-0">
                         <div
                           className={`h-full ${d.post_type === "Spy" ? "bg-red-500" : "bg-blue-500"}`}
                           style={{ width: `${Math.round((d.mission_progress ?? 0) * 100)}%` }}
@@ -357,13 +357,13 @@ export function DiplomacyPage() {
         <CardContent className="space-y-3">
           <div className="flex gap-2 items-center text-sm">
             <input
-              className="border border-border rounded px-2 py-1 bg-background w-48"
+              className="border border-border   px-2 py-1 bg-background w-48"
               placeholder="Search treaties..."
               value={treatySearch}
               onChange={(e) => setTreatySearch(e.target.value)}
             />
             <select
-              className="border border-border rounded px-2 py-1 bg-background"
+              className="border border-border   px-2 py-1 bg-background"
               value={treatyStatusFilter}
               onChange={(e) => setTreatyStatusFilter(e.target.value)}
             >
@@ -484,7 +484,7 @@ export function DiplomacyPage() {
                           <span className="text-xs font-semibold text-red-500">ACTIVE WAR</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">T{w.start_turn}</TableCell>
+                      <TableCell className="text-right win95-mono">T{w.start_turn}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -497,7 +497,7 @@ export function DiplomacyPage() {
                   {diplomacy?.tensions?.slice(0, 8).map((t, i) => (
                     <div key={i} className="text-xs flex items-center gap-2">
                       <span className="w-56 truncate">{t.country_a} ↔ {t.country_b}</span>
-                      <div className="flex-1 h-1.5 rounded bg-muted overflow-hidden">
+                      <div className="flex-1 h-3 win95-inset overflow-hidden p-0">
                         <div
                           className={t.level > 60 ? "h-full bg-red-500" : "h-full bg-amber-500"}
                           style={{ width: `${Math.min(t.level, 100)}%` }}
@@ -520,7 +520,7 @@ export function DiplomacyPage() {
         <CardContent className="space-y-4">
           {diplomacy?.organizations && diplomacy.organizations.length > 0 ? (
             diplomacy.organizations.map((org) => (
-              <div key={org.id} className="space-y-2 border border-border rounded p-3">
+              <div key={org.id} className="space-y-2 border border-border   p-3">
                 <div className="flex flex-wrap gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Name: </span>
@@ -667,18 +667,18 @@ function AssemblyResolutionRow({ directive }: { directive: DirectiveRow }) {
             {directive.status}
           </span>
         </TableCell>
-        <TableCell className="text-right text-xs">
+        <TableCell className="text-right win95-mono text-xs">
           <span className="text-green-400">{directive.votes_for}</span>
           <span className="text-muted-foreground"> · </span>
           <span className="text-red-400">{directive.votes_against}</span>
           <span className="text-muted-foreground"> · </span>
           <span className="text-muted-foreground">{directive.votes_abstain}</span>
         </TableCell>
-        <TableCell className="text-right text-xs">T{directive.enacted_turn}</TableCell>
+        <TableCell className="text-right win95-mono text-xs">T{directive.enacted_turn}</TableCell>
       </TableRow>
       {open && (
         <TableRow>
-          <TableCell colSpan={4} className="bg-muted/20">
+          <TableCell colSpan={4} className="win95-inset-grey">
             {/* v4.27.0 TASK-008: full resolution detail — description,
                 statutory rules, economic effects, funding source. */}
             {directive.description && (

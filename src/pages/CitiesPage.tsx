@@ -30,7 +30,7 @@ const CitiesPage: React.FC = () => {
 
   return (
     <div className="cities-page">
-      <h1>City Regions</h1>
+      <div className="win95-titlebar mb-2"><span>CITY REGIONS</span><span className="win95-close-btn">X</span></div>
       <p className="page-description">
         Independent City Regions emancipated from rural parent regions via the urbanization cycle.
         Cities can annex adjacent parcels to expand their commercial and industrial zoning.

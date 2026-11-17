@@ -25,7 +25,7 @@ export function EnergyPage() {
   return (
     <div className="flex flex-col gap-4 p-6">
       <div>
-        <h1 className="text-2xl font-bold">Energy Grid</h1>
+        <div className="win95-titlebar mb-2"><span>ENERGY GRID</span><span className="win95-close-btn">X</span></div>
         <p className="text-sm text-muted-foreground mt-1">
           Physical grid infrastructure, generation mix, and load shedding status.
           {snapshot.is_classified && (
@@ -73,7 +73,7 @@ export function EnergyPage() {
       </div>
 
       {/* Active Power Plants */}
-      <div className="border rounded-lg p-4">
+      <div className="border   p-4">
         <h2 className="text-lg font-semibold mb-3">Active Power Plants</h2>
         {snapshot.active_power_plants.length === 0 ? (
           <p className="text-sm text-muted-foreground">No power plants detected.</p>
@@ -102,7 +102,7 @@ export function EnergyPage() {
       </div>
 
       {/* Generation Mix */}
-      <div className="border rounded-lg p-4">
+      <div className="border   p-4">
         <h2 className="text-lg font-semibold mb-3">Generation Mix</h2>
         {snapshot.generation_mix.length === 0 ? (
           <p className="text-sm text-muted-foreground">No generation data available.</p>
@@ -111,9 +111,9 @@ export function EnergyPage() {
             {snapshot.generation_mix.map((g) => (
               <div key={g.plant_type} className="flex items-center gap-3">
                 <span className="text-sm w-40">{formatPlantType(g.plant_type)}</span>
-                <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
+                <div className="flex-1 win95-inset h-4 overflow-hidden p-0">
                   <div
-                    className="bg-primary h-full rounded-full"
+                    className="bg-primary h-full  "
                     style={{ width: `${Math.min(g.fraction * 100, 100)}%` }}
                   />
                 </div>
@@ -125,7 +125,7 @@ export function EnergyPage() {
       </div>
 
       {/* Regional Energy Info */}
-      <div className="border rounded-lg p-4">
+      <div className="border   p-4">
         <h2 className="text-lg font-semibold mb-3">Regional Energy</h2>
         {snapshot.regions.length === 0 ? (
           <p className="text-sm text-muted-foreground">No regional data available.</p>
@@ -179,7 +179,7 @@ export function EnergyPage() {
 
       {/* Interconnector Flows (only for domestic observers) */}
       {!snapshot.is_classified && (
-        <div className="border rounded-lg p-4">
+        <div className="border   p-4">
           <h2 className="text-lg font-semibold mb-3">Interconnector Flows</h2>
           {snapshot.interconnector_flows.length === 0 ? (
             <p className="text-sm text-muted-foreground">No HV interconnectors.</p>
@@ -237,7 +237,7 @@ function StatCard({
           ? "text-green-600"
           : "";
   return (
-    <div className="border rounded-lg p-3">
+    <div className="border   p-3">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className={`text-lg font-semibold ${color}`}>{value}</div>
     </div>
@@ -248,7 +248,7 @@ function TierBadge({ tier }: { tier: string }) {
   const isNormal = tier === "Normal";
   return (
     <span
-      className={`px-2 py-0.5 rounded text-xs font-medium ${
+      className={`px-2 py-0.5   text-xs font-medium ${
         isNormal
           ? "bg-green-100 text-green-700"
           : "bg-red-100 text-red-700"

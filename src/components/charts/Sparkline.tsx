@@ -115,12 +115,12 @@ export function Sparkline({
         className="cursor-pointer"
       />
       {pinned && (
-        <div className="absolute top-0 right-0 flex items-center gap-1 bg-primary/10 rounded-bl px-1 py-0.5">
+        <div className="absolute top-0 right-0 flex items-center gap-1 bg-primary/10   px-1 py-0.5">
           <Pin size={10} className="text-primary" />
         </div>
       )}
       {!pinned && data.length > 0 && (
-        <div className="absolute top-0 right-0 flex items-center gap-1 bg-muted/30 rounded-bl px-1 py-0.5 opacity-0 hover:opacity-100 transition-opacity">
+        <div className="absolute top-0 right-0 flex items-center gap-1 bg-muted/30   px-1 py-0.5 opacity-0 hover:opacity-100 transition-opacity">
           <PinOff size={10} className="text-muted-foreground" />
         </div>
       )}

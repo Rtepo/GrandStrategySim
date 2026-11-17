@@ -19,7 +19,7 @@ export function FinancePage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Finance — {selectedCountry}</h2>
+      <div className="win95-titlebar mb-2"><span>Finance — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
 
       <div className="grid grid-cols-3 gap-4">
         <Card>
@@ -91,8 +91,8 @@ export function FinancePage() {
                   finance.ministry_expenditure_breakdown.map((e) => (
                     <TableRow key={e.category}>
                       <TableCell className="font-medium text-sm">{e.category}</TableCell>
-                      <TableCell className="text-right text-sm">{fmt(e.amount)}</TableCell>
-                      <TableCell className="text-right text-sm text-muted-foreground">{e.share_pct.toFixed(1)}%</TableCell>
+                      <TableCell className="text-right win95-mono text-sm">{fmt(e.amount)}</TableCell>
+                      <TableCell className="text-right win95-mono text-sm text-muted-foreground">{e.share_pct.toFixed(1)}%</TableCell>
                     </TableRow>
                   ))
                 ) : (

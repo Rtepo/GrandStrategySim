@@ -10,22 +10,22 @@ export function Tabs({ tabs, defaultValue }: TabsProps) {
 
   return (
     <div>
-      <div className="flex flex-wrap border-b border-border mb-4">
+      <div className="flex flex-wrap mb-0">
         {tabs.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setActive(tab.value)}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
-              active === tab.value
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+            className={`win95-tab text-xs font-bold uppercase whitespace-nowrap ${
+              active === tab.value ? "win95-tab-active font-bold" : ""
             }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
-      {tabs.find((t) => t.value === active)?.content}
+      <div className="win95-panel p-2">
+        {tabs.find((t) => t.value === active)?.content}
+      </div>
     </div>
   );
 }

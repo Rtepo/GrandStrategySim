@@ -39,13 +39,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           </div>
           <details className="text-xs text-muted-foreground max-w-lg">
             <summary className="cursor-pointer select-none">Error details</summary>
-            <pre className="mt-2 p-3 bg-muted rounded overflow-auto whitespace-pre-wrap">
+            <pre className="mt-2 p-3 bg-muted   overflow-auto whitespace-pre-wrap">
               {this.state.error?.message ?? "Unknown error"}
             </pre>
           </details>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
-            className="px-4 py-2 rounded bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
+            className="px-4 py-2   bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
           >
             Try Again
           </button>

@@ -118,7 +118,7 @@ export function RegionsPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Regions — {selectedCountry}</h2>
+      <div className="win95-titlebar mb-2"><span>Regions — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
 
       {/* v4.26.0 TASK-002: top canvas toggles — country mini-map by
           default, cadastral parcel grid while a region is selected. */}
@@ -131,7 +131,7 @@ export function RegionsPage() {
                 <button
                   key={m.value}
                   onClick={() => setCountryMapMode(m.value)}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                  className={`px-2.5 py-1   text-xs font-medium transition-colors ${
                     countryMapMode === m.value
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground hover:bg-accent"
@@ -150,7 +150,7 @@ export function RegionsPage() {
             <div className="flex flex-wrap gap-x-4 gap-y-0.5 mb-1 text-[11px] text-muted-foreground">
               {countryMapMode === "infrastructure" && (
                 <>
-                  <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-[#f8fafc] border border-border" /> City (scaled by urban pop)</span>
+                  <span className="flex items-center gap-1"><span className="inline-block w-2 h-2   bg-[#f8fafc] border border-border" /> City (scaled by urban pop)</span>
                   <span>┅ road artery</span>
                   <span>━ rail artery</span>
                 </>
@@ -197,7 +197,7 @@ export function RegionsPage() {
                   the same continent (lost regions + other countries);
                   roads/cities render only on currently owned regions. */}
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span className="inline-block w-3 h-3 rounded-sm border border-border" style={{ backgroundColor: "#1e293b" }} />
+                <span className="inline-block w-3 h-3   border border-border" style={{ backgroundColor: "#1e293b" }} />
                 Foreign territory (not owned)
               </div>
               {waterDetail && (
@@ -258,9 +258,9 @@ export function RegionsPage() {
                             }}
                           >
                             <TableCell colSpan={2} className="font-bold">{mega}</TableCell>
-                            <TableCell className="text-right">{num(totalPop)}</TableCell>
-                            <TableCell className="text-right">{fmt(totalGdp)}</TableCell>
-                            <TableCell className="text-right" colSpan={2}>
+                            <TableCell className="text-right win95-mono">{num(totalPop)}</TableCell>
+                            <TableCell className="text-right win95-mono">{fmt(totalGdp)}</TableCell>
+                            <TableCell className="text-right win95-mono" colSpan={2}>
                               <span className={megaNetMig > 0 ? "text-green-500" : megaNetMig < 0 ? "text-red-400" : ""}>
                                 {megaNetMig > 0 ? "+" : ""}{num(megaNetMig)}
                               </span>
@@ -280,12 +280,12 @@ export function RegionsPage() {
                             >
                               <TableCell className="font-medium pl-6">{r.display_name ?? r.id ?? "—"}</TableCell>
                               <TableCell className="text-xs">{r.megaregion ?? "—"}</TableCell>
-                              <TableCell className="text-right">{num(r.population ?? 0)}</TableCell>
-                              <TableCell className="text-right">{fmt(r.regional_gdp ?? 0)}</TableCell>
-                              <TableCell className="text-right">{fmt(r.gdp_per_capita ?? 0)}</TableCell>
+                              <TableCell className="text-right win95-mono">{num(r.population ?? 0)}</TableCell>
+                              <TableCell className="text-right win95-mono">{fmt(r.regional_gdp ?? 0)}</TableCell>
+                              <TableCell className="text-right win95-mono">{fmt(r.gdp_per_capita ?? 0)}</TableCell>
                               {/* v4.27.0 TASK-006: regional migration balance —
                                   in/out counts in the tooltip. */}
-                              <TableCell className="text-right" title={`In: ${num(r.migration_in ?? 0)} · Out: ${num(r.migration_out ?? 0)}`}>
+                              <TableCell className="text-right win95-mono" title={`In: ${num(r.migration_in ?? 0)} · Out: ${num(r.migration_out ?? 0)}`}>
                                 <span className={Number(r.net_migration ?? 0) > 0 ? "text-green-500" : Number(r.net_migration ?? 0) < 0 ? "text-red-400" : ""}>
                                   {Number(r.net_migration ?? 0) > 0 ? "+" : ""}{num(r.net_migration ?? 0)}
                                 </span>
@@ -762,18 +762,18 @@ function CouncilResolutions({
                       </div>
                     </TableCell>
                     <TableCell><Badge variant={councilStatusVariant(r.status)}>{r.status}</Badge></TableCell>
-                    <TableCell className="text-right text-xs">
+                    <TableCell className="text-right win95-mono text-xs">
                       <span className="text-green-400">{r.votes_for}</span>
                       <span className="text-muted-foreground"> · </span>
                       <span className="text-red-400">{r.votes_against}</span>
                       <span className="text-muted-foreground"> · </span>
                       <span className="text-muted-foreground">{r.abstentions}</span>
                     </TableCell>
-                    <TableCell className="text-right text-xs">T{r.turn}</TableCell>
+                    <TableCell className="text-right win95-mono text-xs">T{r.turn}</TableCell>
                   </TableRow>
                   {isOpen && (
                     <TableRow>
-                      <TableCell colSpan={4} className="bg-muted/20">
+                      <TableCell colSpan={4} className="win95-inset-grey">
                         <div className="space-y-2 py-1">
                           <p className="text-xs text-muted-foreground whitespace-normal break-words">
                             {r.description || resolutionFallbackDescription(r.resolution_type)}
@@ -783,7 +783,7 @@ function CouncilResolutions({
                               {factions.map((f) => (
                                 <div key={f.faction} className="text-xs">
                                   <span
-                                    className="inline-block w-2 h-2 rounded-full mr-1 align-middle"
+                                    className="inline-block w-2 h-2   mr-1 align-middle"
                                     style={{ backgroundColor: councilFactionColor(f.faction) }}
                                   />
                                   <span className="font-medium">{f.faction}</span>
@@ -896,7 +896,7 @@ function MandatesList({ mandates }: { mandates: MandateSummaryExtended[] }) {
           logLines.push(`Co-financing to date: ${(centralShare * 100).toFixed(0)}% central (${fmt(central)}) / ${((1 - centralShare) * 100).toFixed(0)}% regional (${fmt(regional)}).`);
         }
         return (
-          <div key={`${mKey}-${i}`} className="text-sm border border-border rounded p-2 space-y-1.5">
+          <div key={`${mKey}-${i}`} className="text-sm border border-border   p-2 space-y-1.5">
             <div className="font-medium whitespace-normal break-words">
               {safeStr(m.description)}
               {revisions > 1 && <Badge variant="secondary" className="ml-2">rev. {revisions}</Badge>}
@@ -923,14 +923,14 @@ function MandatesList({ mandates }: { mandates: MandateSummaryExtended[] }) {
                   {fmt(safeNum(m.disbursed))} / {fmt(safeNum(m.required_spending))} ({(progress * 100).toFixed(0)}%)
                 </span>
               </div>
-              <div className="h-1.5 mt-0.5 rounded bg-muted overflow-hidden">
+              <div className="h-1.5 mt-0.5   bg-muted overflow-hidden">
                 <div
                   className="h-full bg-primary transition-all"
                   style={{ width: `${progress * 100}%` }}
                 />
               </div>
               {coTotal > 0 && (
-                <div className="flex h-1 mt-0.5 rounded overflow-hidden">
+                <div className="flex h-1 mt-0.5   overflow-hidden">
                   <div className="bg-sky-500" style={{ width: `${centralShare * 100}%` }} />
                   <div className="bg-amber-500" style={{ width: `${(1 - centralShare) * 100}%` }} />
                 </div>

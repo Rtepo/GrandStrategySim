@@ -12,7 +12,7 @@ export function UpdateBanner({ state, onInstall, onDismiss }: UpdateBannerProps)
 
   if (state.status === "error") {
     return (
-      <div className="flex items-center gap-3 px-4 py-2 bg-destructive/10 border-b border-destructive/30 text-sm">
+      <div className="win95-panel flex items-center gap-3 px-3 py-1.5 border-b-2 border-win95-red text-xs font-bold text-win95-red">
         <AlertCircle size={16} className="text-destructive shrink-0" />
         <span className="text-destructive flex-1">Update check failed: {state.error}</span>
         <button onClick={onDismiss} className="text-muted-foreground hover:text-foreground">
@@ -24,7 +24,7 @@ export function UpdateBanner({ state, onInstall, onDismiss }: UpdateBannerProps)
 
   if (state.status === "done") {
     return (
-      <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border-b border-primary/30 text-sm">
+      <div className="win95-panel flex items-center gap-3 px-3 py-1.5 border-b-2 border-win95-navy text-xs font-bold">
         <CheckCircle size={16} className="text-primary shrink-0" />
         <span className="text-foreground flex-1">Update installed. Restarting...</span>
       </div>
@@ -34,7 +34,7 @@ export function UpdateBanner({ state, onInstall, onDismiss }: UpdateBannerProps)
   const isInstalling = state.status === "downloading" || state.status === "installing";
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border-b border-primary/30 text-sm">
+    <div className="win95-panel flex items-center gap-3 px-3 py-1.5 border-b-2 border-win95-navy text-xs font-bold">
       {isInstalling ? (
         <>
           <RefreshCw size={16} className="text-primary shrink-0 animate-spin" />
@@ -44,7 +44,7 @@ export function UpdateBanner({ state, onInstall, onDismiss }: UpdateBannerProps)
               : "Installing update..."}
           </span>
           {state.status === "downloading" && (
-            <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+            <div className="w-24 h-3 win95-inset overflow-hidden p-0">
               <div
                 className="h-full bg-primary transition-all"
                 style={{ width: `${Math.round(state.progress * 100)}%` }}
@@ -60,7 +60,7 @@ export function UpdateBanner({ state, onInstall, onDismiss }: UpdateBannerProps)
           </span>
           <button
             onClick={onInstall}
-            className="px-3 py-1 rounded bg-primary text-primary-foreground text-xs font-medium hover:opacity-90"
+            className="px-3 py-0.5 text-xs font-bold uppercase"
           >
             Download & Install
           </button>

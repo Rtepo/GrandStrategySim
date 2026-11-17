@@ -64,7 +64,7 @@ export const OrganizationsPage: React.FC = () => {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Organizations</h2>
+      <div className="win95-titlebar mb-2"><span>Organizations</span><span className="win95-close-btn">X</span></div>
       <p className="text-sm text-muted-foreground">
         Consolidated view of Guilds, Trade Unions, and Political Movements.
       </p>
@@ -84,7 +84,7 @@ export const OrganizationsPage: React.FC = () => {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="border rounded px-2 py-1 bg-background text-foreground"
+          className="border   px-2 py-1 bg-background text-foreground"
         >
           <option value="all">All Categories</option>
           <option value="guild">Guilds</option>
@@ -96,7 +96,7 @@ export const OrganizationsPage: React.FC = () => {
           placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-2 py-1 bg-background text-foreground"
+          className="border   px-2 py-1 bg-background text-foreground"
         />
       </div>
 
@@ -122,7 +122,7 @@ export const OrganizationsPage: React.FC = () => {
               >
                 <td className="py-2 px-3 font-medium text-foreground">{org.name}</td>
                 <td className="py-2 px-3">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${CATEGORY_COLORS[org.category] || 'bg-gray-100'}`}>
+                  <span className={`px-2 py-0.5   text-xs font-medium ${CATEGORY_COLORS[org.category] || 'bg-win95-light'}`}>
                     {CATEGORY_LABELS[org.category] || org.category}
                   </span>
                 </td>
@@ -148,7 +148,7 @@ export const OrganizationsPage: React.FC = () => {
 
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded border border-border bg-card p-3">
+    <div className="  border border-border bg-card p-3">
       <div className="text-[11px] text-muted-foreground">{label}</div>
       <div className="text-sm font-semibold tabular-nums">{value}</div>
     </div>

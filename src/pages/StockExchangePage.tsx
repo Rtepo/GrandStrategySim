@@ -63,10 +63,10 @@ export function StockExchangePage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Stock Exchange — {selectedCountry}</h2>
+      <div className="win95-titlebar mb-2"><span>Stock Exchange — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
 
       {isHalted && (
-        <div className="bg-destructive/10 border border-destructive text-destructive rounded p-3 text-sm font-medium">
+        <div className="bg-destructive/10 border border-destructive text-destructive   p-3 text-sm font-medium">
           ⚠ TRADING HALTED — KNF has suspended all trading due to extreme market volatility.
         </div>
       )}
@@ -140,7 +140,7 @@ export function StockExchangePage() {
               placeholder="Filter by sector..."
               value={sectorFilter}
               onChange={(e) => { setSectorFilter(e.target.value); setOffset(0); }}
-              className="px-2 py-1 text-sm border border-border rounded bg-background"
+              className="px-2 py-1 text-sm border border-border   bg-background"
             />
           </div>
         </CardHeader>
@@ -175,15 +175,15 @@ export function StockExchangePage() {
                     >
                       <TableCell className="font-medium">{c.name}</TableCell>
                       <TableCell>{c.sector}</TableCell>
-                      <TableCell className="text-right">{fmt(c.share_price)}</TableCell>
+                      <TableCell className="text-right win95-mono">{fmt(c.share_price)}</TableCell>
                       <TableCell className={`text-right ${c.change_pct >= 0 ? "text-green-600" : "text-red-600"}`}>
                         {pct(c.change_pct)}
                       </TableCell>
-                      <TableCell className="text-right">{fmt(c.market_cap)}</TableCell>
-                      <TableCell className="text-right">{c.pe_ratio > 0 ? fmt(c.pe_ratio) : "—"}</TableCell>
-                      <TableCell className="text-right">{c.dividend_yield > 0 ? pct(c.dividend_yield) : "—"}</TableCell>
-                      <TableCell className="text-right">{num(c.volume)}</TableCell>
-                      <TableCell className="text-right">{fmt(c.spread)}</TableCell>
+                      <TableCell className="text-right win95-mono">{fmt(c.market_cap)}</TableCell>
+                      <TableCell className="text-right win95-mono">{c.pe_ratio > 0 ? fmt(c.pe_ratio) : "—"}</TableCell>
+                      <TableCell className="text-right win95-mono">{c.dividend_yield > 0 ? pct(c.dividend_yield) : "—"}</TableCell>
+                      <TableCell className="text-right win95-mono">{num(c.volume)}</TableCell>
+                      <TableCell className="text-right win95-mono">{fmt(c.spread)}</TableCell>
                       <TableCell>
                         <VipHoverCard vipId={c.ceo_vip_id}>{c.ceo_name || "—"}</VipHoverCard>
                       </TableCell>
@@ -341,8 +341,8 @@ function CompanyDetailPanel({
                 {detail.recent_trades.slice(0, 10).map((t, i) => (
                   <TableRow key={i}>
                     <TableCell>{t.turn}</TableCell>
-                    <TableCell className="text-right">{fmt(t.price)}</TableCell>
-                    <TableCell className="text-right">{num(t.quantity)}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(t.price)}</TableCell>
+                    <TableCell className="text-right win95-mono">{num(t.quantity)}</TableCell>
                     <TableCell className="text-xs font-mono">{t.buyer_id.slice(0, 12)}</TableCell>
                   </TableRow>
                 ))}

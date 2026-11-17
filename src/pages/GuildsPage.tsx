@@ -31,7 +31,7 @@ const GuildsPage: React.FC = () => {
 
   return (
     <div className="guilds-page">
-      <h1>Craft Guilds</h1>
+      <div className="win95-titlebar mb-2"><span>CRAFT GUILDS</span><span className="win95-close-btn">X</span></div>
       <p className="page-description">
         Multi-sector craft guilds with member workshops, dividend distribution, and welfare funds.
       </p>

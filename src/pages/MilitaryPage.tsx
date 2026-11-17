@@ -150,7 +150,7 @@ function WarsPanel({
             {wars.map((w) => {
               const open = expandedWar === w.front_id;
               return (
-                <div key={w.front_id} className="border border-border rounded-md">
+                <div key={w.front_id} className="border border-border  ">
                   <button
                     className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-accent/50"
                     onClick={() => setExpandedWar(open ? null : w.front_id)}
@@ -193,7 +193,7 @@ function WarsPanel({
                           <span className="font-medium">War Score {w.war_score.toFixed(0)}</span>
                           <span>{w.defender}: {num(Number(w.defender_forces))} troops / {num(Number(w.defender_casualties))} casualties</span>
                         </div>
-                        <div className="h-2 rounded bg-[#8f1d1d] overflow-hidden">
+                        <div className="h-2   bg-[#8f1d1d] overflow-hidden">
                           <div className="h-full bg-[#3f7fd4]" style={{ width: `${scorePct(w.war_score)}%` }} />
                         </div>
                       </div>
@@ -206,7 +206,7 @@ function WarsPanel({
                             {w.battles.map((b) => {
                               const bOpen = expandedBattle === b.battle_id;
                               return (
-                                <div key={b.battle_id} id={`battle-${b.battle_id}`} className="border border-border/60 rounded">
+                                <div key={b.battle_id} id={`battle-${b.battle_id}`} className="border border-border/60  ">
                                   <button
                                     className="w-full flex justify-between px-2 py-1 text-xs hover:bg-accent/40"
                                     onClick={() => setExpandedBattle(bOpen ? null : b.battle_id)}
@@ -249,7 +249,7 @@ function HistoricalWarsPanel({ endedWars, regionNameById, regionShapes }: { ende
               const key = `${w.aggressor}-${w.defender}-${w.end_turn}-${i}`;
               const isOpen = open === key;
               return (
-                <div key={key} className="border border-border rounded-md">
+                <div key={key} className="border border-border  ">
                   <button
                     className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-accent/50"
                     onClick={() => setOpen(isOpen ? null : key)}
@@ -341,7 +341,7 @@ function PowCampsPanel({ camps, regionNameById }: { camps: MilitaryDashboardResp
               const topRegion = [...c.prisoners_by_region].sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0];
               const campName = topRegion ? `${regionNameById.get(topRegion) ?? topRegion} Camp` : "Internment Camps";
               return (
-                <div key={c.country} className="border border-border rounded-md">
+                <div key={c.country} className="border border-border  ">
                   <button
                     className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-accent/50"
                     onClick={() => setExpandedPowCamp(isOpen ? null : c.country)}
@@ -479,7 +479,7 @@ function DevastationHeatmapPanel({ devastation }: { devastation: MilitaryDashboa
             {groups.map((g) => {
               const t = devastationTier(g.worst);
               return (
-                <div key={g.country} className="border border-border/60 rounded">
+                <div key={g.country} className="border border-border/60  ">
                   <button
                     type="button"
                     className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-accent/40"
@@ -504,7 +504,7 @@ function DevastationHeatmapPanel({ devastation }: { devastation: MilitaryDashboa
                             <span className="font-medium">{d.region_name}</span>
                             <span className="flex items-center gap-2">
                               <span
-                                className={"px-2 py-0.5 rounded text-xs font-bold " + devastationColor(d.devastation_index)}
+                                className={"px-2 py-0.5   text-xs font-bold " + devastationColor(d.devastation_index)}
                               >
                                 {(d.devastation_index * 100).toFixed(1)}%
                               </span>
@@ -604,7 +604,7 @@ function ArmyCompositionPanel({
                             <div>
                               <div className="text-muted-foreground uppercase mb-1">Field Armies</div>
                               {a.armies.map((army) => (
-                                <div key={army.id} className="border border-border/60 rounded p-2 mb-1">
+                                <div key={army.id} className="border border-border/60   p-2 mb-1">
                                   <div className="flex justify-between font-medium">
                                     <span>{army.name}</span>
                                     <span className="text-muted-foreground">
@@ -619,7 +619,7 @@ function ArmyCompositionPanel({
                                       .map(([arm]) => (
                                         <span
                                           key={arm}
-                                          className="px-1 rounded text-[9px] font-bold border border-border/60"
+                                          className="px-1   text-[9px] font-bold border border-border/60"
                                           style={{ color: unitTypeColor(armBadge(arm)) }}
                                         >
                                           [{armBadge(arm)}]
@@ -627,7 +627,7 @@ function ArmyCompositionPanel({
                                       ))}
                                     {army.naval_breakdown.length > 0 && (
                                       <span
-                                        className="px-1 rounded text-[9px] font-bold border border-border/60"
+                                        className="px-1   text-[9px] font-bold border border-border/60"
                                         style={{ color: unitTypeColor("NAV") }}
                                       >
                                         [NAV]
@@ -734,7 +734,7 @@ function WarMoralePanel({ morale }: { morale: MilitaryDashboardResponse["war_mor
           const avg = rows.reduce((s, m) => s + m.war_morale, 0) / rows.length;
           const isOpen = open[country] ?? false;
           return (
-            <div key={country} className="rounded border border-border">
+            <div key={country} className="  border border-border">
               <button
                 className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-accent/50"
                 onClick={() => setOpen({ ...open, [country]: !isOpen })}
@@ -761,7 +761,7 @@ function RegionMoraleBlock({ regionId, classes }: { regionId: string; classes: M
   const [open, setOpen] = useState(false);
   const worst = [...classes].sort((a, b) => a.war_morale - b.war_morale)[0];
   return (
-    <div className="rounded border border-border/60">
+    <div className="  border border-border/60">
       <button
         className="w-full flex items-center justify-between px-3 py-1.5 text-xs hover:bg-accent/40"
         onClick={() => setOpen(!open)}
@@ -820,7 +820,7 @@ function DisasterTypeBadge({ t }: { t: string }) {
   const c = DISASTER_COLORS[t] ?? "#64748b";
   return (
     <span
-      className="inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold border"
+      className="inline-block   px-1.5 py-0.5 text-[10px] font-semibold border"
       style={{ color: c, borderColor: c, backgroundColor: `${c}1f` }}
     >
       {t}
@@ -858,7 +858,7 @@ function DisastersPanel({ disasters }: { disasters: MilitaryDashboardResponse["d
               const dead = rows.reduce((s, d) => s + Number(d.casualties), 0);
               const dmg = rows.reduce((s, d) => s + d.financial_damage, 0);
               return (
-                <div key={country} className="border border-border rounded-md">
+                <div key={country} className="border border-border  ">
                   <button
                     className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-accent/50"
                     onClick={() => setOpenCountry(open ? null : country)}
@@ -992,7 +992,7 @@ export function MilitaryPage() {
   return (
     <div className="flex flex-col gap-4 p-6">
       <div>
-        <h1 className="text-2xl font-bold">Crisis & Military Observer</h1>
+        <div className="win95-titlebar"><span>CRISIS &amp; MILITARY OBSERVER</span><span className="win95-close-btn">X</span></div>
         <p className="text-sm text-muted-foreground mt-1">
           Read-only dashboard. No manual actions available.
         </p>
@@ -1101,7 +1101,7 @@ function BattleLineSide({
   const committed = rows.reduce((s, r) => s + Number(r.manpower), 0);
   const losses = rows.reduce((s, r) => s + Number(r.losses), 0);
   return (
-    <div className="border border-border/60 rounded p-1.5 space-y-1">
+    <div className="border border-border/60   p-1.5 space-y-1">
       <div className="flex items-baseline justify-between gap-1">
         <span className="font-semibold text-foreground">{title}</span>
         <span className="text-muted-foreground">{country}</span>
@@ -1146,7 +1146,7 @@ function BattleLineSide({
           ? rows.map((u, i) => (
               <div key={i} className="flex items-center gap-1.5">
                 <span
-                  className="inline-block w-8 text-center rounded border text-[10px] font-mono"
+                  className="inline-block w-8 text-center   border text-[10px] font-mono"
                   style={{ color: unitTypeColor(u.badge), borderColor: unitTypeColor(u.badge) }}
                   title={u.branch}
                 >
@@ -1280,7 +1280,7 @@ function BattleExpansion({
                 key={i}
                 type="button"
                 onClick={() => setTab(i)}
-                className={`px-2 py-0.5 rounded border text-[11px] ${
+                className={`px-2 py-0.5   border text-[11px] ${
                   i === safeTab
                     ? "border-primary bg-primary/15 text-foreground"
                     : "border-border/60 text-muted-foreground hover:bg-accent/40"
@@ -1291,7 +1291,7 @@ function BattleExpansion({
             ))}
           </div>
           {phase && (
-            <div className="mt-1 border border-border/50 rounded p-1.5 space-y-1">
+            <div className="mt-1 border border-border/50   p-1.5 space-y-1">
               <div className="flex justify-between text-muted-foreground">
                 <span>
                   {phase.name} — atk {phase.attacker_power.toFixed(0)} / def{" "}
@@ -1318,7 +1318,7 @@ function BattleExpansion({
                   );
                   if (rows.length === 0) return null;
                   return (
-                    <div key={side} className="border border-border/40 rounded p-1">
+                    <div key={side} className="border border-border/40   p-1">
                       <div className="text-muted-foreground uppercase">
                         {side} — {isAtk ? b.attacker_doctrine : b.defender_doctrine}
                       </div>
@@ -1337,7 +1337,7 @@ function BattleExpansion({
                             <tr key={i}>
                               <td className="max-w-[14rem] truncate" title={r.name}>
                                 <span
-                                  className="inline-block w-8 text-center rounded border text-[10px] font-mono mr-1"
+                                  className="inline-block w-8 text-center   border text-[10px] font-mono mr-1"
                                   style={{ color: unitTypeColor(r.badge), borderColor: unitTypeColor(r.badge) }}
                                 >
                                   {r.badge}

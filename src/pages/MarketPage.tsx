@@ -34,7 +34,7 @@ export function MarketPage() {
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">Market — {selectedCountry}</h2>
+        <div className="win95-titlebar mb-2"><span>Market — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
           Show Inactive
@@ -96,16 +96,16 @@ export function MarketPage() {
                 commodities.map((c) => (
                   <TableRow key={c.name}>
                     <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell className="text-right">{fmt(c.vwap)}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{fmt(c.base_price)}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(c.vwap)}</TableCell>
+                    <TableCell className="text-right win95-mono text-muted-foreground">{fmt(c.base_price)}</TableCell>
                     <TableCell className={`text-right ${c.net_surplus > 0 ? "text-green-400" : c.net_surplus < 0 ? "text-red-400" : ""}`}>
                       {fmt(c.net_surplus)}
                     </TableCell>
                     <TableCell className={`text-right ${c.net_trade > 0 ? "text-green-400" : c.net_trade < 0 ? "text-red-400" : ""}`}>
                       {fmt(c.net_trade)}
                     </TableCell>
-                    <TableCell className="text-right">{fmt(c.supply_volume)}</TableCell>
-                    <TableCell className="text-right">{fmt(c.demand_volume)}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(c.supply_volume)}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(c.demand_volume)}</TableCell>
                     {showInactive && (
                       <TableCell>
                         {c.active ? <Badge variant="success">Active</Badge> : <Badge variant="secondary">Inactive</Badge>}

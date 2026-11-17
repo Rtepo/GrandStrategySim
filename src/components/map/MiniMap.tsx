@@ -62,8 +62,8 @@ export function MiniMap({
 
   if (!snapshot || snapshot.countries.length === 0) {
     return (
-      <div className={`${heightClass} rounded-md bg-[#0f2739] flex items-center justify-center`}>
-        <span className="text-xs text-slate-400">Map unavailable</span>
+      <div className={`${heightClass}   bg-[#0f2739] flex items-center justify-center`}>
+        <span className="text-xs text-win95-dark">Map unavailable</span>
       </div>
     );
   }
@@ -71,7 +71,7 @@ export function MiniMap({
   if (interactive) {
     return (
       <div
-        className={`relative block w-full ${heightClass} rounded-md overflow-hidden border border-border`}
+        className={`relative block w-full ${heightClass}   overflow-hidden border border-border`}
         title="Drag to pan, scroll to zoom, double-click to reset"
       >
         <WorldMapSvg
@@ -90,7 +90,7 @@ export function MiniMap({
           type="button"
           onClick={() => navigate("/map")}
           title={title}
-          className="absolute bottom-1 right-2 text-[10px] text-slate-300/80 bg-black/40 rounded px-1.5 py-0.5 hover:bg-black/60"
+          className="absolute bottom-1 right-2 text-[10px] text-black bg-win95-grey px-1.5 py-0.5 win95-panel"
         >
           Open Map →
         </button>
@@ -103,7 +103,7 @@ export function MiniMap({
       type="button"
       onClick={() => navigate("/map")}
       title={title}
-      className={`relative block w-full ${heightClass} rounded-md overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-shadow cursor-pointer`}
+      className={`relative block w-full ${heightClass}   overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-shadow cursor-pointer`}
     >
       <WorldMapSvg
         snapshot={snapshot}
@@ -113,7 +113,7 @@ export function MiniMap({
         compact
         className="w-full h-full block"
       />
-      <span className="absolute bottom-1 right-2 text-[10px] text-slate-300/80 bg-black/40 rounded px-1.5 py-0.5 pointer-events-none">
+      <span className="absolute bottom-1 right-2 text-[10px] text-black bg-win95-grey px-1.5 py-0.5 win95-panel pointer-events-none">
         Open Map →
       </span>
     </button>
@@ -184,7 +184,7 @@ export function CessionMiniMap({
       <div className="text-muted-foreground uppercase text-[10px] mb-0.5">{label}</div>
       <svg
         viewBox={`${minX - 4} ${minY - 4} ${spanX + 8} ${spanY + 8}`}
-        className="rounded border border-border/60 bg-[#0f1d2b] w-full"
+        className="  border border-border/60 bg-[#0f1d2b] w-full"
         style={{ aspectRatio: `${spanX + 8} / ${spanY + 8}`, maxHeight: 130 }}
       >
         {/* v4.31.0 (TASK-029): clean anti-aliased render — 1px non-scaling

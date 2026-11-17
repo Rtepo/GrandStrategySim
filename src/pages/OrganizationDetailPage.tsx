@@ -41,14 +41,14 @@ export const OrganizationDetailPage: React.FC = () => {
       </div>
 
       <div>
-        <h2 className="text-xl font-bold text-foreground">{detail.name}</h2>
+        <div className="win95-titlebar mb-2"><span>{detail.name}</span><span className="win95-close-btn">X</span></div>
         <p className="text-sm text-muted-foreground">
           {CATEGORY_LABELS[detail.category] || detail.category} — {detail.activity_summary}
         </p>
       </div>
 
       {/* Common fields */}
-      <div className="rounded-lg border p-4 space-y-1">
+      <div className="  border p-4 space-y-1">
         <h3 className="text-sm font-semibold text-foreground mb-2">General</h3>
         <Field label="ID" value={detail.id} />
         <Field label="Category" value={CATEGORY_LABELS[detail.category] || detail.category} />
@@ -59,7 +59,7 @@ export const OrganizationDetailPage: React.FC = () => {
 
       {/* Guild-specific */}
       {detail.guild_detail && (
-        <div className="rounded-lg border p-4 space-y-1">
+        <div className="  border p-4 space-y-1">
           <h3 className="text-sm font-semibold text-foreground mb-2">Guild Details</h3>
           <Field label="Sector" value={detail.guild_detail.sector} />
           <Field label="Welfare Fund" value={detail.guild_detail.welfare_fund != null ? fmt(detail.guild_detail.welfare_fund) : '—'} />
@@ -75,7 +75,7 @@ export const OrganizationDetailPage: React.FC = () => {
               <div className="text-muted-foreground text-sm mb-1">Raw Inventory:</div>
               <div className="flex flex-wrap gap-2">
                 {detail.guild_detail.guild_raw_inventory.map(([commodity, qty], i) => (
-                  <span key={i} className="px-2 py-0.5 rounded bg-muted text-xs">
+                  <span key={i} className="px-2 py-0.5   bg-muted text-xs">
                     {commodity}: {qty.toFixed(1)}
                   </span>
                 ))}
@@ -87,7 +87,7 @@ export const OrganizationDetailPage: React.FC = () => {
 
       {/* Union-specific */}
       {detail.union_detail && (
-        <div className="rounded-lg border p-4 space-y-1">
+        <div className="  border p-4 space-y-1">
           <h3 className="text-sm font-semibold text-foreground mb-2">Union Details</h3>
           <Field label="Sector" value={detail.union_detail.sector} />
           <Field label="Scale Level" value={detail.union_detail.scale_level} />
@@ -106,7 +106,7 @@ export const OrganizationDetailPage: React.FC = () => {
 
       {/* Movement-specific */}
       {detail.movement_detail && (
-        <div className="rounded-lg border p-4 space-y-1">
+        <div className="  border p-4 space-y-1">
           <h3 className="text-sm font-semibold text-foreground mb-2">Movement Details</h3>
           <Field label="Movement Type" value={detail.movement_detail.movement_type} />
           <Field label="Initiating Class" value={detail.movement_detail.initiating_class} />
