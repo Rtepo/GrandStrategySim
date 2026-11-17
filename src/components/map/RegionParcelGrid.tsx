@@ -218,15 +218,15 @@ export function RegionParcelGrid({
       )}
       <svg
         viewBox={`0 0 1000 560`}
-        className="w-full h-64   bg-[#0f1d2b] border border-border"
+        className="w-full h-64   bg-[#e6e2d8] border border-border"
       >
         {/* v4.30.0 (TASK-022): the organic region contour the parcels are
             clipped inside — the map no longer renders as a rectangle. */}
         {parcelMap.region_boundary?.length > 0 && (
           <polygon
             points={parcelMap.region_boundary.map((v) => `${toX(v.x)},${toY(v.y)}`).join(" ")}
-            fill="#16283a"
-            stroke="#3b4f66"
+            fill="#d4d0c4"
+            stroke="#333333"
             strokeWidth={2}
           />
         )}
@@ -239,7 +239,7 @@ export function RegionParcelGrid({
               points={pts}
               fill={parcelFill(p, mode, partyView)}
               fillOpacity={selected ? 1 : 0.8}
-              stroke={selected ? "#ffffff" : "#0a1622"}
+              stroke={selected ? "#000080" : "#333333"}
               strokeWidth={selected ? 2 : 0.5}
               className="cursor-pointer hover:opacity-90"
               onClick={() => onSelectParcel(selected ? null : p)}

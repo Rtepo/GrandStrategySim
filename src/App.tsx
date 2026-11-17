@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, NavLink, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
@@ -94,12 +94,14 @@ function monthName(month: number): string {
 const AUTO_SPEED_MS = { 1: 4000, 2: 2000, 5: 800 } as const;
 type AutoSpeed = keyof typeof AUTO_SPEED_MS;
 
-function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
-  const { gameStatus, selectedCountry, setSelectedCountry, processing } = useGameStore();
+/** v4.34.0 (TASK-043): shared turn controls — used by the sidebar buttons
+ *  and the Game menu so both stay in sync. */
+function useTurnControls() {
   const queryClient = useQueryClient();
+  const processing = useGameStore((s) => s.processing);
+  const hasGame = useGameStore((s) => !!s.gameStatus?.has_game);
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [autoSpeed, setAutoSpeed] = useState<AutoSpeed>(1);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const speedRef = useRef<AutoSpeed>(autoSpeed);
   speedRef.current = autoSpeed;
 
@@ -120,10 +122,6 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
     } finally {
       useGameStore.getState().setProcessing(false);
     }
-  };
-
-  const handleAdvance = () => {
-    void runTurn();
   };
 
   // Auto-advance: chained setTimeout — the next turn is only scheduled
@@ -150,12 +148,143 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoAdvance]);
 
+  return { processing, hasGame, autoAdvance, setAutoAdvance, autoSpeed, setAutoSpeed, runTurn };
+}
+
+/** v4.34.0 (TASK-043): classic Win95 application menu bar — File Game View
+ *  Statistics Map Window Help with underline first-letter mnemonics (<u>)
+ *  and working dropdown menus. */
+function MenuBar({
+  onOpenSettings,
+  onCheckUpdates,
+  updateChecking,
+}: {
+  onOpenSettings: () => void;
+  onCheckUpdates: () => void;
+  updateChecking: boolean;
+}) {
+  const tc = useTurnControls();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState<string | null>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (barRef.current && !barRef.current.contains(e.target as Node)) setOpen(null);
+    };
+    window.addEventListener("mousedown", onDown);
+    return () => window.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  const go = (to: string) => {
+    navigate(to);
+    setOpen(null);
+  };
+
+  const Top = ({ id, children }: { id: string; children: React.ReactNode }) => (
+    <div className="relative">
+      <button
+        className={`win95-menu-item ${open === id ? "win95-menu-open" : ""}`}
+        onClick={() => setOpen(open === id ? null : id)}
+        onMouseEnter={() => open && setOpen(id)}
+      >
+        {children}
+      </button>
+    </div>
+  );
+  const Di = ({ label, onClick, disabled, checked }: { label: string; onClick?: () => void; disabled?: boolean; checked?: boolean }) => (
+    <button
+      className="win95-menu-dropdown-item"
+      disabled={disabled}
+      onClick={() => {
+        if (onClick) { onClick(); setOpen(null); }
+      }}
+    >
+      <span className="win95-menu-check">{checked ? "✓" : ""}</span>
+      <span className="flex-1">{label}</span>
+    </button>
+  );
+  const Sep = () => <div className="win95-menu-separator" />;
+
+  return (
+    <div className="win95-menu" ref={barRef}>
+      <Top id="file"><u>F</u>ile</Top>
+      {open === "file" && (
+        <div className="win95-menu-dropdown" style={{ position: "absolute", top: "100%", left: 0 }}>
+          <Di label="Save / Load Game…" disabled={!tc.hasGame} onClick={onOpenSettings} />
+          <Di label="Autosave Settings…" disabled={!tc.hasGame} onClick={onOpenSettings} />
+          <Sep />
+          <Di label="New Game…" onClick={() => window.location.reload()} />
+        </div>
+      )}
+      <Top id="game"><u>G</u>ame</Top>
+      {open === "game" && (
+        <div className="win95-menu-dropdown" style={{ position: "absolute", top: "100%", left: 28 }}>
+          <Di label="Advance Turn" disabled={!tc.hasGame || tc.processing} onClick={() => void tc.runTurn()} />
+          <Di label="Auto-Advance" disabled={!tc.hasGame} checked={tc.autoAdvance} onClick={() => tc.setAutoAdvance(!tc.autoAdvance)} />
+          <Sep />
+          {([1, 2, 5] as AutoSpeed[]).map((s) => (
+            <Di key={s} label={`Speed ${s}x`} checked={tc.autoSpeed === s} onClick={() => tc.setAutoSpeed(s)} />
+          ))}
+        </div>
+      )}
+      <Top id="view"><u>V</u>iew</Top>
+      {open === "view" && (
+        <div className="win95-menu-dropdown" style={{ position: "absolute", top: "100%", left: 60 }}>
+          {NAV_ITEMS.map((i) => (
+            <Di key={i.to} label={i.label} onClick={() => go(i.to)} />
+          ))}
+        </div>
+      )}
+      <Top id="stats"><u>S</u>tatistics</Top>
+      {open === "stats" && (
+        <div className="win95-menu-dropdown" style={{ position: "absolute", top: "100%", left: 92 }}>
+          <Di label="Macro Indicators" onClick={() => go("/macro")} />
+          <Di label="Banking" onClick={() => go("/banking")} />
+          <Di label="Stock Exchange" onClick={() => go("/stock-exchange")} />
+          <Di label="Funds" onClick={() => go("/funds")} />
+          <Di label="Society" onClick={() => go("/society")} />
+          <Di label="Press" onClick={() => go("/press")} />
+        </div>
+      )}
+      <Top id="map"><u>M</u>ap</Top>
+      {open === "map" && (
+        <div className="win95-menu-dropdown" style={{ position: "absolute", top: "100%", left: 140 }}>
+          <Di label="World Map" onClick={() => go("/map")} />
+          <Di label="Regions" onClick={() => go("/regions")} />
+          <Di label="Land Parcels" onClick={() => go("/land")} />
+          <Di label="Military Fronts" onClick={() => go("/military")} />
+        </div>
+      )}
+      <Top id="window"><u>W</u>indow</Top>
+      {open === "window" && (
+        <div className="win95-menu-dropdown" style={{ position: "absolute", top: "100%", left: 168 }}>
+          <Di label="Settings & Save/Load…" disabled={!tc.hasGame} onClick={onOpenSettings} />
+          <Sep />
+          <Di label={updateChecking ? "Checking…" : "Check for Updates"} disabled={updateChecking} onClick={onCheckUpdates} />
+        </div>
+      )}
+      <Top id="help"><u>H</u>elp</Top>
+      {open === "help" && (
+        <div className="win95-menu-dropdown" style={{ position: "absolute", top: "100%", left: 212 }}>
+          <Di label="About Grand Strategy Sim" onClick={() => alert("Grand Strategy Sim v4.34.0\nA geopolitical-economic simulation.")} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Sidebar({ onCheckUpdates, updateChecking, onOpenSettings }: SidebarProps & { onOpenSettings: () => void }) {
+  const { gameStatus, selectedCountry, setSelectedCountry, processing } = useGameStore();
+  const { autoAdvance, setAutoAdvance, autoSpeed, setAutoSpeed, runTurn } = useTurnControls();
+
+  const handleAdvance = () => {
+    void runTurn();
+  };
+
   return (
     <aside className="w-60 bg-win95-grey border-r-2 border-win95-dark flex flex-col win95-panel">
-      <div className="win95-titlebar">
-        <span>GRAND STRATEGY</span>
-        <span className="win95-close-btn">X</span>
-      </div>
       <div className="p-3 border-b-2 border-win95-dark">
         <h1 className="text-sm font-bold uppercase text-foreground">Grand Strategy</h1>
         {gameStatus && (
@@ -214,7 +343,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
       <div className="p-3 border-t-2 border-win95-dark space-y-2">
         {/* v4.32.0 (TASK-033): Game Settings & Save/Load above Advance Turn */}
         <button
-          onClick={() => setSettingsOpen(true)}
+          onClick={onOpenSettings}
           disabled={!gameStatus?.has_game}
           className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold uppercase disabled:opacity-50"
         >
@@ -271,7 +400,6 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
           {updateChecking ? "Checking..." : "Check for Updates"}
         </button>
       </div>
-      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </aside>
   );
 }
@@ -380,6 +508,12 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
 export default function App() {
   const { refreshStatus, gameStatus, generating, setGenerating } = useGameStore();
   const updater = useUpdater();
+  const location = useLocation();
+  // TASK-039: route name → window titlebar text (e.g. "PARLIAMENT").
+  const routeTitle =
+    location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ") ??
+    "macro";
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     refreshStatus();
@@ -425,17 +559,27 @@ export default function App() {
     );
   }
 
-  const location = useLocation();
-  // TASK-039: route name → window titlebar text (e.g. "PARLIAMENT").
-  const routeTitle =
-    location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ") ??
-    "macro";
-
   return (
-    <div className="flex h-screen bg-win95-grey">
+    <div className="flex flex-col h-screen bg-win95-grey">
+      {/* v4.34.0 (TASK-043): classic application titlebar + menu bar. */}
+      <div className="win95-titlebar">
+        <span>GRAND STRATEGY SIM - {routeTitle.toUpperCase()}</span>
+        <span className="win95-titlebar-btns">
+          <span className="win95-titlebar-btn">_</span>
+          <span className="win95-titlebar-btn">□</span>
+          <span className="win95-titlebar-btn">X</span>
+        </span>
+      </div>
+      <MenuBar
+        onOpenSettings={() => setSettingsOpen(true)}
+        onCheckUpdates={() => updater.checkForUpdates()}
+        updateChecking={updater.status === "checking"}
+      />
+      <div className="flex flex-1 min-h-0">
       <Sidebar
         onCheckUpdates={() => updater.checkForUpdates()}
         updateChecking={updater.status === "checking"}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
       <main className="flex-1 overflow-y-auto bg-win95-grey p-2">
         <UpdateBanner
@@ -444,8 +588,11 @@ export default function App() {
           onDismiss={() => updater.dismiss()}
         />
         <ErrorBoundary>
+          {/* TASK-043: no second navy titlebar — the app titlebar above
+              already names the active view. */}
           <Win95Window
-            title={`${routeTitle.toUpperCase()} — INSTITUTIONAL TERMINAL`}
+            title={undefined}
+            closable={false}
             frameClassName="min-h-full"
           >
           <Routes>
@@ -474,7 +621,9 @@ export default function App() {
           </Win95Window>
         </ErrorBoundary>
       </main>
+      </div>
       {generating && <LoadingOverlay />}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }

@@ -197,7 +197,7 @@ export function RegionsPage() {
                   the same continent (lost regions + other countries);
                   roads/cities render only on currently owned regions. */}
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span className="inline-block w-3 h-3   border border-border" style={{ backgroundColor: "#1e293b" }} />
+                <span className="inline-block w-3 h-3   border border-border" style={{ backgroundColor: "#d4d0c4" }} />
                 Foreign territory (not owned)
               </div>
               {waterDetail && (

@@ -1458,13 +1458,16 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
       trendParties.set(name, arr);
     }
   }
-  const trendSeries = [...trendParties.entries()].map(([name, points]) => ({
+  const RETRO_SYMBOLS = ["rect", "triangle", "diamond", "circle"];
+  const trendSeries = [...trendParties.entries()].map(([name, points], i) => ({
     name,
     type: "line" as const,
     data: points,
     smooth: false,
-    showSymbol: false,
-    lineStyle: { width: 1.5, color: partyColor(partyById.get(name)?.color_hex, name) },
+    showSymbol: true,
+    symbol: RETRO_SYMBOLS[i % RETRO_SYMBOLS.length],
+    symbolSize: 6,
+    lineStyle: { width: 2, color: partyColor(partyById.get(name)?.color_hex, name) },
     itemStyle: { color: partyColor(partyById.get(name)?.color_hex, name) },
   }));
   // v4.23.0 WS1.3: autoscale to the observed max + 5pp instead of dead 0-100.
@@ -1596,13 +1599,16 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
             <EChart
               style={{ height: 220 }}
               option={{
+                backgroundColor: "#ffffff",
                 grid: { left: 44, right: 16, top: 36, bottom: 30 },
                 xAxis: {
                   type: "value",
                   name: "Turn",
                   min: trendMinTurn,
                   max: trendMaxTurn,
-                  axisLabel: { fontSize: 10 },
+                  axisLabel: { fontSize: 10, color: "#000000" },
+                  axisLine: { lineStyle: { color: "#000000" } },
+                  splitLine: { show: true, lineStyle: { color: "#c0c0c0", type: "dashed" as const } },
                 },
                 yAxis: {
                   type: "value",
@@ -1610,11 +1616,17 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
                   nameGap: 6,
                   min: 0,
                   max: Math.ceil(trendMax),
-                  axisLabel: { fontSize: 10, formatter: "{value}" },
+                  axisLabel: { fontSize: 10, color: "#000000", formatter: "{value}" },
+                  axisLine: { show: true, lineStyle: { color: "#000000" } },
+                  splitLine: { lineStyle: { color: "#c0c0c0", type: "dashed" as const } },
                 },
-                legend: { type: "scroll", top: 0, height: 24, textStyle: { fontSize: 10 } },
+                legend: { type: "scroll", top: 0, height: 24, textStyle: { fontSize: 10, color: "#000000" } },
                 tooltip: {
                   trigger: "axis",
+                  backgroundColor: "#ffffe1",
+                  borderColor: "#000000",
+                  textStyle: { color: "#000000", fontSize: 11, fontFamily: '"Courier New", monospace' },
+                  extraCssText: "border-radius:0;box-shadow:none;",
                   valueFormatter: (v: unknown) =>
                     typeof v === "number" ? v.toFixed(1) : String(v),
                 },

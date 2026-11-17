@@ -5,6 +5,7 @@ import { getPaginatedCompanies, getCompanyDetail, getAvailableSectors, getAvaila
 import { Card, CardHeader, CardTitle, CardContent, Input, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button } from "../components/ui";
 import { VipHoverCard } from "../components/VipHoverCard";
 import { EChart } from "../components/charts/EChart";
+import { RetroLineChart, retroPieSeries, retroTooltip, DotLeaderLegend } from "../lib/retroChart";
 import { fmt } from "../lib/format";
 import type { CompanyDetail } from "../types/api";
 
@@ -182,66 +183,57 @@ function CompanyDrawer({ detail, country }: { detail: CompanyDetail; country: st
   const finChart = useMemo(() => {
     const h = detail.financial_history_24;
     if (h.length === 0) return null;
-    const line = (name: string, data: number[], color: string) => ({
-      name,
-      type: "line" as const,
-      data,
-      itemStyle: { color },
-      lineStyle: { color, width: 2 },
-      showSymbol: false,
-    });
-    return {
-      tooltip: {
-        trigger: "axis" as const,
-        valueFormatter: (v: unknown) => fmt(Number(v)),
-      },
-      legend: { bottom: 0, textStyle: { color: "#cbd5e1", fontSize: 10 } },
-      grid: { left: 60, right: 12, top: 12, bottom: 40 },
-      xAxis: {
-        type: "category" as const,
-        data: h.map((r) => `T${r.turn}`),
-        axisLabel: { color: "#94a3b8", fontSize: 9 },
-      },
-      yAxis: {
-        type: "value" as const,
-        axisLabel: { color: "#94a3b8", fontSize: 9, formatter: (v: number) => fmt(v) },
-      },
-      series: [
-        line("Revenue", h.map((r) => r.revenue), "#38bdf8"),
-        line("COGS+Wages", h.map((r) => r.operating_costs), "#f59e0b"),
-        line("EBITDA", h.map((r) => r.ebitda), "#a78bfa"),
-        line("Taxes", h.map((r) => r.taxes), "#64748b"),
-        line("Net Profit", h.map((r) => r.net_profit), "#22c55e"),
-      ],
-    };
+    return (
+      <RetroLineChart
+        categories={h.map((r) => `T${r.turn}`)}
+        height={260}
+        toolbar
+        checkboxes
+        series={[
+          { name: "Revenue", data: h.map((r) => r.revenue), color: "#0000aa" },
+          { name: "COGS+Wages", data: h.map((r) => r.operating_costs), color: "#b86b00" },
+          { name: "EBITDA", data: h.map((r) => r.ebitda), color: "#800080" },
+          { name: "Taxes", data: h.map((r) => r.taxes), color: "#555555" },
+          { name: "Net Profit", data: h.map((r) => r.net_profit), color: "#008000" },
+        ]}
+        yFormatter={(v) => fmt(v)}
+      />
+    );
   }, [detail.financial_history_24]);
 
   const holderChart = useMemo(() => {
     if (detail.shareholders.length === 0) return null;
-    const palette = ["#38bdf8", "#a78bfa", "#f59e0b", "#22c55e", "#f43f5e", "#eab308", "#64748b"];
-    return {
-      tooltip: {
+    const palette = ["#0000aa", "#800080", "#b86b00", "#008000", "#aa0000", "#008080", "#555555"];
+    const total = detail.shareholders.reduce((s, x) => s + Number(x.shares), 0);
+    const entries = detail.shareholders.map((s, i) => ({
+      name: s.name,
+      value: Number(s.shares),
+      color: palette[i % palette.length],
+    }));
+    const option = {
+      tooltip: retroTooltip({
         trigger: "item" as const,
         formatter: (p: unknown) => {
           const q = p as { name: string; value: number; percent: number };
           return `${q.name}: ${fmt(q.value)} shares (${q.percent}%)`;
         },
-      },
-      legend: { bottom: 0, textStyle: { color: "#cbd5e1", fontSize: 10 }, type: "scroll" as const },
-      series: [
-        {
-          type: "pie" as const,
-          radius: ["40%", "68%"],
-          center: ["50%", "44%"],
-          data: detail.shareholders.map((s, i) => ({
-            name: s.name,
-            value: Number(s.shares),
-            itemStyle: { color: palette[i % palette.length] },
-          })),
-          label: { color: "#cbd5e1", fontSize: 10 },
-        },
-      ],
+      }),
+      series: retroPieSeries(entries, { center: ["50%", "44%"] }),
     };
+    return (
+      <div className="pinstripe-inset p-2">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0"><EChart option={option} style={{ height: 300 }} /></div>
+          <DotLeaderLegend
+            entries={entries.map((e) => ({
+              name: e.name,
+              value: `${total > 0 ? ((e.value / total) * 100).toFixed(1) : "0.0"}%`,
+              color: e.color,
+            }))}
+          />
+        </div>
+      </div>
+    );
   }, [detail.shareholders]);
 
   const exportXml = async () => {
@@ -300,7 +292,7 @@ function CompanyDrawer({ detail, country }: { detail: CompanyDetail; country: st
           <CardContent className="space-y-2">
             {finChart ? (
               <>
-                <EChart option={finChart} style={{ height: 220 }} />
+                {finChart}
                 <div className="max-h-40 overflow-y-auto">
                   <table className="w-full text-xs">
                     <thead>
@@ -344,7 +336,7 @@ function CompanyDrawer({ detail, country }: { detail: CompanyDetail; country: st
           <CardHeader><CardTitle className="text-sm">Shareholder Structure</CardTitle></CardHeader>
           <CardContent>
             {holderChart ? (
-              <EChart option={holderChart} style={{ height: 260 }} />
+              holderChart
             ) : (
               <div className="text-sm text-muted-foreground">
                 Sole proprietorship / no registered share float.

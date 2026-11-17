@@ -62,7 +62,7 @@ export function MiniMap({
 
   if (!snapshot || snapshot.countries.length === 0) {
     return (
-      <div className={`${heightClass}   bg-[#0f2739] flex items-center justify-center`}>
+      <div className={`${heightClass}   bg-[#c4d6d0] flex items-center justify-center`}>
         <span className="text-xs text-win95-dark">Map unavailable</span>
       </div>
     );
@@ -184,7 +184,7 @@ export function CessionMiniMap({
       <div className="text-muted-foreground uppercase text-[10px] mb-0.5">{label}</div>
       <svg
         viewBox={`${minX - 4} ${minY - 4} ${spanX + 8} ${spanY + 8}`}
-        className="  border border-border/60 bg-[#0f1d2b] w-full"
+        className="  border border-border/60 bg-[#c4d6d0] w-full"
         style={{ aspectRatio: `${spanX + 8} / ${spanY + 8}`, maxHeight: 130 }}
       >
         {/* v4.31.0 (TASK-029): clean anti-aliased render — 1px non-scaling

@@ -17,6 +17,7 @@
 #
 # Result is recorded to .devin/tasks/results/<TASK-ID>.verify.json.
 set -uo pipefail
+shopt -s globstar nullglob 2>/dev/null || true
 cd "$(dirname "$0")/../.." || exit 1
 
 LEDGER=".devin/tasks/backlog.json"
@@ -132,6 +133,36 @@ done < <(echo "$TASK_JSON" | node -e '
     let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
         const t=JSON.parse(s);
         for (const c of (t.ui_ast_grep_checks||[])) console.log(JSON.stringify(c));
+    });
+')
+
+# ── 3b: forbidden grep checks — pattern MUST NOT appear in the file/glob ──
+while IFS= read -r check; do
+    [ -z "$check" ] && continue
+    cfile=$(echo "$check" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const c=JSON.parse(s);console.log(c.file||c.glob||"")})')
+    cpat=$(echo "$check" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).pattern))')
+    cdesc=$(echo "$check" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const c=JSON.parse(s);console.log(c.desc||"")})')
+    # Expand glob patterns (e.g. "src/**/*.tsx") to the matching file set.
+    FILES=$(compgen -G "$cfile" 2>/dev/null || true)
+    if [ -z "$FILES" ] && [ -f "$cfile" ]; then FILES="$cfile"; fi
+    if [ -z "$FILES" ]; then
+        note "ui_forbidden" "fail" "$cfile matches no files ($cdesc)"
+        continue
+    fi
+    HIT=""
+    while IFS= read -r f; do
+        [ -z "$f" ] && continue
+        if grep -qE "$cpat" "$f" 2>/dev/null; then HIT="${HIT:+$HIT,}$f"; fi
+    done <<< "$FILES"
+    if [ -z "$HIT" ]; then
+        note "ui_forbidden" "pass" "$cpat absent in $cfile ($cdesc)"
+    else
+        note "ui_forbidden" "fail" "$cpat still present in: $HIT ($cdesc)"
+    fi
+done < <(echo "$TASK_JSON" | node -e '
+    let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+        const t=JSON.parse(s);
+        for (const c of (t.forbidden_grep_checks||[])) console.log(JSON.stringify(c));
     });
 ')
 

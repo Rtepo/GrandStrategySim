@@ -75,13 +75,18 @@ export function TradeTreemapChart({
       .map((g) => ({
         name: g.name,
         value: g.value,
-        itemStyle: { color: sitcColor(g.name), borderColor: "#0f172a" },
+        itemStyle: { color: sitcColor(g.name), borderColor: "#c0c0c0" },
         children: g.children
           .sort((a, b) => b.value - a.value)
           .map((c) => ({ name: c.name, value: c.value, entry: c.entry })),
       }));
     return {
+      backgroundColor: "#ffffff",
       tooltip: {
+        backgroundColor: "#ffffe1",
+        borderColor: "#000000",
+        textStyle: { color: "#000000", fontSize: 11, fontFamily: '"Courier New", monospace' },
+        extraCssText: "border-radius:0;box-shadow:none;",
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         formatter: (p: any) => {
           const e = (p.data as { entry?: CountryTradeTreemapEntry } | undefined)?.entry;
@@ -99,15 +104,15 @@ export function TradeTreemapChart({
           type: "treemap" as const,
           roam: false,
           nodeClick: "zoomToNode" as const,
-          breadcrumb: { show: true, textStyle: { color: "#cbd5e1" } },
-          label: { show: true, formatter: "{b}", fontSize: 11, color: "#f8fafc" },
+          breadcrumb: { show: true, textStyle: { color: "#000000" } },
+          label: { show: true, formatter: "{b}", fontSize: 11, color: "#ffffff" },
           upperLabel: {
             show: true,
             height: 22,
-            color: "#f8fafc",
-            backgroundColor: "transparent",
+            color: "#000000",
+            backgroundColor: "#d4d0c8",
           },
-          itemStyle: { borderColor: "#0f172a", borderWidth: 1, gapWidth: 1 },
+          itemStyle: { borderColor: "#c0c0c0", borderWidth: 1, gapWidth: 1 },
           levels: [
             { itemStyle: { borderWidth: 0, gapWidth: 3 } },
             { itemStyle: { gapWidth: 1 } },

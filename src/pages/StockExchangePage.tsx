@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import * as echarts from "echarts";
-import { useEffect, useRef } from "react";
+import { RetroLineChart } from "../lib/retroChart";
 import { useGameStore } from "../store/gameStore";
 import {
   getStockExchange,
@@ -241,48 +240,16 @@ export function StockExchangePage() {
 }
 
 function MarketIndexChart({ data }: { data: number[] }) {
-  const chartRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!chartRef.current || data.length < 2) return;
-    const chart = echarts.init(chartRef.current);
-    chart.setOption({
-      grid: { left: 40, right: 20, top: 20, bottom: 30 },
-      xAxis: {
-        type: "category",
-        data: data.map((_, i) => String(i)),
-        show: true,
-        axisLabel: { fontSize: 10 },
-      },
-      yAxis: {
-        type: "value",
-        scale: true,
-        axisLabel: { fontSize: 10 },
-      },
-      tooltip: { trigger: "axis" },
-      series: [{
-        type: "line",
-        data,
-        smooth: true,
-        symbol: "none",
-        lineStyle: { color: "#3b82f6", width: 2 },
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#3b82f640" },
-            { offset: 1, color: "#3b82f605" },
-          ]),
-        },
-      }],
-    });
-    const handleResize = () => chart.resize();
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      chart.dispose();
-    };
-  }, [data]);
-
-  return <div ref={chartRef} style={{ width: "100%", height: "240px" }} />;
+  if (data.length < 2) return <div className="text-sm text-muted-foreground p-2">No index history yet.</div>;
+  return (
+    <RetroLineChart
+      categories={data.map((_, i) => `T${i + 1}`)}
+      height={240}
+      toolbar
+      checkboxes={false}
+      series={[{ name: "Market Index", data, color: "#0000aa" }]}
+    />
+  );
 }
 
 function CompanyDetailPanel({

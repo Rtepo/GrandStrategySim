@@ -3,7 +3,7 @@
   "schema": "daemon-v2-backlog",
   "release": "v4.27.0-task-batch",
   "base_ref": "origin/main",
-  "updated_at": "2026-11-17T15:53:29.903Z",
+  "updated_at": "2026-11-17T20:35:33.676Z",
   "tasks": [
     {
       "id": "TASK-001",
@@ -1618,6 +1618,264 @@
       "created_at": "2026-11-17T00:00:00Z",
       "updated_at": "2026-11-17T15:53:29.902Z",
       "verify_history": []
+    },
+    {
+      "id": "TASK-040",
+      "title": "Vintage Atlas cartographic world map & parcel map — sage-cyan sea #c4d6d0, graticule, muted earthy palette, ink coastlines, serif ocean labels, cartouche, floating win95 inspector, light cadastral canvas",
+      "status": "DONE",
+      "priority": 40,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-040.md",
+      "base_ref": "origin/main",
+      "required_ui_files": [
+        "src/components/map/WorldMapSvg.tsx",
+        "src/components/map/RegionParcelGrid.tsx",
+        "src/components/map/MiniMap.tsx",
+        "src/pages/MapPage.tsx"
+      ],
+      "required_rust_files": [],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "#c4d6d0|#bdd0c8",
+          "desc": "Vintage atlas sea tone"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "letterSpacing",
+          "desc": "Wide letter-spaced ocean labels"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "#222222",
+          "desc": "Dark ink coastlines/borders"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "#d9b882|#c98a8a|#9dbb98|#9ea3c8",
+          "desc": "Muted earthy political palette"
+        },
+        {
+          "file": "src/components/map/RegionParcelGrid.tsx",
+          "pattern": "#e6e2d8",
+          "desc": "Light paper cadastral canvas"
+        },
+        {
+          "file": "src/components/map/RegionParcelGrid.tsx",
+          "pattern": "#333333",
+          "desc": "Crisp ink parcel borders"
+        },
+        {
+          "file": "src/pages/MapPage.tsx",
+          "pattern": "cartouche|CARTOUCHE|vintage-cartouche",
+          "desc": "Cartographic title cartouche"
+        }
+      ],
+      "forbidden_grep_checks": [
+        {
+          "pattern": "#0f2739|#0b1e36|#0f1d2b|#16283a|#123a55",
+          "desc": "Dark map/ocean backgrounds purged",
+          "glob": "src/components/map/*.tsx"
+        },
+        {
+          "file": "src/pages/MapPage.tsx",
+          "pattern": "#0f2739|#0b1e36",
+          "desc": "Map viewport dark bg purged"
+        },
+        {
+          "file": "src/pages/LandPage.tsx",
+          "pattern": "#0f2739|#0b1e36",
+          "desc": "Land map dark bg purged"
+        },
+        {
+          "file": "src/components/map/WorldMapSvg.tsx",
+          "pattern": "#1e293b",
+          "desc": "Dark slate neighbour fill purged"
+        }
+      ]
+    },
+    {
+      "id": "TASK-041",
+      "title": "Institutional Win95 line charts — white sunken canvas, dotted grids, sharp polylines with geometric vertex markers, toolbar + legend checkboxes, retro sparklines",
+      "status": "DONE",
+      "priority": 41,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-041.md",
+      "base_ref": "origin/main",
+      "required_ui_files": [
+        "src/lib/retroChart.tsx",
+        "src/components/charts/EChart.tsx",
+        "src/components/charts/GdpChart.tsx",
+        "src/components/charts/Sparkline.tsx",
+        "src/pages/BankingPage.tsx",
+        "src/pages/StockExchangePage.tsx",
+        "src/pages/SocietyPage.tsx",
+        "src/pages/ParliamentPage.tsx"
+      ],
+      "required_rust_files": [],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/lib/retroChart.tsx",
+          "pattern": "#0000aa|#aa0000|#800080",
+          "desc": "16-color terminal series hues"
+        },
+        {
+          "file": "src/lib/retroChart.tsx",
+          "pattern": "symbol",
+          "desc": "Geometric vertex markers"
+        },
+        {
+          "file": "src/components/charts/EChart.tsx",
+          "pattern": "retro|light|#ffffff|theme",
+          "desc": "Light chart theme init"
+        },
+        {
+          "file": "src/components/charts/Sparkline.tsx",
+          "pattern": "#f4f4f0",
+          "desc": "Sunken light sparkline canvas"
+        },
+        {
+          "file": "src/lib/retroChart.tsx",
+          "pattern": "6T|12T|24T|ALL",
+          "desc": "Chart window toolbar"
+        }
+      ],
+      "forbidden_grep_checks": [
+        {
+          "pattern": "smooth: true|smooth:true|smooth: \"monotone\"",
+          "desc": "Spline smoothing removed",
+          "glob": "src/components/charts/*.tsx"
+        },
+        {
+          "pattern": "LinearGradient",
+          "desc": "Translucent gradient fills removed",
+          "glob": "src/components/charts/*.tsx"
+        },
+        {
+          "file": "src/pages/StockExchangePage.tsx",
+          "pattern": "smooth: true|LinearGradient|areaStyle",
+          "desc": "Stock index spline+gradient removed"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "smooth: true|areaStyle",
+          "desc": "Banking spline+area fills removed"
+        },
+        {
+          "pattern": "#0b1021|#0f172a|#090d1a|#111827",
+          "desc": "Dark chart backgrounds purged",
+          "glob": "src/components/charts/*.tsx"
+        }
+      ]
+    },
+    {
+      "id": "TASK-042",
+      "title": "Solid retro pie charts with dot-leader legends + light population pyramid — purge all hollow donuts and dark chart canvases",
+      "status": "DONE",
+      "priority": 42,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-042.md",
+      "base_ref": "origin/main",
+      "required_ui_files": [
+        "src/components/charts/GdpDonutChart.tsx",
+        "src/components/charts/SeatDistributionChart.tsx",
+        "src/pages/BankingPage.tsx",
+        "src/pages/CompaniesPage.tsx",
+        "src/pages/FundsPage.tsx",
+        "src/pages/SocietyPage.tsx"
+      ],
+      "required_rust_files": [],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/lib/retroChart.tsx",
+          "pattern": "radius: \"[0-9]+%\"",
+          "desc": "Solid flat pie (single radius)"
+        },
+        {
+          "file": "src/components/charts/GdpDonutChart.tsx",
+          "pattern": ".{3,}",
+          "desc": "Monospace dot-leader legend"
+        },
+        {
+          "file": "src/components/charts/SeatDistributionChart.tsx",
+          "pattern": ".{3,}",
+          "desc": "Dot-leader legend"
+        },
+        {
+          "file": "src/pages/SocietyPage.tsx",
+          "pattern": "#2b6cb0|#c53030",
+          "desc": "Classic blue/rose pyramid bars"
+        }
+      ],
+      "forbidden_grep_checks": [
+        {
+          "pattern": "radius: [\"[1-9]",
+          "desc": "Hollow donut rings purged",
+          "glob": "src/components/charts/*.tsx"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "radius: [\"[1-9]",
+          "desc": "Banking donut ring purged"
+        },
+        {
+          "file": "src/pages/CompaniesPage.tsx",
+          "pattern": "radius: [\"[1-9]",
+          "desc": "Companies donut ring purged"
+        },
+        {
+          "file": "src/pages/FundsPage.tsx",
+          "pattern": "radius: \\[\"[1-9]",
+          "desc": "Funds sunburst inner hole purged"
+        },
+        {
+          "pattern": "#090d1a|#0c1021",
+          "desc": "Dark chart backgrounds purged",
+          "glob": "src/**/*.tsx"
+        }
+      ]
+    },
+    {
+      "id": "TASK-043",
+      "title": "Classic Win95 top application menu bar & dense institutional controls — app titlebar with [_][X], File/Game/View/Statistics/Map/Window/Help menus with working dropdowns, dedupe stacked titlebars",
+      "status": "DONE",
+      "priority": 43,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-043.md",
+      "base_ref": "origin/main",
+      "required_ui_files": [
+        "src/App.tsx",
+        "src/styles/globals.css"
+      ],
+      "required_rust_files": [],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/App.tsx",
+          "pattern": "GRAND STRATEGY SIM",
+          "desc": "Top application titlebar"
+        },
+        {
+          "file": "src/App.tsx",
+          "pattern": "Statistics",
+          "desc": "Statistics menu present"
+        },
+        {
+          "file": "src/App.tsx",
+          "pattern": "win95-menu|menu-bar|menubar|MenuBar",
+          "desc": "Win95 menu bar component"
+        },
+        {
+          "file": "src/styles/globals.css",
+          "pattern": "win95-menu|menu",
+          "desc": "Menu bar CSS"
+        },
+        {
+          "file": "src/App.tsx",
+          "pattern": "underline",
+          "desc": "Underlined menu mnemonics"
+        }
+      ],
+      "forbidden_grep_checks": []
     }
   ]
 }

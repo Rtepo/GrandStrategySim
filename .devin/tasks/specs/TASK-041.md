@@ -1,0 +1,2 @@
+# TASK-041 — v4.34.0 Retro Win95 Visual Unification
+See mandate: purge dark-mode canvases; vintage atlas map (#c4d6d0 sea, graticule, muted palette, ink coastlines, cartouche, floating win95 inspector); institutional line charts (white sunken canvas, dotted grids, sharp polylines + vertex markers, toolbar, checkboxes); solid pies + dot-leader legends + light pyramid; Win95 top menu bar + de-duped titlebars.
