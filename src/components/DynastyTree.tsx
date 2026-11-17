@@ -91,7 +91,7 @@ function PanZoomViewport({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="relative overflow-hidden rounded-md border border-border/60 bg-background"
+      className="relative overflow-hidden   border border-border/60 bg-background"
       style={{ height: 420, cursor: drag.current ? "grabbing" : "grab", touchAction: "none" }}
       onWheel={onWheel}
       onPointerDown={onPointerDown}
@@ -111,7 +111,7 @@ function PanZoomViewport({ children }: { children: React.ReactNode }) {
       </div>
       <button
         type="button"
-        className="absolute right-2 bottom-2 rounded border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+        className="absolute right-2 bottom-2   border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
         onClick={() => setView({ x: 0, y: 0, z: 1 })}
       >
         reset {Math.round(view.z * 100)}%
@@ -540,7 +540,7 @@ function MemberCard({
       {tip &&
         createPortal(
           <div
-            className="pointer-events-none fixed z-[90] -translate-x-1/2 rounded-md border border-border bg-popover px-2.5 py-1.5 text-[11px] text-popover-foreground shadow-lg"
+            className="pointer-events-none fixed z-[90] -translate-x-1/2 win95-window px-2.5 py-1.5 text-[11px] text-black"
             style={{
               left: tip.x,
               top: tip.flip ? tip.y + 8 : undefined,
@@ -624,11 +624,11 @@ function IntrigueRow({ intrigue }: { intrigue: CourtIntrigueRow }) {
       : "bg-red-900/50 text-red-300 border-red-800/60"; // Faction Conspiracy
   return (
     <li
-      className="text-xs border border-border/60 rounded px-3 py-2 cursor-pointer hover:bg-muted/30"
+      className="text-xs border border-border/60   px-3 py-2 cursor-pointer hover:win95-inset-grey"
       onClick={() => setOpen((o) => !o)}
     >
       <div className="flex items-start gap-3">
-        <span className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-[10px] font-medium ${kindClass}`}>
+        <span className={`inline-flex shrink-0 items-center   border px-2 py-0.5 text-[10px] font-medium ${kindClass}`}>
           {intrigue.kind}
         </span>
         <div className="min-w-0 flex-1">
@@ -639,7 +639,7 @@ function IntrigueRow({ intrigue }: { intrigue: CourtIntrigueRow }) {
           <div className="text-muted-foreground">{intrigue.description}</div>
         </div>
         <div className="shrink-0 w-20 text-right" title={`Severity ${intrigue.severity.toFixed(2)}`}>
-          <div className="h-1.5 w-full bg-muted rounded overflow-hidden mt-1.5">
+          <div className="h-1.5 w-full bg-muted   overflow-hidden mt-1.5">
             <div
               className={intrigue.severity > 0.66 ? "h-full bg-red-500" : intrigue.severity > 0.33 ? "h-full bg-amber-500" : "h-full bg-yellow-500"}
               style={{ width: `${Math.round(intrigue.severity * 100)}%` }}
@@ -675,7 +675,7 @@ function ClaimMeter({ strength }: { strength: number }) {
   const pct = Math.round(strength * 100);
   return (
     <span className="inline-flex items-center gap-1.5 justify-end w-full">
-      <span className="h-1.5 w-12 bg-muted rounded overflow-hidden">
+      <span className="h-1.5 w-12 bg-muted   overflow-hidden">
         <span
           className="block h-full bg-violet-400"
           style={{ width: `${pct}%` }}

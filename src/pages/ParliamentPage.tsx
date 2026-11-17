@@ -2,7 +2,7 @@ import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useGameStore } from "../store/gameStore";
 import { getParliament, getConstitutionLaws, getElections } from "../hooks/useTauriCommand";
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs } from "../components/ui";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Tabs, Win95Window, Win95Inset } from "../components/ui";
 import { Hemicycle } from "../components/Hemicycle";
 import { EChart } from "../components/charts/EChart";
 import { VipHoverCard } from "../components/VipHoverCard";
@@ -36,7 +36,7 @@ const legislatureLabel = (name: string | null | undefined): string => (name ?? "
 /// wiring lives in the shared VipHoverCard / App shell).
 const VIP_LINK_AFFORDANCE = "hover:underline decoration-dotted underline-offset-2 cursor-pointer";
 
-const CHIP_BASE = "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium";
+const CHIP_BASE = "inline-flex items-center   border px-2 py-0.5 text-xs font-medium";
 
 /// v4.20/v4.22 WS2.4: colored status chip with five standardized outcome
 /// shades — Enacted (emerald), Senate Veto Overridden (teal-green),
@@ -94,7 +94,7 @@ const THEME_STYLES: Record<string, string> = {
 
 function ThemeTag({ tag, className = "" }: { tag: string; className?: string }) {
   if (!tag) return null;
-  const cls = THEME_STYLES[normKey(tag)] ?? "bg-slate-500/15 text-slate-400 border-slate-500/30";
+  const cls = THEME_STYLES[normKey(tag)] ?? "bg-win95-grey text-win95-dark border-win95-dark";
   return <span className={`${CHIP_BASE} ${cls} ${className}`}>{tag}</span>;
 }
 
@@ -102,7 +102,7 @@ function ThemeTag({ tag, className = "" }: { tag: string; className?: string }) 
 function ColorSwatch({ hex, seed }: { hex: string | null | undefined; seed: string }) {
   return (
     <span
-      className="inline-block h-3 w-3 shrink-0 rounded-sm border border-black/40"
+      className="inline-block h-3 w-3 shrink-0   border border-black/40"
       style={{ backgroundColor: partyColor(hex, seed) }}
     />
   );
@@ -141,7 +141,7 @@ export function ParliamentPage() {
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center gap-3">
-        <h2 className="text-xl font-bold text-foreground">{legislatureName} — {selectedCountry}</h2>
+        <div className="win95-titlebar mb-2"><span>{legislatureName} — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
         <Badge variant="secondary">{data.government_form}</Badge>
         {regimeType && <Badge variant="outline">{regimeType}</Badge>}
         {data.parliament.suspended && <Badge variant="destructive">Suspended</Badge>}
@@ -218,34 +218,35 @@ function ChambersView({ parliament }: { parliament: ParliamentSnapshot }) {
           };
         });
         return (
-          <Card key={chamber.name}>
-            <CardHeader>
-              <CardTitle>{chamber.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div>
-                  <div className="text-xs text-muted-foreground">Total Seats</div>
-                  <div className="text-lg font-bold">{chamber.total_seats}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Speaker</div>
-                  <div className="text-sm font-medium">
-                    {chamber.speaker_vip_id ? (
-                      <VipHoverCard vipId={chamber.speaker_vip_id}>{chamber.speaker_name}</VipHoverCard>
-                    ) : (
-                      <span className={VIP_LINK_AFFORDANCE}>{chamber.speaker_name}</span>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Speaker Club</div>
-                  <div className="text-sm font-medium">{chamber.speaker_club}</div>
+          <Win95Window key={chamber.name} title={chamber.name} frameClassName="mb-4">
+            <div className="grid grid-cols-3 gap-4 mb-3">
+              <div>
+                <div className="text-[11px] font-bold uppercase text-muted-foreground">Total Seats</div>
+                <div className="text-lg font-bold win95-mono">{chamber.total_seats}</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-bold uppercase text-muted-foreground">Speaker</div>
+                <div className="text-sm font-medium">
+                  {chamber.speaker_vip_id ? (
+                    <VipHoverCard vipId={chamber.speaker_vip_id}>{chamber.speaker_name}</VipHoverCard>
+                  ) : (
+                    <span className={VIP_LINK_AFFORDANCE}>{chamber.speaker_name}</span>
+                  )}
                 </div>
               </div>
+              <div>
+                <div className="text-[11px] font-bold uppercase text-muted-foreground">Speaker Club</div>
+                <div className="text-sm font-medium">{chamber.speaker_club}</div>
+              </div>
+            </div>
+            {/* TASK-039: hemicycle sits in a sunken rostrum well. */}
+            <Win95Inset className="p-1">
               <Hemicycle entries={entries} totalSeats={chamber.total_seats} />
-            </CardContent>
-          </Card>
+              <div className="text-center text-[10px] font-bold uppercase text-win95-dark border-t border-win95-dark mt-1 pt-0.5">
+                MPR ROSTRUM
+              </div>
+            </Win95Inset>
+          </Win95Window>
         );
       })}
     </div>
@@ -328,7 +329,7 @@ function ClubsView({ parliament, legislatureName }: { parliament: ParliamentSnap
                         {club.name}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right">{club.seats}</TableCell>
+                    <TableCell className="text-right win95-mono">{club.seats}</TableCell>
                     <TableCell>
                       <IdeologyBadge iconKey={club.ideology_icon} label={club.ideology} />
                     </TableCell>
@@ -337,7 +338,7 @@ function ClubsView({ parliament, legislatureName }: { parliament: ParliamentSnap
                         <VipHoverCard vipId={club.chairperson_id}>{club.chairperson_name}</VipHoverCard>
                       ) : "—"}
                     </TableCell>
-                    <TableCell className="text-right">{club.discipline.toFixed(2)}</TableCell>
+                    <TableCell className="text-right win95-mono">{club.discipline.toFixed(2)}</TableCell>
                     <TableCell>{club.is_splinter ? <Badge variant="secondary">Yes</Badge> : "—"}</TableCell>
                   </TableRow>
                   {expanded === club.name && (
@@ -494,8 +495,8 @@ function CommitteesView({ parliament }: { parliament: ParliamentSnapshot }) {
                       )}{" "}
                       ({c.chair_party})
                     </TableCell>
-                    <TableCell className="text-right">{c.member_count}</TableCell>
-                    <TableCell className="text-right">{c.bills_under_review}</TableCell>
+                    <TableCell className="text-right win95-mono">{c.member_count}</TableCell>
+                    <TableCell className="text-right win95-mono">{c.bills_under_review}</TableCell>
                   </TableRow>
                   {expanded === c.name && (
                     <TableRow>
@@ -510,7 +511,7 @@ function CommitteesView({ parliament }: { parliament: ParliamentSnapshot }) {
                               {c.party_seats.map(([party, seats]) => (
                                 <Badge key={party} variant="secondary" className="text-xs">
                                   <span
-                                    className="inline-block w-2 h-2 rounded-full mr-1"
+                                    className="inline-block w-2 h-2   mr-1"
                                     style={{ backgroundColor: partyColor(null, party) }}
                                   />
                                   {party}: {seats}
@@ -535,7 +536,7 @@ function CommitteesView({ parliament }: { parliament: ParliamentSnapshot }) {
                                 <TableRow key={b.bill_id}>
                                   <TableCell className="text-xs">{b.title}</TableCell>
                                   <TableCell><Badge variant={stageVariant(b.stage)}>{stageLabel(b.stage)}</Badge></TableCell>
-                                  <TableCell className="text-right">
+                                  <TableCell className="text-right win95-mono">
                                     {b.completion_turn !== null ? `T${b.completion_turn}` : "—"}
                                   </TableCell>
                                   <TableCell><RecommendationBadge value={b.recommendation} /></TableCell>
@@ -658,12 +659,12 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
                         {v.bill_title}
                         {v.detail?.theme_tag ? <ThemeTag tag={v.detail.theme_tag} className="ml-1.5" /> : null}
                       </TableCell>
-                      <TableCell className="text-right">T{v.first_vote_turn}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right win95-mono">T{v.first_vote_turn}</TableCell>
+                      <TableCell className="text-right win95-mono">
                         {v.stages_passed}/{v.stages_required}
                       </TableCell>
-                      <TableCell className="text-right">T{v.last_vote_turn}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right win95-mono">T{v.last_vote_turn}</TableCell>
+                      <TableCell className="text-right win95-mono">
                         {v.effective_turn !== null ? `T${v.effective_turn}` : "—"}
                       </TableCell>
                       <TableCell>
@@ -704,64 +705,105 @@ function VotesView({ parliament }: { parliament: ParliamentSnapshot }) {
   );
 }
 
-/// Per-club For/Against/Abstain decomposition of one chamber's vote,
-/// closed by a per-chamber TOTAL row (v4.23.0 WS2).
+/// Per-club For/Against/Abstain decomposition of one chamber's vote.
+/// TASK-039: rebuilt to the "STATE OF THE REPUBLIC" reference — twin
+/// sunken panels under deep-blue titlebars ("VOTED FOR" / "VOTED
+/// AGAINST"), harsh unpadded lists, classic #008000/#FF0000 tallies.
 function ClubBreakdownPanel({ vote }: { vote: VoteRow }) {
   const turnout = vote.votes_for + vote.votes_against + vote.abstentions;
+  const forClubs = vote.club_breakdown.filter((t) => t.votes_for > 0);
+  const againstClubs = vote.club_breakdown.filter((t) => t.votes_against > 0);
+  const abstainClubs = vote.club_breakdown.filter(
+    (t) => t.abstentions > 0 && t.votes_for === 0 && t.votes_against === 0,
+  );
   return (
-    <div>
-      <div className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-2">
+    <div className="win95-panel">
+      <div className="win95-titlebar">
         <span>
-          {vote.chamber_name} — Club Breakdown <span className="opacity-60">(T{vote.turn})</span>
+          {vote.chamber_name} — {vote.passed ? "PASSED" : "REJECTED"}
         </span>
-        <Badge variant={vote.passed ? "success" : "destructive"}>
-          {vote.passed ? "Passed" : "Rejected"}
-        </Badge>
+        <span className="win95-mono font-normal">
+          {vote.votes_for} FOR · {vote.votes_against} AGAINST · {vote.abstentions} BLANK
+        </span>
       </div>
-      {vote.club_breakdown.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Club</TableHead>
-              <TableHead className="text-right">For</TableHead>
-              <TableHead className="text-right">Against</TableHead>
-              <TableHead className="text-right">Abstain</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {vote.club_breakdown.map((t) => (
-              <TableRow key={t.club_id}>
-                <TableCell className="text-xs">{t.club_id}</TableCell>
-                <TableCell className="text-right text-green-400">{t.votes_for}</TableCell>
-                <TableCell className="text-right text-red-400">{t.votes_against}</TableCell>
-                <TableCell className="text-right text-muted-foreground">{t.abstentions}</TableCell>
-              </TableRow>
-            ))}
-            {/* v4.23.0 WS2: per-chamber TOTAL — the full recorded tally,
-                not a per-club sum, so absent clubs still count. */}
-            <TableRow className="border-t-2 border-border font-medium">
-              <TableCell className="text-xs">
-                TOTAL — {vote.chamber_name} ({turnout} voting)
-              </TableCell>
-              <TableCell className="text-right text-green-400">{vote.votes_for}</TableCell>
-              <TableCell className="text-right text-red-400">{vote.votes_against}</TableCell>
-              <TableCell className="text-right text-muted-foreground">{vote.abstentions}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      ) : (
-        <div className="text-xs text-muted-foreground">
-          <div className="flex items-center gap-3 py-1">
-            <span className="font-medium text-foreground">
-              TOTAL — {vote.chamber_name} ({turnout} voting)
-            </span>
-            <span className="text-green-400">For {vote.votes_for}</span>
-            <span className="text-red-400">Against {vote.votes_against}</span>
-            <span className="text-muted-foreground">Abstain {vote.abstentions}</span>
+      {/* Result bar — solid green/red blocks */}
+      <div className="h-4 flex win95-inset-grey">
+        <div
+          className="bg-win95-green"
+          style={{ width: `${turnout > 0 ? (vote.votes_for / turnout) * 100 : 0}%` }}
+        />
+        <div
+          className="bg-win95-red"
+          style={{ width: `${turnout > 0 ? (vote.votes_against / turnout) * 100 : 0}%` }}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-2 p-2">
+        <div>
+          <div className="win95-titlebar">
+            <span>VOTED FOR ({vote.votes_for})</span>
+            <span className="win95-close-btn">X</span>
           </div>
-          No per-club tallies retained for this vote (recorded before tally capture).
+          <div className="win95-inset max-h-48 overflow-y-auto">
+            <table className="w-full text-xs">
+              <tbody>
+                {forClubs.map((t) => (
+                  <tr key={t.club_id}>
+                    <td className="py-0 px-1">
+                      <span className="inline-block w-2 h-2 bg-win95-navy mr-1" />
+                      {t.club_id}
+                    </td>
+                    <td className="py-0 px-1 text-right win95-mono text-win95-green font-bold">
+                      {t.votes_for} for
+                    </td>
+                  </tr>
+                ))}
+                {forClubs.length === 0 && (
+                  <tr><td className="py-0 px-1 text-win95-dark">— none —</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      )}
+        <div>
+          <div className="win95-titlebar">
+            <span>VOTED AGAINST ({vote.votes_against})</span>
+            <span className="win95-close-btn">X</span>
+          </div>
+          <div className="win95-inset max-h-48 overflow-y-auto">
+            <table className="w-full text-xs">
+              <tbody>
+                {againstClubs.map((t) => (
+                  <tr key={t.club_id}>
+                    <td className="py-0 px-1">
+                      <span className="inline-block w-2 h-2 bg-win95-red mr-1" />
+                      {t.club_id}
+                    </td>
+                    <td className="py-0 px-1 text-right win95-mono text-win95-red font-bold">
+                      {t.votes_against} against
+                    </td>
+                  </tr>
+                ))}
+                {againstClubs.length === 0 && (
+                  <tr><td className="py-0 px-1 text-win95-dark">— none —</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {/* v4.23.0 WS2: per-chamber TOTAL — the full recorded tally, not a
+          per-club sum, so absent clubs still count. */}
+      <div className="px-2 pb-2 text-xs win95-mono">
+        TOTAL — {vote.chamber_name} ({turnout} voting) ·{" "}
+        <span className="text-win95-green font-bold">FOR {vote.votes_for}</span> ·{" "}
+        <span className="text-win95-red font-bold">AGAINST {vote.votes_against}</span> ·{" "}
+        <span className="text-win95-dark">BLANK {vote.abstentions}</span>
+        {abstainClubs.length > 0 && (
+          <span className="text-win95-dark">
+            {" "}· abstained: {abstainClubs.map((t) => t.club_id).join(", ")}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -832,7 +874,7 @@ function BillDetailPanel({ detail }: { detail: BillDetailRow }) {
                   <TableCell className={`text-right ${p.budget_impact < 0 ? "text-red-400" : "text-green-400"}`}>
                     {p.budget_impact !== 0 ? fmt(p.budget_impact) : "—"}
                   </TableCell>
-                  <TableCell className="text-right">{p.sunset_turn !== null ? `T${p.sunset_turn}` : "—"}</TableCell>
+                  <TableCell className="text-right win95-mono">{p.sunset_turn !== null ? `T${p.sunset_turn}` : "—"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -1020,13 +1062,13 @@ function CouncilorsTab({ council }: { council: AdvisoryCouncilSnapshot }) {
                   </TableCell>
                   <TableCell>{m.faction}</TableCell>
                   <TableCell><Badge variant="outline">{m.faction_type}</Badge></TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right win95-mono">
                     {/* Engine loyalty is 0–1 — render as a percent. */}
                     <Badge variant={m.loyalty > 0.7 ? "success" : m.loyalty > 0.4 ? "default" : "destructive"}>
                       {(m.loyalty * 100).toFixed(0)}%
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">{m.influence.toFixed(1)}</TableCell>
+                  <TableCell className="text-right win95-mono">{m.influence.toFixed(1)}</TableCell>
                 </TableRow>
               ))
             ) : (
@@ -1063,13 +1105,13 @@ function CouncilFactionsTab({ council }: { council: AdvisoryCouncilSnapshot }) {
                 <TableRow key={f.faction}>
                   <TableCell className="font-medium">{f.faction}</TableCell>
                   <TableCell><Badge variant="outline">{f.faction_type}</Badge></TableCell>
-                  <TableCell className="text-right">{f.members}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right win95-mono">{f.members}</TableCell>
+                  <TableCell className="text-right win95-mono">
                     <Badge variant={f.avg_loyalty > 0.7 ? "success" : f.avg_loyalty > 0.4 ? "default" : "destructive"}>
                       {(f.avg_loyalty * 100).toFixed(0)}%
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">{f.total_influence.toFixed(1)}</TableCell>
+                  <TableCell className="text-right win95-mono">{f.total_influence.toFixed(1)}</TableCell>
                 </TableRow>
               ))
             ) : (
@@ -1115,7 +1157,7 @@ function CouncilDecreesTab({ council }: { council: AdvisoryCouncilSnapshot }) {
                       {d.title}
                     </TableCell>
                     <TableCell><Badge variant="outline">{d.domain}</Badge></TableCell>
-                    <TableCell className="text-right">T{d.issued_turn}</TableCell>
+                    <TableCell className="text-right win95-mono">T{d.issued_turn}</TableCell>
                     <TableCell className={`text-right ${d.net_opinion >= 0 ? "text-green-400" : "text-red-400"}`}>
                       {d.net_opinion >= 0 ? "+" : ""}{d.net_opinion.toFixed(2)}
                     </TableCell>
@@ -1204,12 +1246,12 @@ function CouncilPetitionsTab({ council }: { council: AdvisoryCouncilSnapshot }) 
                   <TableCell className="text-xs">
                     <VipHoverCard vipId={p.petitioner_vip_id}>{p.petitioner_name}</VipHoverCard>
                   </TableCell>
-                  <TableCell className="text-right">T{p.filed_turn}</TableCell>
-                  <TableCell className="text-right">{p.urgency.toFixed(2)}</TableCell>
+                  <TableCell className="text-right win95-mono">T{p.filed_turn}</TableCell>
+                  <TableCell className="text-right win95-mono">{p.urgency.toFixed(2)}</TableCell>
                   <TableCell>
                     <StatusChip status={p.status} />
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right win95-mono">
                     {p.resolved_turn !== null ? `T${p.resolved_turn}` : "—"}
                   </TableCell>
                 </TableRow>
@@ -1336,10 +1378,10 @@ function ConstitutionLawsView() {
                     <TableCell className="text-xs">{humanizeStatuteText(s.title)}</TableCell>
                     <TableCell className="text-xs">{humanizeStatuteText(s.bill_type)}</TableCell>
                     <TableCell className="text-xs">{s.initiator}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right win95-mono">
                       {s.enacted_turn !== null ? `T${s.enacted_turn}` : "—"}
                     </TableCell>
-                    <TableCell className="text-right">{s.provisions.length}</TableCell>
+                    <TableCell className="text-right win95-mono">{s.provisions.length}</TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -1502,8 +1544,8 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
                         {party}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right">{share.toFixed(1)}%</TableCell>
-                    <TableCell className="text-right">{seats}</TableCell>
+                    <TableCell className="text-right win95-mono">{share.toFixed(1)}%</TableCell>
+                    <TableCell className="text-right win95-mono">{seats}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -1531,7 +1573,7 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
                           <TableRow key={`${r}-${cand}`}>
                             <TableCell className="text-xs font-medium">{cand}</TableCell>
                             <TableCell className="text-xs">{party}</TableCell>
-                            <TableCell className="text-right">{share.toFixed(1)}%</TableCell>
+                            <TableCell className="text-right win95-mono">{share.toFixed(1)}%</TableCell>
                             <TableCell>{won && <Badge variant="success">Winner</Badge>}</TableCell>
                           </TableRow>
                         ))}
@@ -1611,8 +1653,8 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
                     <TableCell className="text-xs">
                       <IdeologyBadge iconKey={p.ideology_icon} label={p.ideology} />
                     </TableCell>
-                    <TableCell className="text-right">{(p.support * 100).toFixed(1)}%</TableCell>
-                    <TableCell className="text-right">{p.seats}</TableCell>
+                    <TableCell className="text-right win95-mono">{(p.support * 100).toFixed(1)}%</TableCell>
+                    <TableCell className="text-right win95-mono">{p.seats}</TableCell>
                     <TableCell>
                       {p.is_ruling && <Badge variant="success" className="mr-1">Ruling</Badge>}
                       {p.is_coalition_member && <Badge variant="secondary">Coalition</Badge>}
@@ -1636,7 +1678,7 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
             {priorElections.map((e) => {
               const winner = e.results[0];
               return (
-                <details key={`${e.turn}-${e.year}`} className="text-xs border rounded px-3 py-2">
+                <details key={`${e.turn}-${e.year}`} className="text-xs border   px-3 py-2">
                   <summary className="cursor-pointer font-medium">
                     {e.year} Election — {winner ? `${winner[0]} won (${winner[1].toFixed(1)}%, ${winner[2]} seats)` : "no results"}
                   </summary>
@@ -1652,8 +1694,8 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
                       {e.results.map(([party, share, seats]) => (
                         <TableRow key={party}>
                           <TableCell className="text-xs">{party}</TableCell>
-                          <TableCell className="text-right">{share.toFixed(1)}%</TableCell>
-                          <TableCell className="text-right">{seats}</TableCell>
+                          <TableCell className="text-right win95-mono">{share.toFixed(1)}%</TableCell>
+                          <TableCell className="text-right win95-mono">{seats}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1685,7 +1727,7 @@ function ElectionsView({ regimeType, legislatureName }: { regimeType: string; le
                   <TableRow key={`${a.party_id}-${a.turn}-${i}`}>
                     <TableCell className="text-xs">{a.party_id}</TableCell>
                     <TableCell className="text-xs">{a.action}</TableCell>
-                    <TableCell className="text-right">T{a.turn}</TableCell>
+                    <TableCell className="text-right win95-mono">T{a.turn}</TableCell>
                     <TableCell>
                       {a.is_black_money ? (
                         <Badge variant="destructive">Black Money</Badge>

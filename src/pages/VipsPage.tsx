@@ -46,7 +46,7 @@ export function VipsPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">VIP Explorer — {selectedCountry}</h2>
+      <div className="win95-titlebar mb-2"><span>VIP Explorer — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
 
       <div className="flex items-center gap-3 flex-wrap">
         <Input
@@ -58,7 +58,7 @@ export function VipsPage() {
         <select
           value={roleFilter}
           onChange={(e) => { setRoleFilter(e.target.value); setOffset(0); }}
-          className="max-w-xs h-9 rounded-md border border-input bg-background px-3 text-sm"
+          className="max-w-xs h-9   border border-input bg-background px-3 text-sm"
         >
           <option value="">All roles</option>
           {roles?.map((r) => (
@@ -119,14 +119,14 @@ export function VipsPage() {
                             <span className="block text-xs text-primary/70">({vip.company_name})</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-right">{vip.age}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right win95-mono">{vip.age}</TableCell>
+                        <TableCell className="text-right win95-mono">
                           <Badge variant={vip.health > 0.7 ? "success" : vip.health > 0.4 ? "default" : "destructive"}>
                             {(vip.health * 100).toFixed(0)}%
                           </Badge>
                         </TableCell>
                         <TableCell>{vip.faction}</TableCell>
-                        <TableCell className="text-right">{vip.influence.toFixed(1)}</TableCell>
+                        <TableCell className="text-right win95-mono">{vip.influence.toFixed(1)}</TableCell>
                         <TableCell className="text-xs">{vip.main_trait}</TableCell>
                       </TableRow>
                     ))

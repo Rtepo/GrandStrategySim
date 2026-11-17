@@ -8,23 +8,23 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size;
 }
 const variants: Record<Variant, string> = {
-  default: "bg-primary text-primary-foreground hover:opacity-90",
-  secondary: "bg-secondary text-secondary-foreground hover:opacity-80",
-  outline: "border border-border bg-transparent hover:bg-accent text-foreground",
-  ghost: "hover:bg-accent text-foreground",
-  destructive: "bg-destructive text-destructive-foreground hover:opacity-90",
+  default: "bg-win95-grey text-black",
+  secondary: "bg-win95-light text-black",
+  outline: "bg-win95-grey text-black",
+  ghost: "bg-win95-grey text-black",
+  destructive: "bg-win95-grey text-win95-red font-bold",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs",
-  md: "h-9 px-4 text-sm",
-  lg: "h-10 px-6 text-sm",
+  sm: "px-2 py-0.5 text-xs",
+  md: "px-3 py-1 text-sm",
+  lg: "px-4 py-1.5 text-sm",
 };
 
 export function Button({ variant = "default", size = "md", className = "", ...props }: ButtonProps) {
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:pointer-events-none ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center font-medium disabled:text-win95-dark disabled:pointer-events-none ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     />
   );

@@ -3,7 +3,7 @@
   "schema": "daemon-v2-backlog",
   "release": "v4.27.0-task-batch",
   "base_ref": "origin/main",
-  "updated_at": "2026-11-03T20:36:10.254Z",
+  "updated_at": "2026-11-17T15:53:29.903Z",
   "tasks": [
     {
       "id": "TASK-001",
@@ -1526,7 +1526,7 @@
     {
       "id": "TASK-038",
       "title": "v4.32.0 release gates + version bump + merge/tag/push",
-      "status": "PENDING",
+      "status": "DONE",
       "priority": 35,
       "assigned_daemon": "agent-5",
       "spec_file": ".devin/tasks/specs/TASK-038.md",
@@ -1539,7 +1539,84 @@
       "required_ui_files": [],
       "ui_ast_grep_checks": [],
       "created_at": "2026-11-09T00:00:00Z",
-      "updated_at": "2026-11-09T00:00:00Z",
+      "updated_at": "2026-11-17T15:44:46.611Z",
+      "verify_history": []
+    },
+    {
+      "id": "TASK-039",
+      "title": "Win95 Retro Institutional Terminal CSS overhaul — grey palette, 2px bevels, no rounded, OS-window chrome, MS Sans Serif, hemicycle FOR/AGAINST panels, dense banking terminal",
+      "status": "DONE",
+      "priority": 36,
+      "assigned_daemon": "agent-5",
+      "spec_file": ".devin/tasks/specs/TASK-039.md",
+      "base_ref": "origin/main",
+      "required_ui_files": [
+        "src/styles/globals.css",
+        "tailwind.config.js",
+        "src/App.tsx",
+        "src/pages/ParliamentPage.tsx",
+        "src/pages/BankingPage.tsx"
+      ],
+      "required_rust_files": [],
+      "ui_ast_grep_checks": [
+        {
+          "file": "src/styles/globals.css",
+          "pattern": "win95-panel|win95-panel",
+          "desc": ".win95-panel outset bevel utility exists"
+        },
+        {
+          "file": "src/styles/globals.css",
+          "pattern": "win95-inset",
+          "desc": ".win95-inset sunken bevel utility exists"
+        },
+        {
+          "file": "src/styles/globals.css",
+          "pattern": "win95-titlebar",
+          "desc": ".win95-titlebar deep-blue titlebar utility exists"
+        },
+        {
+          "file": "src/styles/globals.css",
+          "pattern": "border-radius: 0",
+          "desc": "Global border-radius 0 enforced"
+        },
+        {
+          "file": "src/styles/globals.css",
+          "pattern": "MS Sans Serif",
+          "desc": "MS Sans Serif font stack"
+        },
+        {
+          "file": "src/styles/globals.css",
+          "pattern": "#000080|000080",
+          "desc": "Deep blue titlebar color"
+        },
+        {
+          "file": "src/styles/globals.css",
+          "pattern": "#C0C0C0|#c0c0c0|#D4D0C8|#d4d0c8",
+          "desc": "Win95 grey background"
+        },
+        {
+          "file": "src/styles/globals.css",
+          "pattern": "font-smoothing: none",
+          "desc": "Font smoothing disabled (pixelated 90s text)"
+        },
+        {
+          "file": "src/App.tsx",
+          "pattern": "win95-window|win95-panel|win95-titlebar",
+          "desc": "App shell uses win95 OS-window chrome"
+        },
+        {
+          "file": "src/pages/ParliamentPage.tsx",
+          "pattern": "VOTED FOR|win95-titlebar|win95-inset",
+          "desc": "Parliament uses sunken hemicycle + FOR/AGAINST blue titlebars"
+        },
+        {
+          "file": "src/pages/BankingPage.tsx",
+          "pattern": "win95-panel|win95-inset|win95-titlebar",
+          "desc": "Banking terminal uses win95 dense tables/bevels"
+        }
+      ],
+      "created_at": "2026-11-17T00:00:00Z",
+      "updated_at": "2026-11-17T15:53:29.902Z",
       "verify_history": []
     }
   ]

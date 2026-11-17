@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Routes, Route, NavLink, Navigate } from "react-router-dom";
+import { Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
@@ -50,6 +50,7 @@ import { SocietyPage } from "./pages/SocietyPage";
 import { PressPage } from "./pages/PressPage";
 import { MapPage } from "./pages/MapPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { Win95Window } from "./components/ui/win95";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useUpdater } from "./hooks/useUpdater";
 import { SettingsModal } from "./components/SettingsModal";
@@ -150,24 +151,28 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
   }, [autoAdvance]);
 
   return (
-    <aside className="w-60 bg-card border-r border-border flex flex-col">
-      <div className="p-4 border-b border-border">
-        <h1 className="text-lg font-bold text-foreground">Grand Strategy</h1>
+    <aside className="w-60 bg-win95-grey border-r-2 border-win95-dark flex flex-col win95-panel">
+      <div className="win95-titlebar">
+        <span>GRAND STRATEGY</span>
+        <span className="win95-close-btn">X</span>
+      </div>
+      <div className="p-3 border-b-2 border-win95-dark">
+        <h1 className="text-sm font-bold uppercase text-foreground">Grand Strategy</h1>
         {gameStatus && (
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1 win95-mono">
             Turn {gameStatus.turn} · {monthName(gameStatus.month)} {gameStatus.year} · {gameStatus.season}
           </p>
         )}
       </div>
 
       {gameStatus && gameStatus.has_game && (
-        <div className="p-3 border-b border-border">
-          <label className="text-xs text-muted-foreground mb-1 block">Country</label>
+        <div className="p-3 border-b-2 border-win95-dark">
+          <label className="text-xs text-muted-foreground mb-1 block uppercase font-bold">Country</label>
           <select
             value={selectedCountry ?? ""}
             onChange={(e) => setSelectedCountry(e.target.value || null)}
             disabled={processing}
-            className="w-full bg-input text-foreground text-sm rounded px-2 py-1 border border-border disabled:opacity-50"
+            className="w-full text-sm px-2 py-1 disabled:opacity-50"
           >
             <option value="">— Select —</option>
             {gameStatus.countries.map((c) => (
@@ -192,26 +197,26 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
+              `flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase border-2 mb-px ${
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-win95-navy text-white border-win95-dark"
+                  : "win95-panel text-black hover:bg-win95-light"
             } ${processing ? "pointer-events-none opacity-60" : ""}`
             }
           >
-            <item.icon size={16} />
+            <item.icon size={14} />
             {label}
           </NavLink>
           );
         })}
       </nav>
 
-      <div className="p-3 border-t border-border space-y-2">
+      <div className="p-3 border-t-2 border-win95-dark space-y-2">
         {/* v4.32.0 (TASK-033): Game Settings & Save/Load above Advance Turn */}
         <button
           onClick={() => setSettingsOpen(true)}
           disabled={!gameStatus?.has_game}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded bg-muted text-muted-foreground text-xs font-medium disabled:opacity-50 hover:bg-accent hover:text-accent-foreground"
+          className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold uppercase disabled:opacity-50"
         >
           <Settings size={14} />
           Game Settings &amp; Save/Load
@@ -220,7 +225,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
           <button
             onClick={handleAdvance}
             disabled={processing || !gameStatus?.has_game}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 hover:opacity-90"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-bold uppercase disabled:opacity-50"
           >
             {processing ? (
               <RefreshCw size={16} className="animate-spin" />
@@ -233,10 +238,8 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
             onClick={() => setAutoAdvance((a) => !a)}
             disabled={!gameStatus?.has_game}
             title={autoAdvance ? "Pause auto-advance" : "Auto-advance turns"}
-            className={`flex items-center justify-center px-2.5 py-2 rounded text-sm font-medium disabled:opacity-50 ${
-              autoAdvance
-                ? "bg-primary text-primary-foreground hover:opacity-90"
-                : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            className={`flex items-center justify-center px-2.5 py-1.5 text-sm font-bold disabled:opacity-50 ${
+              autoAdvance ? "bg-win95-light" : ""
             }`}
           >
             {autoAdvance ? <Pause size={16} /> : <FastForward size={16} />}
@@ -246,7 +249,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
             onChange={(e) => setAutoSpeed(Number(e.target.value) as AutoSpeed)}
             disabled={!gameStatus?.has_game}
             title="Auto-advance speed"
-            className="bg-input text-foreground text-xs rounded border border-border px-1 py-2 disabled:opacity-50"
+            className="text-xs px-1 py-1 disabled:opacity-50"
           >
             <option value={1}>1x</option>
             <option value={2}>2x</option>
@@ -254,7 +257,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
           </select>
         </div>
         {autoAdvance && (
-          <div className="flex items-center gap-1.5 text-xs text-primary">
+          <div className="flex items-center gap-1.5 text-xs text-win95-navy font-bold uppercase">
             <RefreshCw size={12} className="animate-spin" />
             Auto-advancing · {autoSpeed}x
           </div>
@@ -262,7 +265,7 @@ function Sidebar({ onCheckUpdates, updateChecking }: SidebarProps) {
         <button
           onClick={onCheckUpdates}
           disabled={updateChecking || processing}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded bg-muted text-muted-foreground text-xs font-medium disabled:opacity-50 hover:bg-accent hover:text-accent-foreground"
+          className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-bold uppercase disabled:opacity-50"
         >
           <RefreshCw size={14} className={updateChecking ? "animate-spin" : ""} />
           {updateChecking ? "Checking..." : "Check for Updates"}
@@ -311,18 +314,20 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Grand Strategy Sim</h1>
-          <p className="text-muted-foreground mt-2">A geopolitical-economic simulation</p>
+    <div className="flex items-center justify-center min-h-screen bg-win95-grey">
+      <div className="w-[420px]">
+        <Win95Window title="GRAND STRATEGY SIM — NEW GAME">
+        <div className="space-y-4 p-2 text-left">
+        <div className="text-center">
+          <h1 className="text-lg font-bold uppercase text-foreground">Grand Strategy Sim</h1>
+          <p className="text-muted-foreground mt-1 text-xs">A geopolitical-economic simulation</p>
         </div>
 
-        <div className="bg-card border border-border rounded-lg p-6 space-y-4 text-left">
+        <div className="win95-panel p-3 space-y-4 text-left">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm text-muted-foreground">Countries</label>
-              <span className="text-sm font-bold text-primary">{countryCount}</span>
+              <label className="text-xs font-bold uppercase text-muted-foreground">Countries</label>
+              <span className="text-sm font-bold text-win95-navy win95-mono">{countryCount}</span>
             </div>
             <input
               type="range"
@@ -333,17 +338,17 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
               onChange={(e) => setCountryCount(Number(e.target.value))}
               className="w-full accent-primary cursor-pointer"
             />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <div className="flex justify-between text-xs text-muted-foreground mt-1 win95-mono">
               <span>4</span>
               <span>16</span>
             </div>
           </div>
           <div>
-            <label className="text-sm text-muted-foreground block mb-1">Start Year</label>
+            <label className="text-xs font-bold uppercase text-muted-foreground block mb-1">Start Year</label>
             <select
               value={startYear}
               onChange={(e) => setStartYear(e.target.value)}
-              className="w-full bg-input text-foreground text-sm rounded px-3 py-2 border border-border"
+              className="w-full text-sm px-2 py-1"
             >
               <option value="1900">1900 — Age of Steam and Coal</option>
               <option value="1925">1925 — Factories and Electricity</option>
@@ -352,19 +357,21 @@ function NewGameScreen({ onStart }: { onStart: () => void }) {
             </select>
           </div>
           {error && (
-            <div className="bg-destructive/10 border border-destructive/30 rounded px-3 py-2 text-sm text-destructive">
+            <div className="win95-inset px-3 py-2 text-sm text-win95-red font-bold">
               {error}
             </div>
           )}
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 hover:opacity-90"
+            className="w-full flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-bold uppercase disabled:opacity-50"
           >
             <Plus size={16} />
             {creating ? "Generating World..." : "New Game"}
           </button>
         </div>
+        </div>
+        </Win95Window>
       </div>
     </div>
   );
@@ -418,19 +425,29 @@ export default function App() {
     );
   }
 
+  const location = useLocation();
+  // TASK-039: route name → window titlebar text (e.g. "PARLIAMENT").
+  const routeTitle =
+    location.pathname.split("/").filter(Boolean).pop()?.replace(/-/g, " ") ??
+    "macro";
+
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-win95-grey">
       <Sidebar
         onCheckUpdates={() => updater.checkForUpdates()}
         updateChecking={updater.status === "checking"}
       />
-      <main className="flex-1 overflow-y-auto bg-background">
+      <main className="flex-1 overflow-y-auto bg-win95-grey p-2">
         <UpdateBanner
           state={updater}
           onInstall={() => updater.downloadAndInstall()}
           onDismiss={() => updater.dismiss()}
         />
         <ErrorBoundary>
+          <Win95Window
+            title={`${routeTitle.toUpperCase()} — INSTITUTIONAL TERMINAL`}
+            frameClassName="min-h-full"
+          >
           <Routes>
             <Route path="/" element={<Navigate to="/macro" replace />} />
             <Route path="/macro" element={<MacroPage />} />
@@ -454,6 +471,7 @@ export default function App() {
             <Route path="/society" element={<SocietyPage />} />
             <Route path="/press" element={<PressPage />} />
           </Routes>
+          </Win95Window>
         </ErrorBoundary>
       </main>
       {generating && <LoadingOverlay />}
@@ -466,15 +484,17 @@ export default function App() {
 /// Includes a progress bar for visual feedback.
 function LoadingOverlay() {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95">
-      <div className="text-center space-y-4">
-        <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-muted-foreground text-sm">Generating world...</p>
-        {/* Phase 54: Indeterminate progress bar for visual feedback */}
-        <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
-          <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: "60%" }} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-win95-grey">
+      <Win95Window title="WORLD GENERATOR" closable={false} frameClassName="w-72">
+        <div className="text-center space-y-4 p-2">
+          <p className="text-black text-xs font-bold uppercase">Generating world...</p>
+          {/* Phase 54: Indeterminate progress bar for visual feedback —
+              TASK-039: chunky segmented win95 progress blocks. */}
+          <div className="w-full h-4 win95-inset overflow-hidden p-0.5">
+            <div className="h-full bg-win95-navy animate-pulse" style={{ width: "60%" }} />
+          </div>
         </div>
-      </div>
+      </Win95Window>
     </div>
   );
 }

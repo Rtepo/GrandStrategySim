@@ -42,8 +42,8 @@ function Bar({ label, share, color }: { label: string; share: number; color: str
   return (
     <div className="flex items-center gap-2 text-xs">
       <span className="w-40 truncate text-muted-foreground" title={label}>{label}</span>
-      <div className="flex-1 h-3 bg-muted rounded overflow-hidden">
-        <div className="h-full rounded" style={{ width: `${Math.min(100, share * 100)}%`, background: color }} />
+      <div className="flex-1 h-3 win95-inset overflow-hidden p-0">
+        <div className="h-full  " style={{ width: `${Math.min(100, share * 100)}%`, background: color }} />
       </div>
       <span className="w-14 text-right tabular-nums">{(share * 100).toFixed(1)}%</span>
     </div>
@@ -219,7 +219,7 @@ export function SocietyPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Społeczeństwo — {s.country}</h2>
+      <div className="win95-titlebar mb-2"><span>Społeczeństwo — {s.country}</span><span className="win95-close-btn">X</span></div>
 
       {/* v4.31.0 (TASK-032): all 12 KPI cards carry a live sparkline and
           pin a full-width historical trend chart on click (like Banking). */}
@@ -411,7 +411,7 @@ function Stat({
 }) {
   return (
     <div
-      className={`rounded border bg-card p-3 ${
+      className={`  border bg-card p-3 ${
         pinned ? "border-primary" : "border-border"
       } ${onPin ? "cursor-pointer hover:border-primary/60" : ""}`}
       onClick={onPin}

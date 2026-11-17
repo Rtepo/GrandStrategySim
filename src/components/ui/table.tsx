@@ -2,14 +2,14 @@ import { type ThHTMLAttributes, type TdHTMLAttributes, type TableHTMLAttributes,
 
 export function Table({ className = "", ...props }: TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-auto">
+    <div className="w-full overflow-auto win95-inset">
       <table className={`w-full caption-bottom text-sm ${className}`} {...props} />
     </div>
   );
 }
 
 export function TableHeader({ className = "", ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={`[&_tr]:border-b border-border ${className}`} {...props} />;
+  return <thead className={`[&_tr]:border-b border-win95-dark ${className}`} {...props} />;
 }
 
 export function TableBody({ className = "", ...props }: HTMLAttributes<HTMLTableSectionElement>) {
@@ -17,21 +17,21 @@ export function TableBody({ className = "", ...props }: HTMLAttributes<HTMLTable
 }
 
 export function TableRow({ className = "", ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={`border-b border-border transition-colors hover:bg-accent/50 ${className}`} {...props} />;
+  return <tr className={`border-b border-[#a0a0a0] hover:bg-win95-light ${className}`} {...props} />;
 }
 
 export function TableHead({ className = "", ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
-  return <th className={`h-9 px-3 text-left align-middle font-medium text-muted-foreground text-xs uppercase tracking-wider ${className}`} {...props} />;
+  return <th className={`px-2 py-1 text-left align-middle font-bold text-black text-[11px] uppercase ${className}`} {...props} />;
 }
 
 export function TableCell({ className = "", ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={`px-3 py-2 align-middle ${className}`} {...props} />;
+  return <td className={`px-2 py-0.5 align-middle ${className}`} {...props} />;
 }
 
 export function TableEmpty({ colSpan, message }: { colSpan: number; message: string }) {
   return (
     <TableRow>
-      <TableCell colSpan={colSpan} className="text-center text-muted-foreground py-8">
+      <TableCell colSpan={colSpan} className="text-center text-win95-dark py-8">
         {message}
       </TableCell>
     </TableRow>

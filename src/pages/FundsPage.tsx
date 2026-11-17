@@ -45,7 +45,7 @@ export function FundsPage() {
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">Investment Funds — {selectedCountry}</h2>
+        <div className="win95-titlebar mb-2"><span>Investment Funds — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
         <Button size="sm" variant={showCgt ? "default" : "outline"} onClick={() => setShowCgt(!showCgt)}>
           Capital Gains Tax
         </Button>
@@ -97,10 +97,10 @@ export function FundsPage() {
                   {cgtSummary.rows.map((r) => (
                     <TableRow key={r.entity_id}>
                       <TableCell className="text-xs" title={r.entity_id}>{r.entity_name}</TableCell>
-                      <TableCell className="text-right text-green-600">{fmt(r.realized_gains)}</TableCell>
-                      <TableCell className="text-right text-red-600">{fmt(r.realized_losses)}</TableCell>
-                      <TableCell className="text-right font-medium">{fmt(r.tax_owed)}</TableCell>
-                      <TableCell className="text-right">{fmt(r.carried_forward_losses)}</TableCell>
+                      <TableCell className="text-right win95-mono text-green-600">{fmt(r.realized_gains)}</TableCell>
+                      <TableCell className="text-right win95-mono text-red-600">{fmt(r.realized_losses)}</TableCell>
+                      <TableCell className="text-right win95-mono font-medium">{fmt(r.tax_owed)}</TableCell>
+                      <TableCell className="text-right win95-mono">{fmt(r.carried_forward_losses)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -125,10 +125,10 @@ export function FundsPage() {
                     {cgtSummary.pending_rows.map((r) => (
                       <TableRow key={r.entity_id}>
                         <TableCell className="text-xs" title={r.entity_id}>{r.entity_name}</TableCell>
-                        <TableCell className="text-right text-green-600">{fmt(r.realized_gains)}</TableCell>
-                        <TableCell className="text-right text-red-600">{fmt(r.realized_losses)}</TableCell>
-                        <TableCell className="text-right">{fmt(r.tax_owed)}</TableCell>
-                        <TableCell className="text-right">{fmt(r.carried_forward_losses)}</TableCell>
+                        <TableCell className="text-right win95-mono text-green-600">{fmt(r.realized_gains)}</TableCell>
+                        <TableCell className="text-right win95-mono text-red-600">{fmt(r.realized_losses)}</TableCell>
+                        <TableCell className="text-right win95-mono">{fmt(r.tax_owed)}</TableCell>
+                        <TableCell className="text-right win95-mono">{fmt(r.carried_forward_losses)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -169,8 +169,8 @@ export function FundsPage() {
                     <TableCell className="font-medium">{f.name}</TableCell>
                     <TableCell><Badge variant="outline">{f.fund_type}</Badge></TableCell>
                     <TableCell><Badge variant="secondary">{f.risk_profile}</Badge></TableCell>
-                    <TableCell className="text-right">{fmt(f.nav_per_share)}</TableCell>
-                    <TableCell className="text-right">{fmt(f.total_aum)}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(f.nav_per_share)}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(f.total_aum)}</TableCell>
                     <TableCell>
                       <VipHoverCard vipId={f.manager_vip_id}>{f.manager_name}</VipHoverCard>
                     </TableCell>
@@ -181,7 +181,7 @@ export function FundsPage() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">{num(f.shares_outstanding)}</TableCell>
+                    <TableCell className="text-right win95-mono">{num(f.shares_outstanding)}</TableCell>
                     <TableCell className={`text-right ${f.ytd_return >= 0 ? "text-green-600" : "text-red-600"}`}>
                       {pct(f.ytd_return)}
                     </TableCell>
@@ -276,10 +276,10 @@ function FundDetailPanel({
                           <span className="text-muted-foreground ml-1 font-mono">({h.ticker})</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">{num(h.quantity)}</TableCell>
-                      <TableCell className="text-right">{fmt(h.avg_cost)}</TableCell>
-                      <TableCell className="text-right">{fmt(h.market_value)}</TableCell>
-                      <TableCell className="text-right">{(h.weight_pct * 100).toFixed(1)}%</TableCell>
+                      <TableCell className="text-right win95-mono">{num(h.quantity)}</TableCell>
+                      <TableCell className="text-right win95-mono">{fmt(h.avg_cost)}</TableCell>
+                      <TableCell className="text-right win95-mono">{fmt(h.market_value)}</TableCell>
+                      <TableCell className="text-right win95-mono">{(h.weight_pct * 100).toFixed(1)}%</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

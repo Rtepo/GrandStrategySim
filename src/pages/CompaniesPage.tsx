@@ -52,7 +52,7 @@ export function CompaniesPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Companies — {selectedCountry}</h2>
+      <div className="win95-titlebar mb-2"><span>Companies — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
 
       <div className="flex items-center gap-3 flex-wrap">
         <Input
@@ -64,7 +64,7 @@ export function CompaniesPage() {
         <select
           value={sectorFilter}
           onChange={(e) => { setSectorFilter(e.target.value); setOffset(0); }}
-          className="max-w-xs h-9 rounded-md border border-input bg-background px-3 text-sm"
+          className="max-w-xs h-9   border border-input bg-background px-3 text-sm"
         >
           <option value="">All sectors</option>
           {sectors?.map((s) => (
@@ -74,7 +74,7 @@ export function CompaniesPage() {
         <select
           value={regionFilter}
           onChange={(e) => { setRegionFilter(e.target.value); setOffset(0); }}
-          className="max-w-xs h-9 rounded-md border border-input bg-background px-3 text-sm"
+          className="max-w-xs h-9   border border-input bg-background px-3 text-sm"
         >
           <option value="">All regions</option>
           {regions?.map((r) => (
@@ -111,9 +111,9 @@ export function CompaniesPage() {
                       <TableCell className="font-medium">{c.name}</TableCell>
                       <TableCell>{c.sector}</TableCell>
                       <TableCell className="text-xs">{c.region}</TableCell>
-                      <TableCell className="text-right">{Math.round(c.fulfilled_fte)}</TableCell>
-                      <TableCell className="text-right">{fmt(c.average_wage)}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right win95-mono">{Math.round(c.fulfilled_fte)}</TableCell>
+                      <TableCell className="text-right win95-mono">{fmt(c.average_wage)}</TableCell>
+                      <TableCell className="text-right win95-mono">
                         {c.wage_arrears > 0 ? (
                           <Badge variant="destructive">{fmt(c.wage_arrears)}</Badge>
                         ) : (

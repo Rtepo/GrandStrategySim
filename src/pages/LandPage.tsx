@@ -39,7 +39,7 @@ export function LandPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Land & Cadastre — {selectedCountry}</h2>
+      <div className="win95-titlebar mb-2"><span>Land & Cadastre — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
 
       {/* Tab navigation */}
       <div className="flex gap-2 border-b border-border flex-wrap">
@@ -121,15 +121,15 @@ function CadastreTab({ country }: { country: string }) {
                 {data.rows.map((row) => (
                   <TableRow key={row.region_id}>
                     <TableCell className="font-medium">{row.region_name || row.region_id}</TableCell>
-                    <TableCell className="text-right">{fmt(row.total_hectares)}</TableCell>
-                    <TableCell className="text-right">{fmt(row.total_value)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right win95-mono">{fmt(row.total_hectares)}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(row.total_value)}</TableCell>
+                    <TableCell className="text-right win95-mono">
                       <CertaintyBadge certainty={row.avg_legal_certainty} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right win95-mono">
                       <ForeignPctCell pct={row.foreign_ownership_pct} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right win95-mono">
                       {row.border_conflicts > 0 ? (
                         <Badge variant="destructive">{row.border_conflicts}</Badge>
                       ) : (
@@ -212,11 +212,11 @@ function CadastreTab({ country }: { country: string }) {
                     {ministryReport.regional_summaries.map((r) => (
                       <TableRow key={r.region_id}>
                         <TableCell>{r.region_id}</TableCell>
-                        <TableCell className="text-right">{fmt(r.total_hectares)}</TableCell>
-                        <TableCell className="text-right">{fmt(r.total_value)}</TableCell>
-                        <TableCell className="text-right"><CertaintyBadge certainty={r.avg_legal_certainty} /></TableCell>
-                        <TableCell className="text-right">{pct(r.foreign_ownership_pct)}</TableCell>
-                        <TableCell className="text-right">{r.border_conflicts}</TableCell>
+                        <TableCell className="text-right win95-mono">{fmt(r.total_hectares)}</TableCell>
+                        <TableCell className="text-right win95-mono">{fmt(r.total_value)}</TableCell>
+                        <TableCell className="text-right win95-mono"><CertaintyBadge certainty={r.avg_legal_certainty} /></TableCell>
+                        <TableCell className="text-right win95-mono">{pct(r.foreign_ownership_pct)}</TableCell>
+                        <TableCell className="text-right win95-mono">{r.border_conflicts}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -276,8 +276,8 @@ function ZoningTab({ country }: { country: string }) {
                     )}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">{plan.plan_id}</TableCell>
-                  <TableCell className="text-right">T{plan.enacted_turn}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right win95-mono">T{plan.enacted_turn}</TableCell>
+                  <TableCell className="text-right win95-mono">
                     <ProgressBadge progress={plan.implementation_progress} />
                   </TableCell>
                   <TableCell>
@@ -326,8 +326,8 @@ function CourtsTab({ country }: { country: string }) {
     <div className="space-y-4">
       {/* Court Backlog Crisis Warning — pulsating red indicator */}
       {courtData?.has_crisis && (
-        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
+        <div className="bg-red-500/10 border border-red-500/50   p-4 flex items-center gap-3">
+          <div className="w-3 h-3   bg-red-500 animate-pulse" />
           <div>
             <p className="text-red-500 font-bold animate-pulse">⚠ COURT SYSTEM CRISIS</p>
             <p className="text-sm text-red-500/80">
@@ -380,10 +380,10 @@ function CourtsTab({ country }: { country: string }) {
                 {courtData.rows.map((row) => (
                   <TableRow key={row.region_id}>
                     <TableCell className="font-medium">{row.region_name || row.region_id}</TableCell>
-                    <TableCell className="text-right">{row.pending_cases}</TableCell>
-                    <TableCell className="text-right">{row.border_conflicts}</TableCell>
-                    <TableCell className="text-right">{row.arbitration_cases}</TableCell>
-                    <TableCell className="text-right">{fmt(row.avg_processing_turns)}</TableCell>
+                    <TableCell className="text-right win95-mono">{row.pending_cases}</TableCell>
+                    <TableCell className="text-right win95-mono">{row.border_conflicts}</TableCell>
+                    <TableCell className="text-right win95-mono">{row.arbitration_cases}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(row.avg_processing_turns)}</TableCell>
                     <TableCell>
                       <CourtStatusBadge status={row.court_status} isCrisis={row.is_crisis} />
                     </TableCell>
@@ -424,10 +424,10 @@ function CourtsTab({ country }: { country: string }) {
                     <TableCell className="text-xs text-muted-foreground">{c.case_id}</TableCell>
                     <TableCell>{c.plaintiff_name}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{c.plaintiff_type}</Badge></TableCell>
-                    <TableCell className="text-right">{fmt(c.compensation_claimed)}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(c.compensation_claimed)}</TableCell>
                     <TableCell><ArbitrationStatusBadge status={c.status} /></TableCell>
-                    <TableCell className="text-right">T{c.filed_turn}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right win95-mono">T{c.filed_turn}</TableCell>
+                    <TableCell className="text-right win95-mono">
                       <span className={strengthColor(c.state_strength_assessment)}>
                         {(c.state_strength_assessment * 100).toFixed(0)}%
                       </span>
@@ -451,7 +451,7 @@ function CourtsTab({ country }: { country: string }) {
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-muted/50 rounded p-2">
+    <div className="win95-panel p-2">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-sm font-bold text-foreground">{value}</p>
     </div>
@@ -551,7 +551,7 @@ function ClimateTab({ country }: { country: string }) {
             <CardTitle className="text-sm">Topography &amp; Biome Map</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0 space-y-2">
-            <div className="h-64 rounded-md overflow-hidden border border-border bg-[#0f2739]">
+            <div className="h-64   overflow-hidden border border-border bg-[#0f2739]">
               <WorldMapSvg
                 snapshot={worldMap}
                 mode="biome"
@@ -564,7 +564,7 @@ function ClimateTab({ country }: { country: string }) {
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {Object.entries(BIOME_COLORS).map(([biome, color]) => (
                 <span key={biome} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="inline-block w-3 h-3 rounded-sm border border-border" style={{ backgroundColor: color }} />
+                  <span className="inline-block w-3 h-3   border border-border" style={{ backgroundColor: color }} />
                   {biome}
                 </span>
               ))}

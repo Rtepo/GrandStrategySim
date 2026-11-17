@@ -114,9 +114,9 @@ export function GovernmentPage() {
                             )}
                           </TableCell>
                           <TableCell className="text-xs">{m.party}</TableCell>
-                          <TableCell className="text-right">{fmt(m.allocated_cash)}</TableCell>
-                          <TableCell className="text-right">{fmt(m.spent_cash)}</TableCell>
-                          <TableCell className="text-right">{fmt(m.ministry_cash)}</TableCell>
+                          <TableCell className="text-right win95-mono">{fmt(m.allocated_cash)}</TableCell>
+                          <TableCell className="text-right win95-mono">{fmt(m.spent_cash)}</TableCell>
+                          <TableCell className="text-right win95-mono">{fmt(m.ministry_cash)}</TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -152,7 +152,7 @@ export function GovernmentPage() {
                           </TableCell>
                           <TableCell>{v.role}</TableCell>
                           <TableCell className="text-xs">{v.party}</TableCell>
-                          <TableCell className="text-right">{v.age}</TableCell>
+                          <TableCell className="text-right win95-mono">{v.age}</TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -165,10 +165,12 @@ export function GovernmentPage() {
           </div>
 
           <Card>
+            <div className="win95-titlebar"><span>Political Capital</span></div>
             <CardContent className="p-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Political Capital</span>
-                <span className="text-lg font-bold text-foreground">{gov.political_capital.toFixed(1)}</span>
+              <div className="win95-inset text-center py-3">
+                <span className="text-3xl font-bold win95-mono text-black">
+                  {gov.political_capital.toFixed(1)}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -207,10 +209,10 @@ export function GovernmentPage() {
                       <TableRow key={m.ministry_name}>
                         <TableCell className="font-medium">{m.ministry_name}</TableCell>
                         <TableCell>{m.minister_name}</TableCell>
-                        <TableCell className="text-right">{fmt(m.allocated_cash)}</TableCell>
-                        <TableCell className="text-right">{fmt(m.spent_cash)}</TableCell>
-                        <TableCell className="text-right">{fmt(m.ministry_cash)}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right win95-mono">{fmt(m.allocated_cash)}</TableCell>
+                        <TableCell className="text-right win95-mono">{fmt(m.spent_cash)}</TableCell>
+                        <TableCell className="text-right win95-mono">{fmt(m.ministry_cash)}</TableCell>
+                        <TableCell className="text-right win95-mono">
                           <Button
                             variant="outline"
                             size="sm"
@@ -233,7 +235,7 @@ export function GovernmentPage() {
                               </div>
                               <div>
                                 <div className="font-semibold mb-1">Budget Utilization</div>
-                                <div className="h-2 w-full bg-muted rounded overflow-hidden mb-1">
+                                <div className="h-3 w-full win95-inset overflow-hidden mb-1 p-0">
                                   <div
                                     className="h-full bg-primary"
                                     style={{ width: `${utilization.toFixed(1)}%` }}
@@ -259,7 +261,7 @@ export function GovernmentPage() {
                                     {m.policy_kpis.map((k, i) => (
                                       <div
                                         key={i}
-                                        className="flex items-center justify-between rounded border border-border/50 bg-background/40 px-2 py-1"
+                                        className="flex items-center justify-between   border border-border/50 bg-background/40 px-2 py-1"
                                       >
                                         <div>
                                           <div className="font-medium">{k.label}</div>
@@ -416,7 +418,7 @@ export function GovernmentPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Government — {selectedCountry}</h2>
+      <div className="win95-titlebar mb-2"><span>Government — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
       <Tabs tabs={tabs} defaultValue="government" />
     </div>
   );

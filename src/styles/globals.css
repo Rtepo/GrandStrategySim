@@ -2,36 +2,331 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ================================================================
+   TASK-039 — "Win95 Retro Institutional Terminal" CSS Architecture
+   Windows 95 / Motif OS aesthetic — hard bevels, grey chrome,
+   pixelated institutional typography. No rounded corners, no soft
+   shadows, no translucency, no dark mode.
+   ================================================================ */
+
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 213 31% 91%;
-    --card: 222 47% 14%;
-    --card-foreground: 213 31% 91%;
-    --primary: 210 40% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 20%;
-    --secondary-foreground: 213 31% 91%;
-    --muted: 217 33% 20%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 25%;
-    --accent-foreground: 213 31% 91%;
-    --destructive: 0 63% 31%;
+    /* Win95 palette — keep HSL triplets for hsl(var(--x)) consumers */
+    --background: 0 0% 75%;            /* #C0C0C0 classic grey */
+    --foreground: 0 0% 0%;             /* black text */
+    --card: 0 0% 75%;                  /* #C0C0C0 panels */
+    --card-foreground: 0 0% 0%;
+    --primary: 240 100% 25%;           /* #000080 titlebar navy */
+    --primary-foreground: 0 0% 100%;   /* white titlebar text */
+    --secondary: 0 0% 81%;             /* #DFDFDF secondary grey */
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 83%;                 /* #D4D0C8 */
+    --muted-foreground: 0 0% 30%;      /* dark grey captions */
+    --accent: 0 0% 87%;                /* hover = lighter grey */
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 100% 25%;         /* dark red */
     --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 210 40% 50%;
-    --radius: 0.5rem;
+    --border: 0 0% 50%;                /* #808080 */
+    --input: 0 0% 100%;                /* white inset fields */
+    --ring: 240 100% 25%;
+    --radius: 0px;
+  }
+
+  /* Absolutely nothing is rounded on this OS. */
+  * {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html {
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: unset;
+    text-rendering: optimizeSpeed;
+  }
+
+  body {
+    margin: 0;
+    font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
+    font-size: 13px;
+    background-color: #C0C0C0;
+    color: #000000;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  /* ── Native controls → retro chrome ─────────────────────────────── */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
+    background-color: #C0C0C0;
+    color: #000000;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #808080;
+    border-right: 2px solid #808080;
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+  button:active:not(:disabled),
+  [role="button"]:active {
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+  }
+  button:disabled {
+    color: #808080;
+    cursor: default;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+    padding: 2px 4px;
+  }
+  select:focus,
+  input:focus,
+  textarea:focus {
+    outline: 1px dotted #000000;
+    outline-offset: -3px;
+  }
+
+  /* Dense institutional tables — harsh unpadded lists, ALL-CAPS heads */
+  table {
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  th {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 11px;
+    letter-spacing: 0;
+    text-align: left;
+    background-color: #C0C0C0;
+    border-bottom: 1px solid #808080;
+    padding: 2px 4px;
+  }
+  td {
+    padding: 1px 4px;
+    border-bottom: 1px solid #a0a0a0;
+  }
+
+  a {
+    color: #000080;
+    text-decoration: underline;
+  }
+
+  /* Scrollbars — chunky grey track, outset thumb */
+  ::-webkit-scrollbar {
+    width: 16px;
+    height: 16px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #D4D0C8;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #C0C0C0;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #808080;
+    border-right: 2px solid #808080;
+  }
+  ::-webkit-scrollbar-button {
+    background: #C0C0C0;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #808080;
+    border-right: 2px solid #808080;
   }
 }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
+/* ================================================================
+   win95 utility classes
+   ================================================================ */
+@layer components {
+  /* Raised panel / button chrome — white TL, dark BR */
+  .win95-panel {
+    background-color: #C0C0C0;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #808080;
+    border-right: 2px solid #808080;
+  }
 
-#root {
-  min-height: 100vh;
+  /* Deep outset bevel for OS-window frames (double-step bevel) */
+  .win95-window {
+    background-color: #C0C0C0;
+    border-top: 2px solid #dfdfdf;
+    border-left: 2px solid #dfdfdf;
+    border-bottom: 2px solid #000000;
+    border-right: 2px solid #000000;
+    outline: 1px solid #ffffff;
+    outline-offset: -4px;
+  }
+
+  /* Sunken frame — inputs, tables, hemicycle, progress wells */
+  .win95-inset {
+    background-color: #ffffff;
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+  }
+  .win95-inset-grey {
+    background-color: #D4D0C8;
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+  }
+
+  /* Deep blue active-window titlebar */
+  .win95-titlebar {
+    background-color: #000080;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
+  }
+  .win95-titlebar-gradient {
+    background: linear-gradient(to right, #000080, #1084d0);
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
+  }
+
+  /* Mock inset [ X ] window control */
+  .win95-close-btn {
+    background-color: #C0C0C0;
+    color: #000000;
+    font-weight: bold;
+    font-size: 11px;
+    line-height: 1;
+    padding: 1px 5px;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #808080;
+    border-right: 2px solid #808080;
+    user-select: none;
+  }
+  .win95-close-btn:active {
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+  }
+
+  /* Retro button utility (explicit class for non-<button> elements) */
+  .win95-btn {
+    background-color: #C0C0C0;
+    color: #000000;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-bottom: 2px solid #808080;
+    border-right: 2px solid #808080;
+    padding: 2px 10px;
+    font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+  }
+  .win95-btn:active {
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+  }
+
+  /* Dense institutional table — inset frame + uppercase heads */
+  .win95-table {
+    border-top: 2px solid #808080;
+    border-left: 2px solid #808080;
+    border-bottom: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+    background-color: #ffffff;
+  }
+  .win95-table th {
+    background-color: #C0C0C0;
+    border-bottom: 2px solid #808080;
+  }
+
+  /* Monospace financial/terminal figures */
+  .win95-mono {
+    font-family: "Courier New", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Status badges — flat colored plates, ALL CAPS */
+  .win95-badge {
+    display: inline-block;
+    padding: 0px 4px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 1px solid #808080;
+  }
+  .win95-badge-green { background-color: #008000; color: #ffffff; }
+  .win95-badge-red   { background-color: #ff0000; color: #ffffff; }
+  .win95-badge-grey  { background-color: #C0C0C0; color: #000000; }
+  .win95-badge-navy  { background-color: #000080; color: #ffffff; }
+
+  /* Tab strip — raised active tab, flat inactive */
+  .win95-tab {
+    background-color: #C0C0C0;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-right: 2px solid #808080;
+    border-bottom: none;
+    padding: 3px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .win95-tab-active {
+    position: relative;
+    top: 2px;
+    padding-top: 5px;
+    margin-top: -2px;
+    z-index: 1;
+  }
+
+  /* Fieldset groupbox — legend sitting on a grooved frame */
+  .win95-groupbox {
+    border: 2px groove #dfdfdf;
+    padding: 6px;
+    margin: 0;
+  }
+  .win95-groupbox > legend,
+  .win95-legend {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 0 4px;
+    background-color: #C0C0C0;
+  }
 }

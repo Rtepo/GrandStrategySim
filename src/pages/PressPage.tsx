@@ -99,14 +99,14 @@ function ArticleBody({
 function MediaContext({ snap }: { snap: PressSnapshotDto }) {
   return (
     <div className="flex flex-wrap gap-2 text-xs">
-      <Badge className="bg-slate-800 text-slate-200">Speech: {humanize(snap.media.free_speech_level)}</Badge>
-      <Badge className="bg-slate-800 text-slate-200">Press: {humanize(snap.media.press_freedom)}</Badge>
-      <Badge className="bg-slate-800 text-slate-200">Assembly: {humanize(snap.media.assembly_rights)}</Badge>
+      <Badge className="bg-win95-grey text-black">Speech: {humanize(snap.media.free_speech_level)}</Badge>
+      <Badge className="bg-win95-grey text-black">Press: {humanize(snap.media.press_freedom)}</Badge>
+      <Badge className="bg-win95-grey text-black">Assembly: {humanize(snap.media.assembly_rights)}</Badge>
       {snap.media.propaganda_active && (
         <Badge className="bg-red-900 text-red-200">PROPAGANDA CAMPAIGN ACTIVE</Badge>
       )}
       {snap.media.state_media_share !== null && (
-        <Badge className="bg-slate-800 text-slate-200">
+        <Badge className="bg-win95-grey text-black">
           State media share {(snap.media.state_media_share * 100).toFixed(0)}%
         </Badge>
       )}
@@ -128,15 +128,15 @@ function FrontPage({ paper, year }: { paper: PressPaperDto; year: number }) {
   const lead = articles[0];
   const rest = articles.slice(1);
   return (
-    <section className="rounded border border-border bg-card overflow-hidden">
-      <header className="border-b-4 border-double border-border px-4 py-3 text-center">
-        <h3 className="font-serif text-2xl font-bold tracking-wide">{paper.name}</h3>
+    <section className="win95-window overflow-hidden">
+      <header className="bg-win95-light border-b-2 border-win95-dark px-4 py-3 text-center">
+        <h3 className="text-xl font-bold uppercase win95-mono">{paper.name}</h3>
         <div className="mt-1 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
           <span>Anno {year}</span>
-          <Badge className={SLANT_BADGE[paper.ideological_slant] ?? "bg-slate-800 text-slate-200"}>
+          <Badge className={SLANT_BADGE[paper.ideological_slant] ?? "bg-win95-grey text-black"}>
             {humanize(paper.ideological_slant)}
           </Badge>
-          <Badge className={STATUS_BADGE[paper.status] ?? "bg-slate-800 text-slate-200"}>
+          <Badge className={STATUS_BADGE[paper.status] ?? "bg-win95-grey text-black"}>
             {humanize(paper.status)}
           </Badge>
         </div>
@@ -194,9 +194,9 @@ function BusinessPress({ articles, year }: { articles: PressArticleDto[]; year: 
   const groups = [...grouped.entries()].filter(([, list]) => list.length > 0);
   if (groups.length === 0) return null;
   return (
-    <section className="rounded border border-border bg-card overflow-hidden">
-      <header className="border-b-4 border-double border-border px-4 py-3 text-center">
-        <h3 className="font-serif text-2xl font-bold tracking-wide">Financial &amp; Business Press</h3>
+    <section className="win95-window overflow-hidden">
+      <header className="bg-win95-light border-b-2 border-win95-dark px-4 py-3 text-center">
+        <h3 className="text-xl font-bold uppercase win95-mono">Financial &amp; Business Press</h3>
         <div className="mt-1 flex items-center justify-center gap-2 text-[11px] text-muted-foreground">
           <span>Anno {year}</span>
           <Badge className={SLANT_BADGE.business}>markets</Badge>
@@ -253,7 +253,7 @@ export function PressPage() {
   if (isError || !snap) {
     return (
       <div className="p-6">
-        <div className="rounded border border-destructive/40 bg-destructive/10 p-4 space-y-3 max-w-lg">
+        <div className="  border border-destructive/40 bg-destructive/10 p-4 space-y-3 max-w-lg">
           <h2 className="text-sm font-semibold text-destructive">Press snapshot failed to load</h2>
           <p className="text-xs text-muted-foreground">
             The newspaper desk could not be generated this turn. The rest of the
@@ -263,7 +263,7 @@ export function PressPage() {
           {isError && (
             <details className="text-xs text-muted-foreground">
               <summary className="cursor-pointer select-none">Error details</summary>
-              <pre className="mt-2 p-2 bg-muted rounded overflow-auto whitespace-pre-wrap">
+              <pre className="mt-2 p-2 bg-muted   overflow-auto whitespace-pre-wrap">
                 {error instanceof Error ? error.message : String(error)}
               </pre>
             </details>
@@ -271,7 +271,7 @@ export function PressPage() {
           <button
             onClick={() => void refetch()}
             disabled={isFetching}
-            className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 disabled:opacity-50"
+            className="px-3 py-1.5   bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 disabled:opacity-50"
           >
             {isFetching ? "Retrying…" : "Retry"}
           </button>
@@ -284,7 +284,7 @@ export function PressPage() {
     <ErrorBoundary>
       <div className="p-6 space-y-4">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-xl font-bold text-foreground">Gazety — {snap.country}, {snap.year}</h2>
+          <h2 className="text-xl font-bold text-foreground">GAZETY — {snap.country}, {snap.year}</h2>
           <span className="text-xs text-muted-foreground">{snap.total_articles} articles</span>
         </div>
         <MediaContext snap={snap} />

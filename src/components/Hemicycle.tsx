@@ -70,7 +70,7 @@ export function Hemicycle({ entries, totalSeats, width = 520, showLegend = true 
   const vacant = Math.max(0, (totalSeats ?? seated) - seated);
   const slices =
     vacant > 0
-      ? [...clubs, { name: "Vacant", seats: vacant, color: "#475569", icon: null, spectrum: null, ideology: "Unfilled" }]
+      ? [...clubs, { name: "Vacant", seats: vacant, color: "#808080", icon: null, spectrum: null, ideology: "Unfilled" }]
       : clubs;
   const total = slices.reduce((a, e) => a + e.seats, 0);
 
@@ -152,14 +152,17 @@ export function Hemicycle({ entries, totalSeats, width = 520, showLegend = true 
       <svg viewBox={viewBox} width={width} className="mx-auto block max-w-full" role="img">
         {dots.map((d, i) => {
           const entry = slices[d.club];
+          const s = hovered === i ? DOT_R * 1.6 : DOT_R;
           return (
-            <circle
+            /* TASK-039: square pixel seats — Windows 95 hemicycle. */
+            <rect
               key={i}
-              cx={d.x}
-              cy={d.y}
-              r={hovered === i ? DOT_R * 1.6 : DOT_R}
+              x={d.x - s}
+              y={d.y - s}
+              width={s * 2}
+              height={s * 2}
               fill={entry.color}
-              stroke={hovered === i ? "#e2e8f0" : "#0f172a"}
+              stroke={hovered === i ? "#ffffff" : "#000000"}
               strokeWidth={hovered === i ? 1 : 0.5}
               style={{ cursor: "default" }}
               onMouseEnter={() => setHovered(i)}
@@ -168,7 +171,7 @@ export function Hemicycle({ entries, totalSeats, width = 520, showLegend = true 
               {/* v4.21 WS1: per-seat hover tooltip — party, ideology,
                   and the party's seat share of the chamber. */}
               <title>{`${entry.name}\n${entry.ideology ?? "—"}\n${entry.seats} / ${total} seats`}</title>
-            </circle>
+            </rect>
           );
         })}
         <text
@@ -189,7 +192,7 @@ export function Hemicycle({ entries, totalSeats, width = 520, showLegend = true 
             return (
               <span key={e.name} className="inline-flex items-center gap-1.5 text-xs text-foreground">
                 <span
-                  className="inline-block h-3 w-3 rounded-sm border border-black/40"
+                  className="inline-block h-3 w-3   border border-black/40"
                   style={{ backgroundColor: e.color }}
                 />
                 {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground" />}

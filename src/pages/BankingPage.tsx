@@ -58,11 +58,15 @@ export function BankingPage() {
   const hasHistory = history && history.turns.length > 0;
 
   return (
-    <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Banking — {selectedCountry}</h2>
+    <div className="space-y-3">
+      {/* TASK-039: deep-blue terminal header + win95 tab strip */}
+      <div className="win95-titlebar">
+        <span>{selectedCountry} CROWN MERCHANT BANK — INSTITUTIONAL BANKING &amp; MARKET TERMINAL</span>
+        <span className="win95-mono font-normal">T{turn}</span>
+      </div>
 
       {/* v4.27.0 (TASK-010): sub-tab switcher */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-0">
         {(
           [
             ["commercial", "Commercial Banks"],
@@ -72,11 +76,7 @@ export function BankingPage() {
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`px-4 py-1.5 text-sm rounded-t border border-b-0 border-border ${
-              tab === key
-                ? "bg-card text-foreground font-semibold"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`win95-tab ${tab === key ? "win95-tab-active font-bold" : ""}`}
           >
             {label}
           </button>
@@ -205,7 +205,7 @@ function CentralBankPanel({ cb }: { cb: CentralBankDto }) {
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Independence ({cb.independence_model})</span>
               <span className="flex items-center gap-2">
-                <span className="h-1.5 w-24 bg-muted rounded overflow-hidden">
+                <span className="h-3 w-24 win95-inset overflow-hidden p-0">
                   <span className="block h-full bg-blue-500" style={{ width: `${cb.independence_index}%` }} />
                 </span>
                 <span className="font-medium">{cb.independence_index.toFixed(0)}%</span>
@@ -284,9 +284,9 @@ function CentralBankPanel({ cb }: { cb: CentralBankDto }) {
                       onClick={() => setExpandedMpc((t) => (t === d.turn ? null : d.turn))}
                     >
                       <TableCell>{expandedMpc === d.turn ? "▾" : "▸"} T{d.turn}</TableCell>
-                      <TableCell className="text-right">{(d.previous_rate * 100).toFixed(2)}%</TableCell>
-                      <TableCell className="text-right font-medium">{(d.new_rate * 100).toFixed(2)}%</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right win95-mono">{(d.previous_rate * 100).toFixed(2)}%</TableCell>
+                      <TableCell className="text-right win95-mono font-medium">{(d.new_rate * 100).toFixed(2)}%</TableCell>
+                      <TableCell className="text-right win95-mono">
                         <Badge variant={d.bps_change > 0 ? "destructive" : d.bps_change < 0 ? "success" : "secondary"}>
                           {d.bps_change >= 0 ? "+" : ""}{d.bps_change.toFixed(0)}
                         </Badge>
@@ -300,7 +300,7 @@ function CentralBankPanel({ cb }: { cb: CentralBankDto }) {
                     </TableRow>
                     {expandedMpc === d.turn && (
                       <TableRow key={`${d.turn}-x`}>
-                        <TableCell colSpan={6} className="bg-muted/30 p-3">
+                        <TableCell colSpan={6} className="win95-inset-grey p-3">
                           {/* v4.28.0 (TASK-015): economic briefing +
                               member vote table with stance/dissent. */}
                           <div className="grid grid-cols-4 gap-2 text-xs mb-2">
@@ -368,7 +368,7 @@ function CentralBankPanel({ cb }: { cb: CentralBankDto }) {
                   <TableRow key={`${o.turn}-${i}`}>
                     <TableCell>T{o.turn}</TableCell>
                     <TableCell><Badge variant="outline" className="text-[10px]">{o.kind}</Badge></TableCell>
-                    <TableCell className="text-right">{fmt(o.amount)}</TableCell>
+                    <TableCell className="text-right win95-mono">{fmt(o.amount)}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{o.note}</TableCell>
                   </TableRow>
                 ))
@@ -408,11 +408,11 @@ function BankTableRow({
           {bank.name}
         </TableCell>
         <TableCell>{bank.bank_type}</TableCell>
-        <TableCell className="text-right">{fmt(bank.reserves)}</TableCell>
-        <TableCell className="text-right">{fmt(bank.deposits)}</TableCell>
-        <TableCell className="text-right">{fmt(bank.loans)}</TableCell>
-        <TableCell className="text-right">{fmt(bank.securities)}</TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-right win95-mono">{fmt(bank.reserves)}</TableCell>
+        <TableCell className="text-right win95-mono">{fmt(bank.deposits)}</TableCell>
+        <TableCell className="text-right win95-mono">{fmt(bank.loans)}</TableCell>
+        <TableCell className="text-right win95-mono">{fmt(bank.securities)}</TableCell>
+        <TableCell className="text-right win95-mono">
           <Badge variant={bank.ldr > 0.8 ? "destructive" : bank.ldr > 0.6 ? "default" : "success"}>
             {(bank.ldr * 100).toFixed(0)}%
           </Badge>
@@ -420,7 +420,7 @@ function BankTableRow({
         <TableCell>{bank.is_dspw ? <Badge variant="secondary">Yes</Badge> : "—"}</TableCell>
       </TableRow>
       {expanded && (
-        <TableRow className="bg-muted/30">
+        <TableRow className="win95-inset-grey">
           <TableCell colSpan={8} className="p-0">
             <BankDetailPanel country={country} bankId={bank.id} profitSeries={profitSeries} />
           </TableCell>

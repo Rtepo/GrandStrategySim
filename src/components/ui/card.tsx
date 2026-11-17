@@ -5,7 +5,7 @@ type DivProps = HTMLAttributes<HTMLDivElement>;
 export function Card({ className = "", ...props }: DivProps) {
   return (
     <div
-      className={`rounded-lg border border-border bg-card text-card-foreground shadow-sm ${className}`}
+      className={`win95-panel bg-card text-card-foreground ${className}`}
       {...props}
     />
   );
@@ -16,7 +16,7 @@ export function CardHeader({ className = "", ...props }: DivProps) {
 }
 
 export function CardTitle({ className = "", ...props }: DivProps) {
-  return <div className={`text-sm font-medium leading-none text-foreground ${className}`} {...props} />;
+  return <div className={`text-sm font-bold uppercase leading-none text-foreground ${className}`} {...props} />;
 }
 
 export function CardContent({ className = "", ...props }: DivProps) {

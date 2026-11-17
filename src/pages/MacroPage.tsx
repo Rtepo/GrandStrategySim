@@ -34,7 +34,7 @@ export function MacroPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold text-foreground">Macro Indicators — {selectedCountry}</h2>
+      <div className="win95-titlebar mb-2"><span>Macro Indicators — {selectedCountry}</span><span className="win95-close-btn">X</span></div>
 
       {macro && (
         <>
@@ -120,10 +120,10 @@ export function MacroPage() {
                       sectors.map((s) => (
                         <TableRow key={s.sector_name}>
                           <TableCell>{s.sector_name}</TableCell>
-                          <TableCell className="text-right">{s.company_count}</TableCell>
-                          <TableCell className="text-right">{fmt(s.total_employment)}</TableCell>
-                          <TableCell className="text-right">{s.pct_gdp_share.toFixed(1)}%</TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right win95-mono">{s.company_count}</TableCell>
+                          <TableCell className="text-right win95-mono">{fmt(s.total_employment)}</TableCell>
+                          <TableCell className="text-right win95-mono">{s.pct_gdp_share.toFixed(1)}%</TableCell>
+                          <TableCell className="text-right win95-mono">
                             <Badge variant={s.pmi >= 50 ? "success" : "destructive"}>
                               {s.pmi.toFixed(1)}
                             </Badge>
