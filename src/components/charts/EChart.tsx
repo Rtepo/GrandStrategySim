@@ -12,7 +12,9 @@ export function EChart({ option, style }: EChartProps) {
 
   useEffect(() => {
     if (!ref.current) return;
-    chartRef.current = echarts.init(ref.current, "dark");
+    // v4.34.0 (TASK-041): light institutional theme — the old "dark"
+    // palette is purged; every chart sits on a white sunken canvas.
+    chartRef.current = echarts.init(ref.current, "light");
     const handleResize = () => chartRef.current?.resize();
     window.addEventListener("resize", handleResize);
     return () => {
@@ -27,5 +29,10 @@ export function EChart({ option, style }: EChartProps) {
     }
   }, [option]);
 
-  return <div ref={ref} style={{ width: "100%", height: "100%", minHeight: 300, ...style }} />;
+  return (
+    <div
+      ref={ref}
+      style={{ width: "100%", height: "100%", minHeight: 300, background: "#ffffff", ...style }}
+    />
+  );
 }

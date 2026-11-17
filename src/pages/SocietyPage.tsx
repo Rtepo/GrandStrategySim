@@ -5,6 +5,7 @@ import { getSocietySnapshot } from "../hooks/useTauriCommand";
 import { Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from "../components/ui";
 import { EChart } from "../components/charts/EChart";
 import { Sparkline } from "../components/charts/Sparkline";
+import { retroTooltip } from "../lib/retroChart";
 import { fmt, num, pct } from "../lib/format";
 import type { CompositionEntryDto, EducationLevelDto, SocietyKpiSeriesDto } from "../types/api";
 
@@ -117,14 +118,18 @@ export function SocietyPage() {
       itemStyle: { color: string };
       lineStyle: { color: string; width: number; type?: "dashed" };
       showSymbol: boolean;
+      symbol: string;
+      symbolSize: number;
     }[] = [
       {
         name: pinnedSeries.label,
         type: "line",
         data: pinnedSeries.values,
-        itemStyle: { color: pinnedSeries.color },
-        lineStyle: { color: pinnedSeries.color, width: 2 },
-        showSymbol: false,
+        itemStyle: { color: "#0000aa" },
+        lineStyle: { color: "#0000aa", width: 2 },
+        showSymbol: true,
+        symbol: "rect",
+        symbolSize: 6,
       },
     ];
     if (pinnedSeries.secondary_values.length > 0) {
@@ -132,23 +137,30 @@ export function SocietyPage() {
         name: pinnedSeries.secondary_label,
         type: "line",
         data: pinnedSeries.secondary_values,
-        itemStyle: { color: "#64748b" },
-        lineStyle: { color: "#64748b", width: 2, type: "dashed" },
-        showSymbol: false,
+        itemStyle: { color: "#800080" },
+        lineStyle: { color: "#800080", width: 2, type: "dashed" as const },
+        showSymbol: true,
+        symbol: "triangle",
+        symbolSize: 7,
       });
     }
     return {
-      tooltip: { trigger: "axis" as const },
-      legend: { bottom: 0, textStyle: { color: "#cbd5e1", fontSize: 10 } },
+      backgroundColor: "#ffffff",
+      tooltip: retroTooltip({ trigger: "axis" as const }),
+      legend: { bottom: 0, textStyle: { color: "#000000", fontSize: 10 } },
       grid: { left: 60, right: 12, top: 12, bottom: 34 },
       xAxis: {
         type: "category" as const,
         data: kpiTurns.map((t) => `T${t}`),
-        axisLabel: { color: "#94a3b8", fontSize: 9 },
+        axisLabel: { color: "#000000", fontSize: 9 },
+        axisLine: { lineStyle: { color: "#000000" } },
+        splitLine: { show: true, lineStyle: { color: "#c0c0c0", type: "dashed" as const } },
       },
       yAxis: {
         type: "value" as const,
-        axisLabel: { color: "#94a3b8", fontSize: 9, formatter: (v: number) => fmt(v) },
+        axisLabel: { color: "#000000", fontSize: 9, formatter: (v: number) => fmt(v) },
+        axisLine: { show: true, lineStyle: { color: "#000000" } },
+        splitLine: { lineStyle: { color: "#c0c0c0", type: "dashed" as const } },
       },
       series: lines,
     };
@@ -177,7 +189,8 @@ export function SocietyPage() {
     const maleOf = (c: (typeof cohorts)[number]) =>
       typeof c.male_share === "number" ? c.male_share : male;
     return {
-      tooltip: { trigger: "axis" as const },
+      backgroundColor: "#ffffff",
+      tooltip: retroTooltip({ trigger: "axis" as const }),
       // v4.24.0 WS2: legend moved to the top (it previously sat at
       // bottom: 0 on top of the x-axis value labels). Grid top is padded
       // for the legend strip; bottom padding now only needs to cover the
@@ -187,30 +200,33 @@ export function SocietyPage() {
         type: "value" as const,
         // Positive labels on BOTH sides of the pyramid (male bars are
         // plotted as negative offsets for the mirrored layout).
-        axisLabel: { formatter: (v: number) => fmt(Math.abs(v)), color: "#94a3b8" },
+        axisLabel: { formatter: (v: number) => fmt(Math.abs(v)), color: "#000000" },
+        axisLine: { show: true, lineStyle: { color: "#000000" } },
+        splitLine: { show: true, lineStyle: { color: "#c0c0c0", type: "dashed" as const } },
       },
       yAxis: {
         type: "category" as const,
         data: cohorts.map((c) => c.label),
-        axisLabel: { color: "#cbd5e1" },
+        axisLabel: { color: "#000000" },
+        axisLine: { lineStyle: { color: "#000000" } },
       },
       series: [
         {
           name: "Male",
           type: "bar" as const,
           stack: "t",
-          itemStyle: { color: "#3b82f6" },
+          itemStyle: { color: "#2b6cb0", borderColor: "#000000", borderWidth: 1 },
           data: cohorts.map((c) => -c.population * maleOf(c)),
         },
         {
           name: "Female",
           type: "bar" as const,
           stack: "t",
-          itemStyle: { color: "#ec4899" },
+          itemStyle: { color: "#c53030", borderColor: "#000000", borderWidth: 1 },
           data: cohorts.map((c) => c.population * (1 - maleOf(c))),
         },
       ],
-      legend: { top: 0, textStyle: { color: "#cbd5e1" } },
+      legend: { top: 0, textStyle: { color: "#000000" } },
     };
   }, [s]);
 
@@ -254,7 +270,7 @@ export function SocietyPage() {
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle>Population Pyramid (Age × Gender)</CardTitle></CardHeader>
-          <CardContent><EChart option={pyramidOption} style={{ height: 260 }} /></CardContent>
+          <CardContent><div className="win95-inset bg-white p-1"><EChart option={pyramidOption} style={{ height: 260 }} /></div></CardContent>
         </Card>
         <EducationBars education={s.education} />
       </div>

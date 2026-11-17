@@ -23,6 +23,10 @@ import type {
 
 /** Deterministic political palette keyed by `CountryMapDto.color_index`. */
 const COUNTRY_PALETTE = [
+  "#d9b882", "#c98a8a", "#9dbb98", "#9ea3c8", "#e2cf9f", "#c87d65", "#b5c48c",
+  "#c9a0a0", "#a8b8a0", "#b0a0c0", "#d8c090", "#b89070", "#90a0b0", "#c0b080", "#a08880", "#88a090",
+];
+const _REMOVED_PALETTE = [
   "#5b8ec4", // steel blue
   "#c46a5b", // terracotta
   "#6fae7c", // sage green
@@ -60,24 +64,24 @@ export type MapMode =
 /** v4.27.0: Topography & Biome palette — fixed hues per biome class so the
  * Climate map reads identically across countries. */
 export const BIOME_COLORS: Record<string, string> = {
-  Mountains: "#8b8fa3",
-  Highlands: "#b3a284",
-  Steppe: "#c9b458",
-  Plains: "#8fb35f",
-  Forest: "#2f7d4a",
-  Wetlands: "#4e9e8f",
-  Coast: "#5f9ec4",
+  Mountains: "#b8bcc8",
+  Highlands: "#c2b498",
+  Steppe: "#d0be78",
+  Plains: "#a8bf8a",
+  Forest: "#6f9a70",
+  Wetlands: "#7fae9e",
+  Coast: "#d9b882",
 };
 
 /** v4.27.0: categorical faction palette for the Party map mode — keyed by
  * a deterministic name hash so the same faction keeps its color. */
 const PARTY_PALETTE = [
-  "#c94f4f", "#4f7dc9", "#4fc98a", "#b04fc9", "#c9a44f", "#4fb8c9",
-  "#c94f8f", "#8ac94f", "#7a5fd0", "#d0845f", "#5fd0a8", "#d0d05f",
+  "#c98a8a", "#9ea3c8", "#9dbb98", "#b0a0c0", "#d9b882", "#7fae9e",
+  "#c0a0b0", "#b5c48c", "#9080b0", "#c87d65", "#88a090", "#c0b080",
 ];
 
 export function partyColor(name: string): string {
-  if (!name) return "#3d4653";
+  if (!name) return "#8a8a7a";
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   return PARTY_PALETTE[h % PARTY_PALETTE.length];
@@ -100,8 +104,8 @@ function migrationColor(net: number, maxAbs: number): string {
 /** Categorical palette for the Megaregions mode — high-contrast, distinct
  * from the country palette so administrative blocs read at a glance. */
 const MEGAREGION_PALETTE = [
-  "#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
-  "#f032e6", "#bcf60c", "#008080", "#9a6324", "#800000", "#000075",
+  "#c87d65", "#9dbb98", "#9ea3c8", "#d9b882", "#800080", "#7fae9e",
+  "#c98a8a", "#b5c48c", "#008080", "#b89070", "#aa0000", "#000080",
 ];
 
 export function megaregionColor(index: number): string {
@@ -176,7 +180,7 @@ export function regionFill(
       return migrationColor(Number(r.net_migration ?? 0), maxNetMigration);
     case "party":
       // Seat share modulates opacity via lightness — dominant faction hue.
-      return r.dominant_party ? partyColor(r.dominant_party) : "#3d4653";
+      return r.dominant_party ? partyColor(r.dominant_party) : "#8a8a7a";
     case "biome":
       return BIOME_COLORS[r.biome] ?? "#8fb35f";
   }
@@ -301,7 +305,7 @@ export function WorldMapSvg({
   }, [snapshot, onlyCountry]);
 
   // v4.31.0 (TASK-028): muted grey neighbours — every non-owned region
-  // on the same continent renders as dark-slate land (#1e293b) so the
+  // on the same continent renders as dark-slate land (#d4d0c4) so the
   // full coastline stays visible in the country-scoped view instead of
   // collapsing to blue ocean.
   const greyRegions = useMemo(() => {
@@ -544,6 +548,14 @@ export function WorldMapSvg({
       <defs>
         {/* Occupied-region diagonal hatch overlay (military mode). */}
         <pattern
+          id="graticule"
+          width="80"
+          height="80"
+          patternUnits="userSpaceOnUse"
+        >
+          <path d="M80 0H0V80" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1" />
+        </pattern>
+        <pattern
           id="occ-hatch"
           width="4"
           height="4"
@@ -560,7 +572,15 @@ export function WorldMapSvg({
         y={bounds[1] - pad}
         width={spanX + 2 * pad}
         height={spanY + 2 * pad}
-        fill="#0f2739"
+        fill="#c4d6d0"
+      />
+      <rect
+        x={bounds[0] - pad}
+        y={bounds[1] - pad}
+        width={spanX + 2 * pad}
+        height={spanY + 2 * pad}
+        fill="url(#graticule)"
+        pointerEvents="none"
       />
       {/* v4.27.0: maritime borders — dashed straits linking islands to the
           mainland. Drawn beneath landmasses. */}
@@ -575,8 +595,8 @@ export function WorldMapSvg({
           <g key={w.id}>
             <path
               d={smoothClosedPath(w.boundary)}
-              fill="#123a55"
-              stroke="#2f6d95"
+              fill="#bdd0c8"
+              stroke="#2c423f"
               strokeWidth={strokeW * 1.1}
               opacity={0.92}
               style={{ cursor: onWaterClick ? "pointer" : "default" }}
@@ -590,8 +610,9 @@ export function WorldMapSvg({
                 y={w.center.y}
                 textAnchor="middle"
                 fontSize={Math.max(4, strokeW * 9)}
-                fill="#7fb4d4"
+                fill="#2c423f"
                 fontStyle="italic"
+                letterSpacing="0.25em"
                 opacity={0.85}
                 pointerEvents="none"
               >
@@ -604,15 +625,15 @@ export function WorldMapSvg({
         <SeaLane key={`sl-${e.from_region}-${e.to_region}`} edge={e} centroids={centroidById} strokeW={strokeW} />
       ))}
       {/* v4.31.0 (TASK-028): grey foreign neighbours — same-continent
-          non-owned land renders muted (#1e293b) under the country's own
+          non-owned land renders muted (#d4d0c4) under the country's own
           regions so the continent coastline is preserved. */}
       {greyRegions.map((r) => (
         <polygon
           key={`grey-${r.id}`}
           points={polyPoints(r)}
-          fill="#1e293b"
+          fill="#d4d0c4"
           fillOpacity={0.9}
-          stroke="#334155"
+          stroke="#444444"
           strokeWidth={strokeW * 0.7}
           pointerEvents="none"
         />
@@ -625,10 +646,10 @@ export function WorldMapSvg({
             {/* Country silhouette — darkens the sea gap inside the blob. */}
             <path
               d={boundaryPath(c)}
-              fill={mode === "political" ? countryColor(c.color_index) : "#233244"}
+              fill={mode === "political" ? countryColor(c.color_index) : "#d4d0c4"}
               opacity={mode === "political" ? 0.35 : 0.6}
-              stroke={atWar && mode === "military" ? "#ef4444" : "#0a1622"}
-              strokeWidth={atWar && mode === "military" ? strokeW * 2.2 : strokeW}
+              stroke={atWar && mode === "military" ? "#ef4444" : "#222222"}
+              strokeWidth={atWar && mode === "military" ? strokeW * 2.2 : strokeW * 2}
             />
             {/* v4.32.0 (TASK-035): Territorial Waters & EEZ — a tinted
                 coastal buffer band around each coastal nation's shoreline,
@@ -670,7 +691,7 @@ export function WorldMapSvg({
                     fillOpacity={
                       mode === "political" || mode === "infrastructure" ? 0.82 : 0.95
                     }
-                    stroke={selected ? "#facc15" : hovered ? "#e2e8f0" : "#0a1622"}
+                    stroke={selected ? "#000080" : hovered ? "#000000" : "#222222"}
                     strokeWidth={selected ? strokeW * 2.4 : hovered ? strokeW * 1.6 : strokeW}
                     style={{ cursor: onRegionClick ? "pointer" : "default" }}
                     onClick={onRegionClick ? () => onRegionClick(r, c) : undefined}
@@ -759,8 +780,8 @@ export function WorldMapSvg({
                         const base = r.is_capital_district ? 1.05 : 0.9;
                         return labelSize * base * Math.min(1.4, Math.max(0.5, rel));
                       })()}
-                      fill="#f1f5f9"
-                      stroke="#0a1622"
+                      fill="#222222"
+                      stroke="#ffffff"
                       strokeWidth={labelSize * 0.14}
                       paintOrder="stroke"
                       pointerEvents="none"
@@ -822,7 +843,7 @@ export function WorldMapSvg({
                         cx={city.point.x}
                         cy={city.point.y}
                         r={r}
-                        fill={city.is_capital ? "#fde047" : "#f8fafc"}
+                        fill={city.is_capital ? "#fde047" : "#ffffff"}
                         stroke="#1c1917"
                         strokeWidth={strokeW * 0.8}
                       />
@@ -832,8 +853,8 @@ export function WorldMapSvg({
                           y={city.point.y - r * 1.4}
                           textAnchor="middle"
                           fontSize={labelSize * 0.8}
-                          fill="#f1f5f9"
-                          stroke="#0a1622"
+                          fill="#222222"
+                          stroke="#ffffff"
                           strokeWidth={labelSize * 0.12}
                           paintOrder="stroke"
                         >
@@ -889,8 +910,8 @@ export function WorldMapSvg({
                 textAnchor="middle"
                 fontSize={labelSize * 1.5 * Math.min(1.3, Math.max(0.55, rel))}
                 fontWeight={700}
-                fill="#ffffff"
-                stroke="#0a1622"
+                fill="#1a1a1a"
+                stroke="#ffffff"
                 strokeWidth={labelSize * 0.18}
                 paintOrder="stroke"
                 pointerEvents="none"
@@ -914,8 +935,8 @@ export function WorldMapSvg({
           <g key={w.id}>
             <path
               d={smoothClosedPath(w.boundary)}
-              fill={w.kind === "inland_sea" ? "#0b3a5c" : "#1d6fa8"}
-              stroke="#0a1622"
+              fill={w.kind === "inland_sea" ? "#8fb2bf" : "#9fc4cf"}
+              stroke="#ffffff"
               strokeWidth={strokeW * 0.6}
               opacity={0.95}
               style={{ cursor: onWaterClick ? "pointer" : "default" }}
@@ -929,8 +950,9 @@ export function WorldMapSvg({
                 y={w.center.y}
                 textAnchor="middle"
                 fontSize={Math.max(4, strokeW * 8)}
-                fill="#bfdbfe"
+                fill="#2c423f"
                 fontStyle="italic"
+                letterSpacing="0.25em"
                 opacity={0.85}
                 pointerEvents="none"
               >
@@ -1056,7 +1078,7 @@ function SeaLane({
     <path
       d={`M${a.x.toFixed(2)},${a.y.toFixed(2)} Q${cx.toFixed(2)},${cy.toFixed(2)} ${b.x.toFixed(2)},${b.y.toFixed(2)}`}
       fill="none"
-      stroke="#7dd3fc"
+      stroke="#5f7d8c"
       strokeWidth={strokeW}
       strokeDasharray={`${strokeW * 3} ${strokeW * 2.4}`}
       opacity={0.65}
@@ -1078,7 +1100,7 @@ function FeatureMark({ feature, strokeW }: { feature: MapFeatureDto; strokeW: nu
       <polyline
         points={pts.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")}
         fill="none"
-        stroke="#4ea3d8"
+        stroke="#4a6a8a"
         strokeWidth={strokeW * 1.4}
         strokeLinecap="round"
         opacity={0.9}
@@ -1174,7 +1196,7 @@ function FlowArrow({
         textAnchor="middle"
         fontSize={Math.max(3.5, w * 2.6)}
         fill="#dcfce7"
-        stroke="#0a1622"
+        stroke="#ffffff"
         strokeWidth={w * 0.5}
         paintOrder="stroke"
       >

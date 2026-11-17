@@ -21,17 +21,14 @@ interface SparklineProps {
 
 /**
  * Phase 54: Compact ECharts line chart for historical banking data.
- *
- * Features:
- * - Renders a compact sparkline from historical values.
- * - Tooltip on hover shows the value at each point.
- * - Double-click to pin/unpin the chart (keeps it visible).
- * - Pin icon indicates pinned state.
+ * v4.34.0 (TASK-041): sunken #f4f4f0 terminal mini-plot — sharp 1.5px
+ * piecewise polyline with vertex dots, dotted zero/mean reference line,
+ * no gradient glow, no spline smoothing.
  */
 export function Sparkline({
   data,
   labels,
-  color = "#3b82f6",
+  color = "#0000aa",
   label = "Value",
   unit = "",
   width = 200,
@@ -52,8 +49,10 @@ export function Sparkline({
     const xData = labels && labels.length === data.length
       ? labels.map(String)
       : data.map((_, i) => String(i));
+    const mean = data.length > 0 ? data.reduce((a, b) => a + b, 0) / data.length : 0;
 
     chart.setOption({
+      backgroundColor: "#f4f4f0",
       grid: { left: 4, right: 4, top: 4, bottom: 4 },
       xAxis: {
         type: "category",
@@ -63,31 +62,38 @@ export function Sparkline({
       yAxis: {
         type: "value",
         show: false,
+        min: (v: { min: number; max: number }) => Math.min(v.min, mean),
+        max: (v: { min: number; max: number }) => Math.max(v.max, mean),
       },
       tooltip: {
         trigger: "axis",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         formatter: (params: any) => {
           const p = params[0];
           if (!p) return "";
           const val = typeof p.value === "number" ? p.value.toFixed(2) : p.value;
           return `${label}: ${unit}${val}`;
         },
-        backgroundColor: "rgba(0,0,0,0.8)",
-        borderColor: color,
-        textStyle: { color: "#fff", fontSize: 11 },
+        backgroundColor: "#ffffe1",
+        borderColor: "#000000",
+        textStyle: { color: "#000000", fontSize: 11, fontFamily: '"Courier New", monospace' },
+        extraCssText: "border-radius:0;box-shadow:none;",
       },
       series: [
         {
           type: "line",
           data,
-          smooth: true,
-          symbol: "none",
+          smooth: false,
+          symbol: "circle",
+          symbolSize: 3,
           lineStyle: { color, width: 1.5 },
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: color + "40" },
-              { offset: 1, color: color + "05" },
-            ]),
+          itemStyle: { color },
+          markLine: {
+            silent: true,
+            symbol: "none",
+            lineStyle: { color: "#808080", width: 1, type: "dashed" },
+            data: [{ yAxis: mean }],
+            label: { show: false },
           },
         },
       ],
@@ -108,7 +114,7 @@ export function Sparkline({
   };
 
   return (
-    <div className="relative inline-block" onDoubleClick={handleDoubleClick}>
+    <div className="relative inline-block retro-spark-frame" onDoubleClick={handleDoubleClick}>
       <div
         ref={chartRef}
         style={{ width: `${width}px`, height: `${height}px` }}

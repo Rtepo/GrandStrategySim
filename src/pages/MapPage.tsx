@@ -42,7 +42,7 @@ const ZOOM_STEPS = [1, 1.5, 2.2, 3.2, 4.5];
 
 export function MapPage() {
   const navigate = useNavigate();
-  const { setSelectedCountry } = useGameStore();
+  const { setSelectedCountry, gameStatus } = useGameStore();
   const [mode, setMode] = useState<MapMode>("political");
   const [zoomIdx, setZoomIdx] = useState(0);
   const [selected, setSelected] = useState<{
@@ -175,11 +175,17 @@ export function MapPage() {
       </div>
 
       <div className="grid grid-cols-4 gap-4">
-        <Card className="col-span-3">
+        <Card className="col-span-4 relative">
           <CardContent className="p-0">
             {/* v4.32.0 (TASK-035): near full-bleed viewport — the map fills
                 the available window height (Victoria-3 style). */}
-            <div className="overflow-auto h-[calc(100vh-220px)] min-h-[420px]   bg-[#0f2739]">
+            <div className="relative overflow-auto h-[calc(100vh-220px)] min-h-[420px]   bg-[#c4d6d0]">
+              {/* v4.34.0 (TASK-040): cartographic title cartouche. */}
+              <div className="vintage-cartouche absolute top-3 right-3 z-10 pointer-events-none">
+                <div className="cartouche-title">Grand Strategy Atlas</div>
+                <div>Year {gameStatus?.year ?? "—"} · {gameStatus?.season ?? "—"}</div>
+                <div>Mode: {MODES.find((m) => m.value === mode)?.label ?? mode}</div>
+              </div>
               <div style={{ width: `${zoom * 100}%`, minWidth: "100%" }}>
                 <WorldMapSvg
                   snapshot={snapshot}
@@ -224,7 +230,17 @@ export function MapPage() {
           </CardContent>
         </Card>
 
-        <div className="col-span-1">
+        {/* v4.34.0 (TASK-040): floating Win95 inspector sub-window
+            overlaid on the right edge of the full-bleed map. */}
+        <div className="absolute top-3 right-3 z-20 w-80 max-w-[85%] max-h-[calc(100vh-300px)] overflow-y-auto win95-panel">
+          <div className="win95-titlebar sticky top-0 z-10">
+            <span>{selectedFrontline ? "FRONTLINE INSPECTOR" : selectedWater ? "WATER BODY" : selected ? "REGION INSPECTOR" : "INSPECTOR"}</span>
+            <span
+              className="win95-close-btn cursor-pointer"
+              onClick={() => { setSelected(null); setSelectedWater(null); setSelectedFrontline(null); }}
+            >X</span>
+          </div>
+          <div className="p-1">
           {selectedFrontline ? (
             <FrontlineCard
               frontline={selectedFrontline}
@@ -253,6 +269,7 @@ export function MapPage() {
               </CardContent>
             </Card>
           )}
+          </div>
         </div>
       </div>
     </div>

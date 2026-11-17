@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { EChart } from "./EChart";
+import { RetroLineChart } from "../../lib/retroChart";
 import type { MacroHistoryPoint, TelemetryDeltas } from "../../types/api";
-import type { EChartsOption } from "echarts";
 
 interface GdpChartProps {
   country: string;
@@ -75,77 +74,22 @@ export function GdpChart({ country, gdp, cpi, ppi, deltas, turn, backendHistory 
     });
   }, [country, turn, gdp, cpi, ppi]);
 
-  const option: EChartsOption = {
-    backgroundColor: "transparent",
-    tooltip: {
-      trigger: "axis",
-      valueFormatter: (v: unknown) => {
-        const n = typeof v === "number" ? v : Number(v);
-        if (!isFinite(n)) return String(v);
-        if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + "B";
-        if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + "M";
-        if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(2) + "K";
-        return n.toFixed(2);
-      },
-    },
-    legend: {
-      data: ["GDP", "CPI", "PPI"],
-      textStyle: { color: "#94a3b8" },
-      top: 0,
-    },
-    grid: { left: 60, right: 60, top: 40, bottom: 30 },
-    xAxis: {
-      type: "category",
-      data: history.map((h) => `T${h.turn}`),
-      axisLine: { lineStyle: { color: "#475569" } },
-      axisLabel: { color: "#94a3b8" },
-    },
-    yAxis: [
-      {
-        type: "value",
-        name: "GDP",
-        position: "left",
-        axisLine: { lineStyle: { color: "#475569" } },
-        axisLabel: { color: "#94a3b8", formatter: (v: number) => (v / 1e9).toFixed(1) + "B" },
-        splitLine: { lineStyle: { color: "#334155" } },
-      },
-      {
-        type: "value",
-        name: "Index",
-        position: "right",
-        axisLine: { lineStyle: { color: "#475569" } },
-        axisLabel: { color: "#94a3b8" },
-        splitLine: { show: false },
-      },
-    ],
-    series: [
-      {
-        name: "GDP",
-        type: "line",
-        yAxisIndex: 0,
-        data: history.map((h) => h.gdp),
-        smooth: true,
-        itemStyle: { color: "#3b82f6" },
-        areaStyle: { opacity: 0.1 },
-      },
-      {
-        name: "CPI",
-        type: "line",
-        yAxisIndex: 1,
-        data: history.map((h) => h.cpi),
-        smooth: true,
-        itemStyle: { color: "#ef4444" },
-      },
-      {
-        name: "PPI",
-        type: "line",
-        yAxisIndex: 1,
-        data: history.map((h) => h.ppi),
-        smooth: true,
-        itemStyle: { color: "#eab308" },
-      },
-    ],
-  };
-
-  return <EChart option={option} style={{ minHeight: 320 }} />;
+  const fmtB = (v: number) => (v / 1e9).toFixed(1) + "B";
+  return (
+    <RetroLineChart
+      categories={history.map((h) => `T${h.turn}`)}
+      height={320}
+      toolbar
+      checkboxes
+      series={[
+        { name: "GDP", data: history.map((h) => h.gdp), color: "#0000aa", yAxisIndex: 0 },
+        { name: "CPI", data: history.map((h) => h.cpi), color: "#aa0000", yAxisIndex: 1 },
+        { name: "PPI", data: history.map((h) => h.ppi), color: "#b86b00", yAxisIndex: 1 },
+      ]}
+      yAxes={[
+        { name: "GDP", axisLabel: { color: "#000000", fontSize: 9, fontFamily: '"Courier New", monospace', formatter: fmtB } },
+        { name: "Index", axisLabel: { color: "#800080", fontSize: 9, fontFamily: '"Courier New", monospace' } },
+      ]}
+    />
+  );
 }

@@ -5,6 +5,7 @@ import { getPaginatedBanks, getBankingAggregates, getBankingHistory, getBankDeta
 import { Card, CardHeader, CardTitle, CardContent, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty, Button } from "../components/ui";
 import { Sparkline } from "../components/charts/Sparkline";
 import { EChart } from "../components/charts/EChart";
+import { RetroLineChart, retroPieSeries, retroTooltip, DotLeaderLegend } from "../lib/retroChart";
 import { VipHoverCard } from "../components/VipHoverCard";
 import type { CentralBankDto, BankProfitPointDto } from "../types/api";
 import { fmt } from "../lib/format";
@@ -533,77 +534,70 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** v4.30.0 (TASK-026): donut of one bank's asset & reserve structure. */
+/** v4.30.0 (TASK-026): solid pie of one bank's asset & reserve structure.
+ *  v4.34.0 (TASK-042): no hollow donut — flat pie + dot-leader legend. */
 function BankAssetDonut({ d }: { d: import("../types/api").BankDetail }) {
-  const option = useMemo(() => {
+  const { option, slices, total } = useMemo(() => {
     const slices = [
-      { name: "Cash / CB Reserves", value: d.reserves_at_central_bank + d.cb_deposit_facility_balance, color: "#3b82f6" },
-      { name: "Corporate Loans", value: d.corporate_loans, color: "#10b981" },
-      { name: "Consumer Loans", value: d.consumer_loans, color: "#f59e0b" },
-      { name: "Interbank Loans", value: d.interbank_loans_given, color: "#a855f7" },
-      { name: "Gov/CB Securities", value: d.securities + d.mbs_holdings_value, color: "#38bdf8" },
-      { name: "Real Estate", value: d.real_estate, color: "#9ca3af" },
+      { name: "Cash / CB Reserves", value: d.reserves_at_central_bank + d.cb_deposit_facility_balance, color: "#0000aa" },
+      { name: "Corporate Loans", value: d.corporate_loans, color: "#008000" },
+      { name: "Consumer Loans", value: d.consumer_loans, color: "#b86b00" },
+      { name: "Interbank Loans", value: d.interbank_loans_given, color: "#800080" },
+      { name: "Gov/CB Securities", value: d.securities + d.mbs_holdings_value, color: "#008080" },
+      { name: "Real Estate", value: d.real_estate, color: "#555555" },
     ].filter((s) => s.value > 0);
-    return {
-      tooltip: {
+    const total = slices.reduce((s, x) => s + x.value, 0);
+    const option = {
+      tooltip: retroTooltip({
         trigger: "item" as const,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         formatter: (p: any) => `${p.name}: ${fmt(Number(p.value) || 0)} (${Number(p.percent || 0).toFixed(1)}%)`,
-      },
-      legend: { bottom: 0, textStyle: { color: "#cbd5e1", fontSize: 10 }, itemWidth: 10, itemHeight: 8 },
-      series: [
-        {
-          type: "pie" as const,
-          radius: ["40%", "66%"],
-          center: ["50%", "44%"],
-          label: { show: true, formatter: "{d}%", color: "#e2e8f0", fontSize: 10 },
-          labelLine: { length: 6, length2: 5 },
-          data: slices.map((s) => ({ name: s.name, value: s.value, itemStyle: { color: s.color } })),
-        },
-      ],
+      }),
+      series: retroPieSeries(
+        slices.map((s) => ({ name: s.name, value: s.value, color: s.color })),
+        { center: ["50%", "44%"], label: { show: true, formatter: "{d}%", color: "#000000", fontSize: 10, fontFamily: '"Courier New", monospace' } },
+      ),
     };
+    return { option, slices, total };
   }, [d]);
-  return <EChart option={option} style={{ height: 260 }} />;
+  return (
+    <div className="pinstripe-inset p-2">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <EChart option={option} style={{ height: 260 }} />
+        </div>
+        <DotLeaderLegend
+          entries={slices.map((s) => ({
+            name: s.name,
+            value: `${total > 0 ? ((s.value / total) * 100).toFixed(1) : "0.0"}%`,
+            color: s.color,
+          }))}
+        />
+      </div>
+    </div>
+  );
 }
 
-/** v4.30.0 (TASK-026): NII / provisioning / net profit over the last 24 turns. */
+/** v4.30.0 (TASK-026): NII / provisioning / net profit over the last 24 turns.
+ *  v4.34.0 (TASK-041): sharp marked polylines on a white sunken canvas. */
 function BankProfitChart({ series }: { series: BankProfitPointDto[] }) {
-  const option = useMemo(() => {
-    const pts = series.slice(-24);
-    const names = ["Net Interest Income", "Provisioning / NPL Cost", "Net Profit"];
-    const keys: (keyof BankProfitPointDto)[] = [
-      "net_interest_income",
-      "provisioning_cost",
-      "net_profit",
-    ];
-    const colors = ["#38bdf8", "#ef4444", "#10b981"];
-    return {
-      tooltip: { trigger: "axis" as const },
-      legend: { bottom: 0, textStyle: { color: "#cbd5e1", fontSize: 10 }, itemWidth: 10, itemHeight: 8 },
-      grid: { left: 60, right: 12, top: 12, bottom: 34 },
-      xAxis: {
-        type: "category" as const,
-        data: pts.map((p) => `T${p.turn}`),
-        axisLabel: { color: "#94a3b8", fontSize: 9 },
-      },
-      yAxis: {
-        type: "value" as const,
-        axisLabel: { color: "#94a3b8", fontSize: 9, formatter: (v: number) => fmt(v) },
-      },
-      series: names.map((name, i) => ({
-        name,
-        type: "line" as const,
-        data: pts.map((p) => p[keys[i]]),
-        itemStyle: { color: colors[i] },
-        lineStyle: { color: colors[i], width: 2 },
-        symbol: "none",
-        smooth: true,
-      })),
-    };
-  }, [series]);
+  const pts = series.slice(-50);
   if (series.length === 0)
     return <div className="text-sm text-muted-foreground p-2">No financial history recorded yet — advance a turn.</div>;
-  return <EChart option={option} style={{ height: 260 }} />;
+  return (
+    <RetroLineChart
+      categories={pts.map((p) => `T${p.turn}`)}
+      height={260}
+      toolbar
+      checkboxes
+      series={[
+        { name: "Net Interest Income", data: pts.map((p) => p.net_interest_income), color: "#0000aa" },
+        { name: "Provisioning / NPL Cost", data: pts.map((p) => p.provisioning_cost), color: "#aa0000" },
+        { name: "Net Profit", data: pts.map((p) => p.net_profit), color: "#008000" },
+      ]}
+      yFormatter={fmt}
+    />
+  );
 }
 
 /** v4.30.0 (TASK-026): the ten top banking KPI cards — every card carries a
@@ -667,45 +661,20 @@ function PinnedKpiChart({
   labels: number[];
   color: string;
 }) {
-  const option = useMemo(
-    () => ({
-      tooltip: {
-        trigger: "axis" as const,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        formatter: (ps: any) => `T${ps[0].axisValue} — ${fmt(Number(ps[0].data) || 0)}`,
-      },
-      grid: { left: 70, right: 16, top: 16, bottom: 30 },
-      xAxis: {
-        type: "category" as const,
-        data: labels.slice(-data.length),
-        axisLabel: { color: "#94a3b8", fontSize: 10 },
-      },
-      yAxis: {
-        type: "value" as const,
-        axisLabel: { color: "#94a3b8", fontSize: 10, formatter: (v: number) => fmt(v) },
-      },
-      series: [
-        {
-          name: label,
-          type: "line" as const,
-          data,
-          itemStyle: { color },
-          lineStyle: { color, width: 2 },
-          areaStyle: { color, opacity: 0.12 },
-          symbol: "none",
-          smooth: true,
-        },
-      ],
-    }),
-    [label, data, labels, color],
-  );
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-sm">{label} — historical</CardTitle>
       </CardHeader>
       <CardContent>
-        <EChart option={option} style={{ height: 220 }} />
+        <RetroLineChart
+          categories={labels.slice(-data.length).map((t) => `T${t}`)}
+          height={220}
+          toolbar
+          checkboxes={false}
+          series={[{ name: label, data, color }]}
+          yFormatter={fmt}
+        />
       </CardContent>
     </Card>
   );

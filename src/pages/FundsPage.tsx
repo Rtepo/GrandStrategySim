@@ -398,21 +398,21 @@ function AllocationSunburst({ detail }: { detail: FundDetail }) {
       series: [
         {
           type: "sunburst",
-          radius: ["12%", "95%"],
+          radius: ["0%", "95%"],
           nodeClick: "rootToNode",
           breadcrumb: {
             show: true,
             top: 0,
-            itemStyle: { color: "#1e293b", textStyle: { color: "#cbd5e1" } },
+            itemStyle: { color: "#d4d0c8", textStyle: { color: "#000000" } },
           },
           sort: undefined,
-          label: { fontSize: 9, color: "#f8fafc", minAngle: 8 },
-          itemStyle: { borderColor: "#0f172a", borderWidth: 1 },
+          label: { fontSize: 9, color: "#000000", minAngle: 8 },
+          itemStyle: { borderColor: "#ffffff", borderWidth: 1 },
           levels: [
             {},
             {
               // Asset-class ring — widest arc, always labeled.
-              r0: "12%",
+              r0: "0%",
               r: "42%",
               label: { rotate: "radial", fontSize: 10 },
             },
@@ -470,24 +470,32 @@ function CgtHistoryChart({ data, years }: { data: number[]; years: number[] }) {
       return yearIdx >= 0 && yearIdx < years.length ? String(years[yearIdx]) : "";
     });
     chart.setOption({
+      backgroundColor: "#ffffff",
       grid: { left: 4, right: 10, top: 10, bottom: 4, containLabel: true },
       xAxis: {
         type: "category",
         data: categories,
-        axisLabel: { fontSize: 9, rotate: categories.length > 8 ? 45 : 0 },
+        axisLabel: { fontSize: 9, color: "#000000", rotate: categories.length > 8 ? 45 : 0 },
+        axisLine: { lineStyle: { color: "#000000" } },
       },
       yAxis: {
         type: "value",
-        axisLabel: { fontSize: 9, formatter: axisCompact },
+        axisLabel: { fontSize: 9, color: "#000000", formatter: axisCompact },
+        axisLine: { show: true, lineStyle: { color: "#000000" } },
+        splitLine: { lineStyle: { color: "#c0c0c0", type: "dashed" as const } },
       },
       tooltip: {
         trigger: "axis",
+        backgroundColor: "#ffffe1",
+        borderColor: "#000000",
+        textStyle: { color: "#000000", fontSize: 11, fontFamily: '"Courier New", monospace' },
+        extraCssText: "border-radius:0;box-shadow:none;",
         valueFormatter: (v: number) => fmt(v),
       },
       series: [{
         type: "bar",
         data,
-        itemStyle: { color: "#3b82f6" },
+        itemStyle: { color: "#0000aa", borderColor: "#000000", borderWidth: 1 },
       }],
     });
     const handleResize = () => chart.resize();

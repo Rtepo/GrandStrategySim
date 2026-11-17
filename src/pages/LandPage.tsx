@@ -551,7 +551,7 @@ function ClimateTab({ country }: { country: string }) {
             <CardTitle className="text-sm">Topography &amp; Biome Map</CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0 space-y-2">
-            <div className="h-64   overflow-hidden border border-border bg-[#0f2739]">
+            <div className="h-64   overflow-hidden border border-border bg-[#e6e2d8]">
               <WorldMapSvg
                 snapshot={worldMap}
                 mode="biome"
